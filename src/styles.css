@@ -21,6 +21,7 @@ body {
   background: #fff;
   color: #000;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body::selection {
@@ -399,6 +400,28 @@ a {
     margin-right: 16px !important;
     border-radius: var(--radius-img) !important;
   }
+  .project__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+  .project__text {
+    white-space: normal;
+    width: 100%;
+  }
+  .project__name {
+    font-size: clamp(28px, 6vw, 48px);
+    letter-spacing: -1.2px;
+  }
+  .project__number {
+    font-size: clamp(16px, 3vw, 24px);
+  }
+  .project__btn,
+  .project__inner .btn {
+    width: 100%;
+    max-width: 332px;
+  }
 
   /* ── Work grid ── */
   .work-grid {
@@ -436,6 +459,9 @@ a {
   .about-sections {
     gap: 64px;
     padding-bottom: 80px;
+  }
+  .about-photo-wrap {
+    border-radius: var(--radius-img);
   }
   .about-section-row {
     flex-direction: column;
@@ -491,9 +517,17 @@ a {
   }
   .cs-hero__title {
     font-size: clamp(32px, 7vw, 64px);
+    letter-spacing: -1.2px;
   }
   .cs-hero__subtitle {
     font-size: clamp(16px, 3.5vw, 28px);
+    letter-spacing: -0.6px;
+  }
+  .cs-hero__back {
+    font-size: 16px;
+  }
+  .cs-hero__bottom {
+    top: 80px;
   }
   .cs-hero__text {
     padding-bottom: 48px;
@@ -508,7 +542,9 @@ a {
   }
   .cs-meta {
     flex-direction: column;
-    gap: 0;
+    gap: 24px;
+    font-size: 16px;
+    letter-spacing: -0.4px;
   }
   .cs-meta__left {
     width: 100%;
@@ -520,8 +556,12 @@ a {
   .cs-section__title {
     flex: none;
     width: 100%;
+    font-size: clamp(24px, 5vw, 32px);
   }
   .cs-paragraph {
+    font-size: clamp(16px, 3vw, 20px);
+  }
+  .cs-list li {
     font-size: clamp(16px, 3vw, 20px);
   }
   .cs-images--3 {
@@ -532,6 +572,19 @@ a {
   }
   .cs-images__pic {
     height: 52vw;
+  }
+  .cs-nav {
+    margin-top: 32px;
+    padding-bottom: 48px;
+  }
+  .cs-nav__name {
+    font-size: clamp(18px, 4vw, 24px);
+  }
+
+  /* ── Work main ── */
+  .work-main {
+    padding: 80px 0;
+    gap: 24px;
   }
 
   /* ── Footer ── */
@@ -547,6 +600,13 @@ a {
   .footer__archive {
     flex: 0 0 100%;
   }
+  .footer__archive-thumb {
+    width: 140px;
+    height: 80px;
+  }
+  .footer__archive-screenshot {
+    height: 80px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -559,6 +619,15 @@ a {
   /* ── Hero ── */
   .hero {
     padding: 120px 0 64px;
+    gap: 24px;
+  }
+  .hero__title {
+    font-size: clamp(32px, 9vw, 48px);
+    letter-spacing: -1.2px;
+  }
+  .hero__subtitle {
+    font-size: clamp(18px, 4.5vw, 24px);
+    letter-spacing: -0.6px;
   }
 
   /* ── Project cards ── */
@@ -567,16 +636,46 @@ a {
     margin-right: 8px !important;
     border-radius: 24px !important;
   }
+  .project__inner {
+    padding-bottom: 20px;
+  }
+
+  /* ── About ── */
+  .about-sections {
+    gap: 48px;
+    padding-bottom: 64px;
+  }
+  .about-section-row__label {
+    font-size: clamp(20px, 5vw, 28px);
+  }
+  .about-info-text p {
+    font-size: clamp(18px, 4.5vw, 24px);
+    letter-spacing: -0.6px;
+  }
 
   /* ── Work grid: single column ── */
+  .work-grid {
+    gap: 56px;
+  }
   .work-grid__pic {
     flex: 0 0 100%;
     height: 64vw !important;
+  }
+  .work-grid__name {
+    font-size: clamp(22px, 5.5vw, 28px);
+  }
+  .work-grid__role {
+    font-size: clamp(16px, 4vw, 20px);
+  }
+  .work-grid__text {
+    height: auto;
+    gap: 16px;
   }
 
   /* ── Craft: single column ── */
   .craft-grid {
     flex-direction: column;
+    padding-bottom: 80px;
   }
   .craft-col {
     display: flex !important;
@@ -599,6 +698,10 @@ a {
   .cs-cover {
     height: 60vw;
   }
+  .cs-body {
+    gap: 48px;
+    padding: 64px 0;
+  }
   .cs-images {
     flex-direction: column;
   }
@@ -610,8 +713,30 @@ a {
   .cs-meta__left {
     flex-direction: column;
   }
+  .cs-nav {
+    flex-direction: column;
+    gap: 0;
+    margin-top: 24px;
+  }
+  .cs-nav__card--next {
+    align-items: flex-start;
+  }
 
   /* ── Footer ── */
+  .footer__inner {
+    padding-top: 48px;
+    padding-bottom: 32px;
+  }
+  .footer__col {
+    flex: 0 0 calc(50% - 16px);
+  }
+  .footer__archive-thumb {
+    width: 110px;
+    height: 72px;
+  }
+  .footer__archive-screenshot {
+    height: 72px;
+  }
   .footer__bottom {
     flex-direction: column;
     gap: 4px;
