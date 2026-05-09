@@ -23,6 +23,11 @@ body {
   min-height: 100vh;
 }
 
+body::selection {
+  background: #000;
+  color: #fff;
+}
+
 img {
   display: block;
   max-width: 100%;
@@ -31,6 +36,11 @@ img {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+.page--dark::selection {
+  background: #fff !important;
+  color: #000 !important;
 }
 
 /* Suppress default outline globally */
@@ -162,7 +172,6 @@ a {
 .navbar--white .navbar__link {
   color: #fff;
 }
-
 
 /* Hamburger re-enables clicks (navbar container is pointer-events:none) */
 .hamburger {
@@ -1120,86 +1129,175 @@ a {
   opacity: 0.6;
 }
 
-/* ── Chaos Mode (Konami easter egg) ── */
+/* ── Konami easter egg ── */
 
-@keyframes chaos-rainbow {
-  0%   { color: #ff0080; }
-  14%  { color: #ff6600; }
-  28%  { color: #ffee00; }
-  42%  { color: #00cc44; }
-  57%  { color: #00aaff; }
-  71%  { color: #7700ff; }
-  85%  { color: #ff00cc; }
-  100% { color: #ff0080; }
+.konami-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
 }
 
-@keyframes chaos-bg {
-  0%   { background-color: #fff0f8; }
-  16%  { background-color: #fff8e0; }
-  33%  { background-color: #e8fff0; }
-  50%  { background-color: #e0f4ff; }
-  66%  { background-color: #f0e8ff; }
-  83%  { background-color: #ffe8e8; }
-  100% { background-color: #fff0f8; }
+.konami-wipe__col {
+  will-change: transform;
+  margin: 0 -1px;
 }
 
-html.chaos body {
-  animation: chaos-bg 3s linear infinite;
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='28'%3E🤪%3C/text%3E%3C/svg%3E") 16 16, auto;
+.konami-wipe--covering .konami-wipe__col {
+  animation: col-cover-in 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
 }
 
-html.chaos *,
-html.chaos *::before,
-html.chaos *::after {
-  font-family: "Comic Sans MS", "Comic Sans", "Chalkboard SE", cursive !important;
+.konami-wipe--revealing .konami-wipe__col {
+  animation: col-cover-out 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
 }
 
-/* Rainbow text on key text nodes */
-html.chaos h1,
-html.chaos h2,
-html.chaos h3,
-html.chaos h4,
-html.chaos p,
-html.chaos span,
-html.chaos a,
-html.chaos li,
-html.chaos button {
-  animation: chaos-rainbow 2s linear infinite;
+.konami-wipe--revealing .konami-wipe__col:nth-child(1) {
+  animation-delay: 275ms;
+}
+.konami-wipe--revealing .konami-wipe__col:nth-child(2) {
+  animation-delay: 220ms;
+}
+.konami-wipe--revealing .konami-wipe__col:nth-child(3) {
+  animation-delay: 165ms;
+}
+.konami-wipe--revealing .konami-wipe__col:nth-child(4) {
+  animation-delay: 110ms;
+}
+.konami-wipe--revealing .konami-wipe__col:nth-child(5) {
+  animation-delay: 55ms;
+}
+.konami-wipe--revealing .konami-wipe__col:nth-child(6) {
+  animation-delay: 0ms;
 }
 
-/* Stagger the rainbow per element type so they don't all sync */
-html.chaos h1 { animation-delay: 0s; }
-html.chaos h2 { animation-delay: -0.3s; }
-html.chaos p  { animation-delay: -0.6s; }
-html.chaos a  { animation-delay: -0.9s; }
-html.chaos li { animation-delay: -1.2s; }
-html.chaos span { animation-delay: -0.4s; }
-html.chaos button { animation-delay: -1.5s; }
-
-/* Keep text readable — enforce light bg on images + cards in chaos */
-html.chaos img {
-  border-radius: 8px;
-  filter: hue-rotate(90deg) saturate(1.5);
+@keyframes konami-rainbow {
+  0% {
+    color: #ff0080;
+  }
+  16% {
+    color: #ff6600;
+  }
+  33% {
+    color: #ffee00;
+  }
+  50% {
+    color: #00cc44;
+  }
+  66% {
+    color: #00aaff;
+  }
+  83% {
+    color: #7700ff;
+  }
+  100% {
+    color: #ff0080;
+  }
 }
 
-/* Chaos toast */
-html.chaos::after {
-  content: "🤪 CHAOS MODE — Esc to escape";
+html.konami {
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E🌈%3C/text%3E%3C/svg%3E")
+      16 16,
+    auto;
+}
+
+html.konami *:not(.page-transition__col):not(.konami-wipe__col) {
+  animation: konami-rainbow 2s linear infinite !important;
+  cursor: inherit;
+}
+
+html.konami img,
+html.konami video,
+html.konami canvas {
+  animation: none !important;
+}
+
+@keyframes konami-toast-in {
+  0% {
+    transform: translateX(-50%) translateY(24px) scale(0.92);
+    opacity: 0;
+  }
+  65% {
+    transform: translateX(-50%) translateY(-4px) scale(1.02);
+    opacity: 1;
+  }
+  85% {
+    transform: translateX(-50%) translateY(2px) scale(0.99);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes konami-toast-out {
+  0% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(24px) scale(0.92);
+    opacity: 0;
+  }
+}
+
+@keyframes konami-border-spin {
+  from {
+    --konami-angle: 0deg;
+  }
+  to {
+    --konami-angle: 360deg;
+  }
+}
+
+@property --konami-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+html.konami::after {
+  content: "🌈 Rainbow mode — press Esc to escape";
   position: fixed;
   bottom: 24px;
   left: 50%;
-  transform: translateX(-50%);
-  background: #000;
-  color: #fff !important;
-  animation: none !important;
-  font-family: "Comic Sans MS", cursive !important;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 8px 16px;
+  /* gradient border via padding + background-clip trick */
+  padding: 10px 18px;
   border-radius: 999px;
+  /* 2px gradient ring: conic-gradient as bg, black inset via box-shadow */
+  background:
+    linear-gradient(#000, #000) padding-box,
+    conic-gradient(
+        from var(--konami-angle),
+        #ff0040,
+        #ff8800,
+        #ffee00,
+        #00cc44,
+        #0088ff,
+        #8800ff,
+        #ff0040
+      )
+      border-box;
+  border: 2px solid transparent;
+  color: #fff;
+  animation:
+    konami-toast-in 700ms cubic-bezier(0.34, 1.2, 0.64, 1) both,
+    konami-border-spin 2s linear infinite;
+  font-family: var(--font-inter) !important;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
   z-index: 99999;
   pointer-events: none;
   white-space: nowrap;
+}
+
+html.konami.konami-exiting::after {
+  animation:
+    konami-toast-out 350ms cubic-bezier(0.4, 0, 0.8, 1) both,
+    konami-border-spin 2s linear infinite;
 }
 
 /* =============================================

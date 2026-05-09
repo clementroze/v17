@@ -36,10 +36,14 @@ const REVEAL_MS   = COL_ANIM_MS + (COLS - 1) * STAGGER_MS + 40;
 // and stays the same color for both the cover and reveal phases.
 // This avoids any color switch mid-transition.
 const DARK_PATHS = new Set(['/about', '/craft']);
+const RAINBOW_COLS = ['#ff0040', '#ff8800', '#ffee00', '#00cc44', '#0088ff', '#8800ff'];
 
 function wipeColor(to: string) {
-  // Dark destination → white columns; light destination → black columns
   return DARK_PATHS.has(to) ? '#fff' : '#000';
+}
+
+function isKonami() {
+  return document.documentElement.classList.contains('konami');
 }
 
 // ── provider ──────────────────────────────────────────────────────────────────
@@ -103,7 +107,7 @@ export function RouterProvider({ children }: { children: React.ReactNode }) {
               className="page-transition__col"
               style={{
                 animationDelay: `${i * STAGGER_MS}ms`,
-                background: colColor,
+                background: isKonami() ? RAINBOW_COLS[i] : colColor,
               }}
             />
           ))}

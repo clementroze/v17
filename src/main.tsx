@@ -1,97 +1,90 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles.css';
 import { RouterProvider, useRouter } from './lib/router';
 import { useKonami } from './lib/useKonami';
-import { enterChaos, exitChaos } from './lib/chaosMode';
 import Home from './pages/Home';
 import About from './pages/About';
 import Work from './pages/Work';
 import CaseStudy from './pages/CaseStudy';
 import Craft from './pages/Craft';
 
-const WIPE_COLS       = 6;
-const WIPE_COL_MS     = 480;
-const WIPE_STAGGER_MS = 55;
-const WIPE_COVER_MS   = WIPE_COL_MS + (WIPE_COLS - 1) * WIPE_STAGGER_MS + 40;
-const WIPE_REVEAL_MS  = WIPE_COVER_MS;
+const LS_KEY = 'konami-rainbow';
+const RAINBOW_COLS = ['#ff0040', '#ff8800', '#ffee00', '#00cc44', '#0088ff', '#8800ff'];
+const STAGGER_MS  = 55;
+const COL_ANIM_MS = 480;
+const COVER_MS    = COL_ANIM_MS + (RAINBOW_COLS.length - 1) * STAGGER_MS + 40;
+const REVEAL_MS   = COL_ANIM_MS + (RAINBOW_COLS.length - 1) * STAGGER_MS + 40;
 
-type WipePhase = 'covering' | 'revealing' | null;
+type WipePhase = 'idle' | 'covering' | 'revealing';
 
 function App() {
   const { path } = useRouter();
-  const [chaos, setChaos] = useState(false);
-  const [wipe, setWipe]   = useState<WipePhase>(null);
-  const chaosRef          = useRef(false);
-  const exitingRef        = useRef(false);
+  const [wipePhase, setWipePhase] = React.useState<WipePhase>('idle');
+  const [wipeRainbow, setWipeRainbow] = React.useState(true);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const startChaos = useCallback(() => {
-    if (chaosRef.current || exitingRef.current) return;
-    chaosRef.current = true;
-    setChaos(true);
-    // Add class immediately so CSS kicks in before enterChaos picks elements
-    document.documentElement.classList.add('chaos');
-    enterChaos();
+  // Restore from localStorage on first load
+  React.useEffect(() => {
+    try {
+      if (localStorage.getItem(LS_KEY) === '1') {
+        document.documentElement.classList.add('konami');
+      }
+    } catch {}
   }, []);
 
-  const stopChaos = useCallback(() => {
-    if (!chaosRef.current || exitingRef.current) return;
-    exitingRef.current = true;
-
-    // Step 1 — fling elements off screen + fade them out (~850ms)
-    // .chaos stays on <html> the whole time so CSS remains active
-    exitChaos(() => {
-      // Step 2 — DOM is restored but .chaos still on <html>
-      // Start the covering wipe (black columns slide up over the still-chaos page)
-      setWipe('covering');
-
-      setTimeout(() => {
-        // Step 3 — screen is fully black. NOW remove chaos CSS.
-        document.documentElement.classList.remove('chaos');
-        chaosRef.current   = false;
-        exitingRef.current = false;
-        setChaos(false);
-
-        // Step 4 — reveal: columns slide off, showing the clean restored page
-        setWipe('revealing');
-
-        setTimeout(() => {
-          setWipe(null);
-        }, WIPE_REVEAL_MS);
-      }, WIPE_COVER_MS);
-    });
+  const triggerWipe = React.useCallback((targetOn: boolean) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setWipeRainbow(targetOn);
+    // Mark exiting so toast can animate out before .konami is removed
+    if (!targetOn) document.documentElement.classList.add('konami-exiting');
+    setWipePhase('covering');
+    timerRef.current = setTimeout(() => {
+      document.documentElement.classList.toggle('konami', targetOn);
+      document.documentElement.classList.remove('konami-exiting');
+      try { localStorage.setItem(LS_KEY, targetOn ? '1' : '0'); } catch {}
+      setWipePhase('revealing');
+      timerRef.current = setTimeout(() => {
+        setWipePhase('idle');
+      }, REVEAL_MS);
+    }, COVER_MS);
   }, []);
 
-  useKonami(useCallback(() => {
-    if (chaosRef.current) stopChaos(); else startChaos();
-  }, [startChaos, stopChaos]));
+  useKonami(() => {
+    const isOn = document.documentElement.classList.contains('konami');
+    triggerWipe(!isOn);
+  });
 
-  useEffect(() => {
-    if (!chaos) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') stopChaos(); };
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && document.documentElement.classList.contains('konami')) {
+        triggerWipe(false);
+      }
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [chaos, stopChaos]);
+  }, [triggerWipe]);
 
-  const page = (() => {
-    if (path === '/about') return <About />;
-    if (path === '/work')  return <Work />;
-    if (path === '/craft') return <Craft />;
-    const m = path.match(/^\/work\/(.+)$/);
-    if (m) return <CaseStudy slug={m[1]} />;
-    return <Home />;
-  })();
+  const caseMatch = path.match(/^\/work\/(.+)$/);
 
   return (
     <>
-      {page}
-      {wipe && (
-        <div className={`page-transition page-transition--${wipe}`} aria-hidden="true">
-          {Array.from({ length: WIPE_COLS }, (_, i) => (
+      {path === '/about' ? <About /> :
+       path === '/work'  ? <Work />  :
+       path === '/craft' ? <Craft /> :
+       caseMatch         ? <CaseStudy slug={caseMatch[1]} /> :
+                           <Home />}
+
+      {wipePhase !== 'idle' && (
+        <div className={`konami-wipe konami-wipe--${wipePhase}`} aria-hidden="true">
+          {RAINBOW_COLS.map((color, i) => (
             <div
               key={i}
-              className="page-transition__col"
-              style={{ animationDelay: `${i * WIPE_STAGGER_MS}ms`, background: '#000' }}
+              className="konami-wipe__col"
+              style={{
+                animationDelay: `${i * STAGGER_MS}ms`,
+                background: wipeRainbow ? color : '#000',
+              }}
             />
           ))}
         </div>
