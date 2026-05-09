@@ -3,6 +3,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
+import arrowBlack from "../assets/arrow-black.svg";
 import { parseCase, CaseStudy as CaseStudyData, Block } from "../lib/parseCase";
 import { Reveal } from "../lib/reveal";
 import work from "../data/work";
@@ -167,6 +168,10 @@ export default function CaseStudy({ slug }: { slug: string }) {
   const workItem = work.find((w) => w.slug === slug);
   const heroBg = workItem?.imageSrc || meta.hero || "";
 
+  const currentIdx = work.findIndex((w) => w.slug === slug);
+  const prevItem = work[(currentIdx - 1 + work.length) % work.length];
+  const nextItem = work[(currentIdx + 1) % work.length];
+
   return (
     <div className="page cs-page">
       <Navbar watchShowRef={heroRef} activeLink="work" />
@@ -244,6 +249,32 @@ export default function CaseStudy({ slug }: { slug: string }) {
 
             {/* Sections */}
             {renderBody(blocks)}
+
+            {/* Prev / Next nav */}
+            <div className="cs-nav">
+              <Link
+                href={prevItem.href}
+                className="cs-nav__card cs-nav__card--prev"
+                style={{ "--accent": prevItem.accent } as React.CSSProperties}
+              >
+                <span className="cs-nav__name">{prevItem.name}</span>
+                <span className="cs-nav__meta">
+                  <img src={arrowBlack} alt="" className="cs-nav__arrow cs-nav__arrow--left" />
+                  <span className="cs-nav__label">Previous</span>
+                </span>
+              </Link>
+              <Link
+                href={nextItem.href}
+                className="cs-nav__card cs-nav__card--next"
+                style={{ "--accent": nextItem.accent } as React.CSSProperties}
+              >
+                <span className="cs-nav__name">{nextItem.name}</span>
+                <span className="cs-nav__meta">
+                  <span className="cs-nav__label">Next</span>
+                  <img src={arrowBlack} alt="" className="cs-nav__arrow" />
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

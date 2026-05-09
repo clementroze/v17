@@ -80,7 +80,7 @@ export default function AccordionRow({
                   <p key={i} className="accordion-row__description">
                     {(para as Segment[]).map((seg, j) =>
                       typeof seg === 'string' ? seg : (
-                        <a key={j} href={seg.href} target="_blank" rel="noopener noreferrer" className="accordion-row__link">
+                        <a key={j} href={seg.href} target="_blank" rel="noopener noreferrer" className="accordion-row__link" tabIndex={open ? 0 : -1}>
                           {seg.label}
                         </a>
                       )
@@ -92,6 +92,7 @@ export default function AccordionRow({
               <a
                 href={caseStudyHref}
                 className="accordion-row__see-more"
+                tabIndex={open ? 0 : -1}
                 onClick={(e) => handleCaseStudyClick(e, caseStudyHref)}
               >
                 See case study

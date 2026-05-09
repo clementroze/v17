@@ -16,7 +16,7 @@ const WORK_ITEMS = work;
 function GridItem({ item, index }: { item: WorkItem; index: number }) {
   const picCols = item.images.map((h, i) => (
     <div key={i} className="work-grid__pic" style={{ height: h }}>
-      {item.imageUrls[i] && <img src={item.imageUrls[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+      {item.imageUrls[i] && <img src={item.imageUrls[i]} alt="" />}
     </div>
   ));
 
@@ -181,10 +181,18 @@ export default function Work() {
     try { return (localStorage.getItem('work-view') as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   const dividerRef = useRef<HTMLDivElement>(null);
+  const gridBtnRef = useRef<HTMLButtonElement>(null);
+  const listBtnRef = useRef<HTMLButtonElement>(null);
 
-  const setViewPersisted = (v: 'grid' | 'list') => {
+  const setViewPersisted = (v: 'grid' | 'list', moveFocus = false) => {
     setView(v);
     try { localStorage.setItem('work-view', v); } catch {}
+    if (moveFocus) {
+      // defer so tabIndex update has applied before we call focus()
+      requestAnimationFrame(() => {
+        (v === 'grid' ? gridBtnRef : listBtnRef).current?.focus();
+      });
+    }
   };
 
   return (
@@ -203,8 +211,20 @@ export default function Work() {
             {/* Header row */}
             <div className="work-main__header">
               <span className="work-main__label">Selected work</span>
-              <div className="work-main__toggle">
+              <div
+                className="work-main__toggle"
+                role="radiogroup"
+                aria-label="View"
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setViewPersisted('grid', true); }
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); setViewPersisted('list', true); }
+                }}
+              >
                 <button
+                  ref={gridBtnRef}
+                  role="radio"
+                  aria-checked={view === "grid"}
+                  tabIndex={view === "grid" ? 0 : -1}
                   className={`work-main__toggle-btn work-main__toggle-btn--grid${view === "grid" ? " work-main__toggle-btn--active" : ""}`}
                   onClick={() => setViewPersisted("grid")}
                 >
@@ -217,6 +237,10 @@ export default function Work() {
                   Grid
                 </button>
                 <button
+                  ref={listBtnRef}
+                  role="radio"
+                  aria-checked={view === "list"}
+                  tabIndex={view === "list" ? 0 : -1}
                   className={`work-main__toggle-btn work-main__toggle-btn--list${view === "list" ? " work-main__toggle-btn--active" : ""}`}
                   onClick={() => setViewPersisted("list")}
                 >

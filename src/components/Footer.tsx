@@ -12,21 +12,44 @@ const NAV_LINKS = [
   { label: "Craft", href: "/craft" },
 ];
 
+const CITIES = [
+  { label: "Paris", tz: "Europe/Paris" },
+  { label: "Singapore", tz: "Asia/Singapore" },
+  { label: "London", tz: "Europe/London" },
+];
+
+function isDaytime(now: Date, tz: string) {
+  const h = parseInt(
+    now.toLocaleTimeString("en-US", { hour: "2-digit", hour12: false, timeZone: tz }),
+    10,
+  );
+  return h >= 6 && h < 20;
+}
+
 function useCurrentTime() {
-  const [time, setTime] = useState("");
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const fmt = () =>
-      new Date().toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        timeZone: "America/New_York",
-      });
-    setTime(fmt());
-    const id = setInterval(() => setTime(fmt()), 1000);
+    const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  return time;
+
+  const fmt = (tz: string) =>
+    now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone: tz,
+    });
+
+  return {
+    local: fmt("America/New_York"),
+    localDaytime: isDaytime(now, "America/New_York"),
+    cities: CITIES.map((c) => ({
+      label: c.label,
+      time: fmt(c.tz),
+      daytime: isDaytime(now, c.tz),
+    })),
+  };
 }
 
 export default function Footer() {
@@ -35,7 +58,8 @@ export default function Footer() {
   const col2Ref = useReveal(120);
   const archiveRef = useReveal<HTMLAnchorElement>(180);
   const bottomRef = useReveal(240);
-  const time = useCurrentTime();
+  const { local, localDaytime, cities } = useCurrentTime();
+  const [cityHover, setCityHover] = useState(false);
 
   return (
     <footer className="footer">
@@ -121,9 +145,27 @@ export default function Footer() {
       {/* Bottom bar */}
       <div ref={bottomRef} className="reveal footer__bottom">
         <p className="footer__copyright">
-          © {new Date().getFullYear()} Clément Rozé
+          &copy; {new Date().getFullYear()} Cl&eacute;ment Roz&eacute;
         </p>
-        <p className="footer__location-time">{time} • Ithaca, NY</p>
+        <span
+          className={`footer__location-time${cityHover ? " footer__location-time--open" : ""}`}
+          onMouseEnter={() => setCityHover(true)}
+          onMouseLeave={() => setCityHover(false)}
+        >
+          <span className="footer__city-popup" aria-hidden="true">
+            {cities.map((c) => (
+              <span key={c.label} className="footer__city-row">
+                <span className="footer__city-name">
+                  <span className="footer__city-icon">{c.daytime ? "☀" : "☽"}</span>
+                  {c.label}
+                </span>
+                <span className="footer__city-time">{c.time}</span>
+              </span>
+            ))}
+          </span>
+          <span className="footer__time-icon" aria-hidden="true">{localDaytime ? "☀" : "☽"}</span>
+          {local} &bull; Ithaca, NY
+        </span>
       </div>
     </footer>
   );
