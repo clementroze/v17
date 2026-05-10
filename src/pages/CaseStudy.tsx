@@ -4,39 +4,82 @@ import Navbar from "../components/Navbar";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
-import { parseCase, CaseStudy as CaseStudyData, Block } from "../lib/parseCase";
+import { parseCase, CaseStudy as CaseStudyData, Block, Col } from "../lib/parseCase";
 import { Reveal } from "../lib/reveal";
 import work from "../data/work";
 
-// ── Vite glob import: every .md in content/work as raw strings ────────────────
-const mdFiles = import.meta.glob("../content/work/*.md", {
+function renderInlineLinks(text: string): React.ReactNode {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return parts.map((part, i) => {
+    const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (m) return <a key={i} href={m[2]} target="_blank" rel="noopener noreferrer" className="cs-link">{m[1]}</a>;
+    return part;
+  });
+}
+
+const mdFiles = import.meta.glob("../work/*.md", {
   as: "raw",
   eager: true,
 }) as Record<string, string>;
 
 function loadCase(slug: string): CaseStudyData | null {
-  const key = `../content/work/${slug}.md`;
+  const key = `../work/${slug}.md`;
   if (!(key in mdFiles)) return null;
   return parseCase(mdFiles[key]);
 }
 
 // ── body block renderer ───────────────────────────────────────────────────────
-function renderBlock(block: Block, idx: number): React.ReactNode {
+function renderBlock(block: Block, idx: number, prevBlock?: Block): React.ReactNode {
   switch (block.type) {
     case "section":
       return (
         <Reveal key={idx}>
           <div className="cs-section__divider" />
           <div className="cs-section">
-            <p className="cs-section__title">{block.title}</p>
+            <h2 className="cs-section__title">{block.title}</h2>
             <div className="cs-section__body" />
           </div>
         </Reveal>
       );
+    case "heading":
+      return (
+        <Reveal key={idx} delay={40}>
+          <h3 className="cs-heading">{renderInlineLinks(block.text)}</h3>
+        </Reveal>
+      );
+    case "quote":
+      return (
+        <Reveal key={idx} delay={40}>
+          <blockquote className="cs-quote">{renderInlineLinks(block.text)}</blockquote>
+        </Reveal>
+      );
+    case "hmw":
+      return (
+        <Reveal key={idx} delay={40}>
+          <div className="cs-hmw-wrap">
+            <h2 className="cs-hmw">{renderInlineLinks(block.text)}</h2>
+          </div>
+        </Reveal>
+      );
+    case "cols": {
+      const afterImage = prevBlock?.type === "images";
+      return (
+        <Reveal key={idx}>
+          <div className={`cs-cols${afterImage ? " cs-cols--after-image" : ""}`}>
+            {block.columns.map((col: Col, j: number) => (
+              <div key={j} className="cs-cols__col">
+                {col.heading && <h3 className="cs-cols__heading">{renderInlineLinks(col.heading)}</h3>}
+                {col.body && <p className="cs-cols__body">{renderInlineLinks(col.body)}</p>}
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      );
+    }
     case "paragraph":
       return (
         <Reveal key={idx} delay={40}>
-          <p className="cs-paragraph">{block.text}</p>
+          <p className="cs-paragraph">{renderInlineLinks(block.text)}</p>
         </Reveal>
       );
     case "list":
@@ -44,7 +87,7 @@ function renderBlock(block: Block, idx: number): React.ReactNode {
         <Reveal key={idx} delay={40}>
           <ul className="cs-list">
             {block.items.map((item, i) => (
-              <li key={i}>{item}</li>
+              <li key={i}>{renderInlineLinks(item)}</li>
             ))}
           </ul>
         </Reveal>
@@ -52,12 +95,26 @@ function renderBlock(block: Block, idx: number): React.ReactNode {
     case "images":
       return (
         <Reveal key={idx}>
-          <div className={`cs-images cs-images--${block.srcs.length}`}>
-            {block.srcs.map((src, i) => (
-              <div key={i} className="cs-images__pic">
-                {src && <img src={src} alt="" />}
-              </div>
-            ))}
+          <div
+            className={`cs-images cs-images--${block.srcs.length}`}
+            style={block.width ? { maxWidth: block.width, width: '100%' } : undefined}
+          >
+            {block.srcs.map((src, i) => {
+              const isVideo = /\.(mp4|mov|webm|ogg)$/i.test(src);
+              return (
+                <figure key={i} className="cs-figure">
+                  <div className="cs-images__pic">
+                    {src && (isVideo
+                      ? <video src={src} autoPlay loop muted playsInline />
+                      : <img src={src} alt={block.alts?.[i] ?? ""} />
+                    )}
+                  </div>
+                  {block.captions?.[i] && (
+                    <figcaption className="cs-figcaption">{block.captions[i]}</figcaption>
+                  )}
+                </figure>
+              );
+            })}
           </div>
         </Reveal>
       );
@@ -65,8 +122,8 @@ function renderBlock(block: Block, idx: number): React.ReactNode {
 }
 
 // ── section-aware body renderer ───────────────────────────────────────────────
-// Groups blocks so paragraphs/lists/images that follow a section heading
-// are rendered inside that section's right column.
+// Within a section, images go full-width while paragraphs/lists always render
+// in the right column — even when they appear after an image.
 function renderBody(blocks: Block[]) {
   const out: React.ReactNode[] = [];
   let i = 0;
@@ -75,7 +132,6 @@ function renderBody(blocks: Block[]) {
     const block = blocks[i];
 
     if (block.type === "section") {
-      // Collect the body blocks until the next section heading or image group
       const bodyBlocks: Block[] = [];
       i++;
       while (i < blocks.length && blocks[i].type !== "section") {
@@ -83,39 +139,74 @@ function renderBody(blocks: Block[]) {
         i++;
       }
 
-      // Split: inline blocks (paragraphs + lists) go in right col,
-      // standalone image blocks go full-width after the section row
-      const inlineBlocks: Block[] = [];
-      const trailingImages: Block[] = [];
-      let seenImage = false;
+      // Partition into alternating runs: inline (paragraphs/lists) and images.
+      // Each run is rendered in order: inline runs go in a cs-section row,
+      // image runs go full-width between rows.
+      type Run = { kind: 'inline'; items: Block[] } | { kind: 'image'; block: Block };
+      const runs: Run[] = [];
       for (const b of bodyBlocks) {
-        if (b.type === "images") {
-          seenImage = true;
-          trailingImages.push(b);
-        } else if (!seenImage) {
-          inlineBlocks.push(b);
+        if (b.type === "images" || b.type === "hmw" || b.type === "cols") {
+          runs.push({ kind: 'image', block: b });
         } else {
-          trailingImages.push(b);
+          const last = runs[runs.length - 1];
+          if (last?.kind === 'inline') {
+            last.items.push(b);
+          } else {
+            runs.push({ kind: 'inline', items: [b] });
+          }
         }
       }
 
-      out.push(
-        <Reveal key={`section-${i}`}>
-          <div className="cs-section">
-            <p className="cs-section__title">{block.title}</p>
-            <div className="cs-section__body">
-              {inlineBlocks.map((b, j) => renderInlineBlock(b, j))}
-            </div>
-          </div>
-        </Reveal>,
-      );
+      // First inline run shares the section title row; subsequent inline runs
+      // get their own title-less section row (right-column aligned).
+      let firstInline = true;
+      runs.forEach((run, r) => {
+        if (run.kind === 'inline') {
+          if (firstInline) {
+            firstInline = false;
+            out.push(
+              <Reveal key={`section-${i}-${r}`}>
+                <div className="cs-section">
+                  <h2 className="cs-section__title">{block.title}</h2>
+                  <div className="cs-section__body">
+                    {run.items.map((b, j) => renderInlineBlock(b, j))}
+                  </div>
+                </div>
+              </Reveal>,
+            );
+          } else {
+            out.push(
+              <Reveal key={`section-${i}-${r}`}>
+                <div className="cs-section cs-section--no-border">
+                  <div className="cs-section__title" />
+                  <div className="cs-section__body">
+                    {run.items.map((b, j) => renderInlineBlock(b, j))}
+                  </div>
+                </div>
+              </Reveal>,
+            );
+          }
+        } else {
+          const prevRun = runs[r - 1];
+          const prev = prevRun?.kind === 'image' ? prevRun.block : undefined;
+          out.push(renderBlock(run.block, i * 100 + r, prev));
+        }
+      });
 
-      // Full-width images after the section
-      for (let t = 0; t < trailingImages.length; t++) {
-        out.push(renderBlock(trailingImages[t], i * 100 + t));
+      // Section with no inline content at all (only images or empty)
+      if (firstInline) {
+        out.push(
+          <Reveal key={`section-${i}-title`}>
+            <div className="cs-section">
+              <h2 className="cs-section__title">{block.title}</h2>
+              <div className="cs-section__body" />
+            </div>
+          </Reveal>,
+        );
       }
     } else {
-      out.push(renderBlock(block, i));
+      const prevBlock = i > 0 ? blocks[i - 1] : undefined;
+      out.push(renderBlock(block, i, prevBlock));
       i++;
     }
   }
@@ -124,10 +215,31 @@ function renderBody(blocks: Block[]) {
 }
 
 function renderInlineBlock(block: Block, idx: number): React.ReactNode {
+  if (block.type === "heading") {
+    return (
+      <Reveal key={idx} delay={idx * 50}>
+        <h3 className="cs-heading">{renderInlineLinks(block.text)}</h3>
+      </Reveal>
+    );
+  }
+  if (block.type === "quote") {
+    return (
+      <Reveal key={idx} delay={idx * 50}>
+        <blockquote className="cs-quote">{renderInlineLinks(block.text)}</blockquote>
+      </Reveal>
+    );
+  }
+  if (block.type === "hmw") {
+    return (
+      <Reveal key={idx} delay={idx * 50}>
+        <p className="cs-hmw">{renderInlineLinks(block.text)}</p>
+      </Reveal>
+    );
+  }
   if (block.type === "paragraph") {
     return (
       <Reveal key={idx} delay={idx * 50}>
-        <p className="cs-paragraph">{block.text}</p>
+        <p className="cs-paragraph">{renderInlineLinks(block.text)}</p>
       </Reveal>
     );
   }
@@ -136,7 +248,7 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
       <Reveal key={idx} delay={idx * 50}>
         <ul className="cs-list">
           {block.items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>{renderInlineLinks(item)}</li>
           ))}
         </ul>
       </Reveal>
@@ -149,8 +261,8 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
 export default function CaseStudy({ slug }: { slug: string }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { previousPath } = useRouter();
-  const backHref = previousPath === '/about' ? '/about' : '/work';
-  const backLabel = previousPath === '/about' ? 'Back to About' : 'Back';
+  const backHref = previousPath === "/about" ? "/about" : "/work";
+  const backLabel = previousPath === "/about" ? "Back to About" : "Back";
   const data = loadCase(slug);
 
   if (!data) {
@@ -166,7 +278,8 @@ export default function CaseStudy({ slug }: { slug: string }) {
 
   const { meta, blocks } = data;
   const workItem = work.find((w) => w.slug === slug);
-  const heroBg = workItem?.imageSrc || meta.hero || "";
+  const heroBg = workItem?.imageSrc || "";
+  const coverBg = meta.cover || "";
 
   const currentIdx = work.findIndex((w) => w.slug === slug);
   const prevItem = work[(currentIdx - 1 + work.length) % work.length];
@@ -205,9 +318,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
           <div className="container">
             <div
               className="cs-cover"
-              style={
-                meta.cover ? { backgroundImage: `url(${meta.cover})` } : {}
-              }
+              style={coverBg ? { backgroundImage: `url(${coverBg})` } : {}}
             />
           </div>
         </div>
@@ -223,24 +334,24 @@ export default function CaseStudy({ slug }: { slug: string }) {
                 <div className="cs-meta__left">
                   <div className="cs-meta__col">
                     <div className="cs-meta__row">
-                      <span className="cs-meta__label">Year</span>
-                      <span className="cs-meta__value">{meta.year}</span>
+                      <p className="cs-meta__label">Year</p>
+                      <p className="cs-meta__value">{meta.year}</p>
                     </div>
                     <div className="cs-meta__row">
-                      <span className="cs-meta__label">Role</span>
-                      <span className="cs-meta__value">{meta.role}</span>
+                      <p className="cs-meta__label">Role</p>
+                      <p className="cs-meta__value cs-role">{meta.role}</p>
                     </div>
                   </div>
                   <div className="cs-meta__col">
-                    <span className="cs-meta__label">Type</span>
-                    <span className="cs-meta__value">{meta.type}</span>
+                    <p className="cs-meta__label">Type</p>
+                    <p className="cs-meta__value">{meta.type}</p>
                   </div>
                 </div>
                 <div className="cs-meta__about">
-                  <span className="cs-meta__label">About</span>
+                  <p className="cs-meta__label">About</p>
                   {meta.about.map((p, i) => (
                     <p key={i} className="cs-meta__value">
-                      {p}
+                      {renderInlineLinks(p)}
                     </p>
                   ))}
                 </div>
@@ -259,7 +370,11 @@ export default function CaseStudy({ slug }: { slug: string }) {
               >
                 <span className="cs-nav__name">{prevItem.name}</span>
                 <span className="cs-nav__meta">
-                  <img src={arrowBlack} alt="" className="cs-nav__arrow cs-nav__arrow--left" />
+                  <img
+                    src={arrowBlack}
+                    alt=""
+                    className="cs-nav__arrow cs-nav__arrow--left"
+                  />
                   <span className="cs-nav__label">Previous</span>
                 </span>
               </Link>

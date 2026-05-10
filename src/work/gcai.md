@@ -5,8 +5,7 @@ subtitle: Designing an AI-powered legal research platform from zero to launch.
 year: 2026
 role: Lead Product Designer
 type: Product design, Brand identity, Design systems, Prototyping
-hero: /images/gcai-hero.jpg
-cover: /images/gcai-cover.jpg
+cover: /images/gcai/cover.png
 about:
   - General Counsel AI is an early-stage startup building intelligent research and drafting tools for legal professionals and in-house counsel teams.
   - As the first and only designer, I owned the end-to-end product experience from initial wireframes through to the public launch.

@@ -8,21 +8,22 @@
 //   year: 2025
 //   role: Design Intern
 //   type: Research, UX design, …
-//   hero: /images/frog-hero.jpg       ← full-bleed background behind navbar
-//   cover: /images/frog-cover.jpg     ← the large card below the hero overlap
 //   about:
 //     - paragraph one
 //     - paragraph two
 //   ---
 //
+// Hero image comes from work.ts (imageSrc). Cover image is set via `cover:` in the MD frontmatter.
+//
 // Body block types:
 //
-//   ## Section title        → { type: 'section', title }
-//   plain text paragraph    → { type: 'paragraph', text }
-//   - list item             → { type: 'list', items[] }  (consecutive lines merged)
-//   ![a.jpg]                → { type: 'images', srcs: ['a.jpg'] }           (1 image, full-width)
-//   ![a.jpg | b.jpg]        → { type: 'images', srcs: ['a.jpg','b.jpg'] }   (2-up)
-//   ![a.jpg | b.jpg | c.jpg]→ { type: 'images', srcs: [...] }               (3-up)
+//   ## Section title              → { type: 'section', title }
+//   plain text paragraph          → { type: 'paragraph', text }
+//   - list item                   → { type: 'list', items[] }  (consecutive lines merged)
+//   ![a.jpg]                      → { type: 'images', srcs: ['a.jpg'] }
+//   ![a.jpg | b.jpg]              → { type: 'images', srcs: ['a.jpg','b.jpg'] }
+//   ![a.jpg] Caption text         → { type: 'images', srcs: [...], caption: 'Caption text' }
+//   ![alt](src) Caption text      → { type: 'images', srcs: ['src'], caption: 'Caption text' }
 
 export type Meta = {
   slug: string;
@@ -31,16 +32,21 @@ export type Meta = {
   year: string;
   role: string;
   type: string;
-  hero?: string;
   cover?: string;
   about: string[];
 };
 
+export type Col = { heading?: string; body?: string };
+
 export type Block =
   | { type: 'section'; title: string }
+  | { type: 'heading'; text: string }
   | { type: 'paragraph'; text: string }
+  | { type: 'quote'; text: string }
+  | { type: 'hmw'; text: string }
+  | { type: 'cols'; columns: Col[] }
   | { type: 'list'; items: string[] }
-  | { type: 'images'; srcs: string[] };
+  | { type: 'images'; srcs: string[]; alts?: string[]; captions?: string[]; width?: string };
 
 export type CaseStudy = { meta: Meta; blocks: Block[] };
 
@@ -79,18 +85,79 @@ export function parseCase(raw: string): CaseStudy {
     // blank
     if (!line.trim()) { i++; continue; }
 
-    // section heading
+    // COLS block
+    if (line.trim() === 'COLS') {
+      i++;
+      const colLines: string[] = [];
+      while (i < lines.length && lines[i].trim() !== 'ENDCOLS') {
+        colLines.push(lines[i]);
+        i++;
+      }
+      i++; // consume ENDCOLS
+      const columns: Col[] = colLines.join('\n').split(/\n---\n/).map(chunk => {
+        const chunkLines = chunk.trim().split('\n');
+        const headingLine = chunkLines.find(l => l.startsWith('### '));
+        const bodyLines = chunkLines.filter(l => !l.startsWith('### ') && l.trim());
+        return {
+          heading: headingLine ? headingLine.slice(4).trim() : undefined,
+          body: bodyLines.join(' ').trim() || undefined,
+        };
+      });
+      blocks.push({ type: 'cols', columns });
+      continue;
+    }
+
+    // section heading (##) and subheading (###)
+    if (line.startsWith('### ')) {
+      blocks.push({ type: 'heading', text: line.slice(4).trim() });
+      i++;
+      continue;
+    }
     if (line.startsWith('## ')) {
       blocks.push({ type: 'section', title: line.slice(3).trim() });
       i++;
       continue;
     }
 
-    // image line  ![src1 | src2 | …]
-    const imgMatch = line.match(/^!\[(.+)\]$/);
-    if (imgMatch) {
-      const srcs = imgMatch[1].split('|').map(s => s.trim()).filter(Boolean);
-      blocks.push({ type: 'images', srcs });
+    // image line — two supported formats, optional trailing caption(s) and width:
+    //   ![src1 | src2 | …] Caption            single shared caption
+    //   ![src1 | src2 | …] Cap1 | Cap2        per-image captions (parallel to srcs)
+    //   ![alt](src) Caption                   standard markdown image
+    //   any format can end with {600px} or {50%} to constrain width, e.g.:
+    //   ![alt](src) Caption {600px}
+    //   ![src] {400px}
+    const widthToken = line.match(/\{([^}]+)\}\s*$/);
+    const width = widthToken?.[1].trim();
+    const lineNoWidth = widthToken ? line.slice(0, widthToken.index).trimEnd() : line;
+    const imgMulti = lineNoWidth.match(/^!\[(.+?)\](?:\s+(.+))?$/);
+    const imgStd = !imgMulti ? lineNoWidth.match(/^!\[([^\]]*)\]\(([^)]+)\)(?:\s+(.+))?$/) : null;
+    if (imgMulti) {
+      const srcs = imgMulti[1].split('|').map(s => s.trim()).filter(Boolean);
+      const captionRaw = imgMulti[2]?.trim();
+      const captions = captionRaw ? captionRaw.split('|').map(s => s.trim()) : undefined;
+      blocks.push({ type: 'images', srcs, captions, width });
+      i++;
+      continue;
+    }
+    if (imgStd) {
+      const alt = imgStd[1].trim() || undefined;
+      const captionRaw = imgStd[3]?.trim();
+      const captions = captionRaw ? [captionRaw] : undefined;
+      blocks.push({ type: 'images', srcs: [imgStd[2].trim()], alts: alt ? [alt] : undefined, captions, width });
+      i++;
+      continue;
+    }
+
+    // HMW statement
+    if (line.startsWith('HMW ')) {
+      blocks.push({ type: 'hmw', text: line.slice(4).trim() });
+      i++;
+      continue;
+    }
+
+    // blockquote
+    if (line.startsWith('> ')) {
+      blocks.push({ type: 'quote', text: line.slice(2).trim() });
       i++;
       continue;
     }

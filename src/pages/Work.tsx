@@ -31,8 +31,9 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
         href={item.href}
         iconSrc={arrowBlack}
         iconAlt="Arrow"
+        disabled={item.comingSoon}
       >
-        See more
+        {item.comingSoon ? "Coming soon" : "See more"}
       </Button>
     </div>
   );
@@ -145,23 +146,50 @@ function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.
   return (
     <div ref={listRef} className="work-list" onMouseMove={onMouseMove}>
       <div className="work-list__items">
-        {items.map((item, i) => (
-          <Reveal key={item.name} delay={i * 50}>
-            <Link
-              href={item.href}
-              className={`work-list__item${i === 0 ? " work-list__item--first" : ""}`}
-              style={{ "--accent": item.accent } as React.CSSProperties}
-              onMouseEnter={() => handleEnter(i)}
-              onMouseLeave={handleLeave}
-            >
+        {items.map((item, i) => {
+          const itemClass = [
+            "work-list__item",
+            i === 0 ? "work-list__item--first" : "",
+            item.comingSoon ? "work-list__item--disabled" : "",
+          ].filter(Boolean).join(" ");
+
+          const inner = (
+            <>
               <span className="work-list__name">{item.name}</span>
               <span className="work-list__role">{item.role}</span>
               <div className="work-list__right">
-                <img src={arrowBlack} alt="" className="work-list__arrow" />
+                {item.comingSoon
+                  ? <span className="work-list__coming-soon">Coming soon</span>
+                  : <img src={arrowBlack} alt="" className="work-list__arrow" />}
               </div>
-            </Link>
-          </Reveal>
-        ))}
+            </>
+          );
+
+          return (
+            <Reveal key={item.name} delay={i * 50}>
+              {item.comingSoon
+                ? (
+                  <div
+                    className={itemClass}
+                    style={{ "--accent": item.accent } as React.CSSProperties}
+                  >
+                    {inner}
+                  </div>
+                )
+                : (
+                  <Link
+                    href={item.href}
+                    className={itemClass}
+                    style={{ "--accent": item.accent } as React.CSSProperties}
+                    onMouseEnter={() => handleEnter(i)}
+                    onMouseLeave={handleLeave}
+                  >
+                    {inner}
+                  </Link>
+                )}
+            </Reveal>
+          );
+        })}
       </div>
 
       {/* Floating preview — fixed to viewport, follows cursor with spring */}

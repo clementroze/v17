@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import arrowWhite from "../../assets/arrow.svg";
 import Button from "../Button";
 
-type Project = { number: string; name: string; imageSrc: string; href: string };
+type Project = { number: string; name: string; imageSrc: string; href: string; comingSoon?: boolean };
 
 const MARGIN_START = 64; // px each side at rest
 const RADIUS_START = 32; // px border-radius at rest, scrolls down to 0 (fullbleed)
@@ -105,8 +105,9 @@ function ParallaxProject({
               href={project.href}
               iconSrc={arrowWhite}
               iconAlt="Arrow"
+              disabled={project.comingSoon}
             >
-              View
+              {project.comingSoon ? "Coming soon" : "View"}
             </Button>
           </div>
         </div>

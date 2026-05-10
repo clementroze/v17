@@ -9,6 +9,7 @@ type ButtonProps = {
   href?: string;
   iconSrc?: string;
   iconAlt?: string;
+  disabled?: boolean;
 };
 
 export default function Button({
@@ -18,21 +19,23 @@ export default function Button({
   href,
   iconSrc,
   iconAlt = '',
+  disabled = false,
 }: ButtonProps) {
   const classes = [
     'btn',
     `btn--${variant}`,
     fullWidth ? 'btn--full-width' : '',
+    disabled ? 'btn--disabled' : '',
   ].filter(Boolean).join(' ');
 
   const content = (
     <>
       <span>{children}</span>
-      {iconSrc && <img className="btn__icon" src={iconSrc} alt={iconAlt} />}
+      {iconSrc && !disabled && <img className="btn__icon" src={iconSrc} alt={iconAlt} />}
     </>
   );
 
-  if (href) {
+  if (href && !disabled) {
     const isInternal = href.startsWith('/');
     if (isInternal) {
       return <Link href={href} className={classes}>{content}</Link>;
@@ -40,5 +43,5 @@ export default function Button({
     return <a href={href} className={classes}>{content}</a>;
   }
 
-  return <button className={classes}>{content}</button>;
+  return <button className={classes} disabled={disabled}>{content}</button>;
 }
