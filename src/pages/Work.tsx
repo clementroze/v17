@@ -89,7 +89,13 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
 
 // ─── list view with floating preview ─────────────────────────────────────────
 
-function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.RefObject<HTMLDivElement> }) {
+function WorkList({
+  items,
+  dividerRef,
+}: {
+  items: WorkItem[];
+  dividerRef: React.RefObject<HTMLDivElement>;
+}) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -132,14 +138,14 @@ function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.
   const handleEnter = (i: number) => {
     setHoveredIndex(i);
     if (i === 0 && dividerRef.current) {
-      dividerRef.current.style.setProperty('--divider-color', items[0].accent);
+      dividerRef.current.style.setProperty("--divider-color", items[0].accent);
     }
   };
 
   const handleLeave = () => {
     setHoveredIndex(null);
     if (dividerRef.current) {
-      dividerRef.current.style.removeProperty('--divider-color');
+      dividerRef.current.style.removeProperty("--divider-color");
     }
   };
 
@@ -151,42 +157,46 @@ function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.
             "work-list__item",
             i === 0 ? "work-list__item--first" : "",
             item.comingSoon ? "work-list__item--disabled" : "",
-          ].filter(Boolean).join(" ");
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           const inner = (
             <>
               <span className="work-list__name">{item.name}</span>
               <span className="work-list__role">{item.role}</span>
               <div className="work-list__right">
-                {item.comingSoon
-                  ? <span className="work-list__coming-soon">Coming soon</span>
-                  : <img src={arrowBlack} alt="" className="work-list__arrow" />}
+                {item.comingSoon ? (
+                  <span className="work-list__coming-soon">Coming soon</span>
+                ) : (
+                  <img src={arrowBlack} alt="" className="work-list__arrow" />
+                )}
               </div>
             </>
           );
 
           return (
             <Reveal key={item.name} delay={i * 50}>
-              {item.comingSoon
-                ? (
-                  <div
-                    className={itemClass}
-                    style={{ "--accent": item.accent } as React.CSSProperties}
-                  >
-                    {inner}
-                  </div>
-                )
-                : (
-                  <Link
-                    href={item.href}
-                    className={itemClass}
-                    style={{ "--accent": item.accent } as React.CSSProperties}
-                    onMouseEnter={() => handleEnter(i)}
-                    onMouseLeave={handleLeave}
-                  >
-                    {inner}
-                  </Link>
-                )}
+              {item.comingSoon ? (
+                <div
+                  className={itemClass}
+                  style={{ "--accent": item.accent } as React.CSSProperties}
+                  onMouseEnter={() => handleEnter(i)}
+                  onMouseLeave={handleLeave}
+                >
+                  {inner}
+                </div>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={itemClass}
+                  style={{ "--accent": item.accent } as React.CSSProperties}
+                  onMouseEnter={() => handleEnter(i)}
+                  onMouseLeave={handleLeave}
+                >
+                  {inner}
+                </Link>
+              )}
             </Reveal>
           );
         })}
@@ -196,7 +206,14 @@ function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.
       <div
         ref={previewRef}
         className={`work-list__preview${activeItem ? " work-list__preview--visible" : ""}`}
-        style={activeItem ? { background: activeItem.accent } : {}}
+        style={
+          activeItem
+            ? {
+                backgroundColor: activeItem.accent,
+                backgroundImage: activeItem.previewSrc ? `url(${activeItem.previewSrc})` : "none",
+              }
+            : {}
+        }
       />
     </div>
   );
@@ -206,19 +223,25 @@ function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.
 
 export default function Work() {
   const [view, setView] = useState<"grid" | "list">(() => {
-    try { return (localStorage.getItem('work-view') as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
+    try {
+      return (localStorage.getItem("work-view") as "grid" | "list") || "grid";
+    } catch {
+      return "grid";
+    }
   });
   const dividerRef = useRef<HTMLDivElement>(null);
   const gridBtnRef = useRef<HTMLButtonElement>(null);
   const listBtnRef = useRef<HTMLButtonElement>(null);
 
-  const setViewPersisted = (v: 'grid' | 'list', moveFocus = false) => {
+  const setViewPersisted = (v: "grid" | "list", moveFocus = false) => {
     setView(v);
-    try { localStorage.setItem('work-view', v); } catch {}
+    try {
+      localStorage.setItem("work-view", v);
+    } catch {}
     if (moveFocus) {
       // defer so tabIndex update has applied before we call focus()
       requestAnimationFrame(() => {
-        (v === 'grid' ? gridBtnRef : listBtnRef).current?.focus();
+        (v === "grid" ? gridBtnRef : listBtnRef).current?.focus();
       });
     }
   };
@@ -244,8 +267,14 @@ export default function Work() {
                 role="radiogroup"
                 aria-label="View"
                 onKeyDown={(e) => {
-                  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setViewPersisted('grid', true); }
-                  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); setViewPersisted('list', true); }
+                  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setViewPersisted("grid", true);
+                  }
+                  if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setViewPersisted("list", true);
+                  }
                 }}
               >
                 <button
@@ -256,11 +285,45 @@ export default function Work() {
                   className={`work-main__toggle-btn work-main__toggle-btn--grid${view === "grid" ? " work-main__toggle-btn--active" : ""}`}
                   onClick={() => setViewPersisted("grid")}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <rect x="0" y="0" width="6" height="6" rx="1" fill="currentColor"/>
-                    <rect x="8" y="0" width="6" height="6" rx="1" fill="currentColor"/>
-                    <rect x="0" y="8" width="6" height="6" rx="1" fill="currentColor"/>
-                    <rect x="8" y="8" width="6" height="6" rx="1" fill="currentColor"/>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="0"
+                      y="0"
+                      width="6"
+                      height="6"
+                      rx="1"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="8"
+                      y="0"
+                      width="6"
+                      height="6"
+                      rx="1"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="0"
+                      y="8"
+                      width="6"
+                      height="6"
+                      rx="1"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="8"
+                      y="8"
+                      width="6"
+                      height="6"
+                      rx="1"
+                      fill="currentColor"
+                    />
                   </svg>
                   Grid
                 </button>
@@ -272,10 +335,37 @@ export default function Work() {
                   className={`work-main__toggle-btn work-main__toggle-btn--list${view === "list" ? " work-main__toggle-btn--active" : ""}`}
                   onClick={() => setViewPersisted("list")}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <rect x="0" y="1" width="14" height="2" rx="1" fill="currentColor"/>
-                    <rect x="0" y="6" width="14" height="2" rx="1" fill="currentColor"/>
-                    <rect x="0" y="11" width="14" height="2" rx="1" fill="currentColor"/>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="0"
+                      y="1"
+                      width="14"
+                      height="2"
+                      rx="1"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="0"
+                      y="6"
+                      width="14"
+                      height="2"
+                      rx="1"
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="0"
+                      y="11"
+                      width="14"
+                      height="2"
+                      rx="1"
+                      fill="currentColor"
+                    />
                   </svg>
                   List
                 </button>
@@ -293,7 +383,9 @@ export default function Work() {
             )}
 
             {/* List view */}
-            {view === "list" && <WorkList items={WORK_ITEMS} dividerRef={dividerRef} />}
+            {view === "list" && (
+              <WorkList items={WORK_ITEMS} dividerRef={dividerRef} />
+            )}
           </div>
         </div>
       </div>

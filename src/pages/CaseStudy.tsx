@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react"; // useCallback/useEffect used by NavPreview
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { Link, useRouter } from "../lib/router";
@@ -257,9 +257,45 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
   return null;
 }
 
+// ── floating nav preview ──────────────────────────────────────────────────────
+function NavPreview({ items }: { items: typeof work }) {
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const pos = useRef({ x: 0, y: 0 });
+  const target = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number>(0);
+
+  const animate = useCallback(() => {
+    const LERP = 0.1;
+    pos.current.x += (target.current.x - pos.current.x) * LERP;
+    pos.current.y += (target.current.y - pos.current.y) * LERP;
+    if (previewRef.current) {
+      previewRef.current.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px)`;
+    }
+    rafRef.current = requestAnimationFrame(animate);
+  }, []);
+
+  useEffect(() => {
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [animate]);
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    target.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleEnter = (slug: string) => setActiveSlug(slug);
+  const handleLeave = () => setActiveSlug(null);
+
+  const activeItem = activeSlug ? items.find(w => w.slug === activeSlug) : null;
+
+  return { onMouseMove, handleEnter, handleLeave, previewRef, activeItem };
+}
+
 // ── page ──────────────────────────────────────────────────────────────────────
 export default function CaseStudy({ slug }: { slug: string }) {
   const heroRef = useRef<HTMLDivElement>(null);
+  const nav = NavPreview({ items: work });
   const { previousPath } = useRouter();
   const backHref = previousPath === "/about" ? "/about" : "/work";
   const backLabel = previousPath === "/about" ? "Back to About" : "Back";
@@ -362,33 +398,67 @@ export default function CaseStudy({ slug }: { slug: string }) {
             {renderBody(blocks)}
 
             {/* Prev / Next nav */}
-            <div className="cs-nav">
-              <Link
-                href={prevItem.href}
-                className="cs-nav__card cs-nav__card--prev"
-                style={{ "--accent": prevItem.accent } as React.CSSProperties}
-              >
-                <span className="cs-nav__name">{prevItem.name}</span>
-                <span className="cs-nav__meta">
-                  <img
-                    src={arrowBlack}
-                    alt=""
-                    className="cs-nav__arrow cs-nav__arrow--left"
-                  />
-                  <span className="cs-nav__label">Previous</span>
-                </span>
-              </Link>
-              <Link
-                href={nextItem.href}
-                className="cs-nav__card cs-nav__card--next"
-                style={{ "--accent": nextItem.accent } as React.CSSProperties}
-              >
-                <span className="cs-nav__name">{nextItem.name}</span>
-                <span className="cs-nav__meta">
-                  <span className="cs-nav__label">Next</span>
-                  <img src={arrowBlack} alt="" className="cs-nav__arrow" />
-                </span>
-              </Link>
+            <div className="cs-nav" onMouseMove={nav.onMouseMove}>
+              {prevItem.comingSoon ? (
+                <div
+                  className="cs-nav__card cs-nav__card--prev cs-nav__card--disabled"
+                  style={{ "--accent": prevItem.accent } as React.CSSProperties}
+                >
+                  <span className="cs-nav__name">{prevItem.name}</span>
+                  <span className="cs-nav__meta">
+                    <span className="cs-nav__label">Coming soon</span>
+                  </span>
+                </div>
+              ) : (
+                <Link
+                  href={prevItem.href}
+                  className="cs-nav__card cs-nav__card--prev"
+                  style={{ "--accent": prevItem.accent } as React.CSSProperties}
+                  onMouseEnter={() => nav.handleEnter(prevItem.slug)}
+                  onMouseLeave={nav.handleLeave}
+                >
+                  <span className="cs-nav__name">{prevItem.name}</span>
+                  <span className="cs-nav__meta">
+                    <img src={arrowBlack} alt="" className="cs-nav__arrow cs-nav__arrow--left" />
+                    <span className="cs-nav__label">Previous</span>
+                  </span>
+                </Link>
+              )}
+              {nextItem.comingSoon ? (
+                <div
+                  className="cs-nav__card cs-nav__card--next cs-nav__card--disabled"
+                  style={{ "--accent": nextItem.accent } as React.CSSProperties}
+                >
+                  <span className="cs-nav__name">{nextItem.name}</span>
+                  <span className="cs-nav__meta">
+                    <span className="cs-nav__label">Coming soon</span>
+                  </span>
+                </div>
+              ) : (
+                <Link
+                  href={nextItem.href}
+                  className="cs-nav__card cs-nav__card--next"
+                  style={{ "--accent": nextItem.accent } as React.CSSProperties}
+                  onMouseEnter={() => nav.handleEnter(nextItem.slug)}
+                  onMouseLeave={nav.handleLeave}
+                >
+                  <span className="cs-nav__name">{nextItem.name}</span>
+                  <span className="cs-nav__meta">
+                    <span className="cs-nav__label">Next</span>
+                    <img src={arrowBlack} alt="" className="cs-nav__arrow" />
+                  </span>
+                </Link>
+              )}
+
+              {/* Floating preview */}
+              <div
+                ref={nav.previewRef}
+                className={`work-list__preview${nav.activeItem ? " work-list__preview--visible" : ""}`}
+                style={nav.activeItem ? {
+                  backgroundColor: nav.activeItem.accent,
+                  backgroundImage: nav.activeItem.previewSrc ? `url(${nav.activeItem.previewSrc})` : "none",
+                } : {}}
+              />
             </div>
           </div>
         </div>

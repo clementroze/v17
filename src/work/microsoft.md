@@ -84,7 +84,6 @@ I explored plus/minus symbols to signal “increase” or “decrease,” which 
 ### Natural
 
 Body text here
-ENDCOLS
 
 ### Enabling natural expression
 

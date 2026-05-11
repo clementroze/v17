@@ -13,6 +13,7 @@ export type WorkItem = {
   subtitle: string;
   accent: string;
   imageSrc: string; // hero image for homepage EffectB and case study hero
+  previewSrc?: string; // floating preview image in work list
   images: number[]; // column heights for Work page grid
   imageUrls: string[]; // actual image URLs/imports for Work page grid (parallel to images)
   href: string;
@@ -28,6 +29,7 @@ const work: WorkItem[] = [
     subtitle: "Coming soon.",
     accent: "#0f62fe",
     imageSrc: ibmHero,
+    previewSrc: "/images/ibm/preview.png",
     comingSoon: true,
     images: [332, 332, 332],
     imageUrls: [
@@ -45,6 +47,7 @@ const work: WorkItem[] = [
     subtitle: "Engaging college-age users with Google products",
     accent: "#F3B80B",
     imageSrc: googleHero,
+    previewSrc: "/images/google/preview.png",
     images: [332, 332, 332],
     imageUrls: [
       "/work-images/google-1.png",
@@ -61,6 +64,7 @@ const work: WorkItem[] = [
     subtitle: "Product strategy & interaction design",
     accent: "#ad00e6",
     imageSrc: frogHero,
+    previewSrc: "/images/frog/preview.png",
     images: [490, 490, 490],
     imageUrls: [
       "/work-images/frog-1.png",
@@ -77,6 +81,7 @@ const work: WorkItem[] = [
     subtitle: "Copilot-powered B2B sales tools",
     accent: "#00a651",
     imageSrc: microsoftHero,
+    previewSrc: "/images/microsoft/preview.png",
     images: [420, 332, 420],
     imageUrls: [
       "/work-images/microsoft-1.png",
@@ -93,6 +98,7 @@ const work: WorkItem[] = [
     subtitle: "End-to-end AI-powered legal research platform",
     accent: "#003047",
     imageSrc: gcaiHero,
+    previewSrc: "/images/gcai/preview.png",
     images: [241, 241, 241],
     imageUrls: [
       "/work-images/gcai-1.png",
@@ -109,6 +115,7 @@ const work: WorkItem[] = [
     subtitle: "XXX",
     accent: "#ff3d00",
     imageSrc: replitHero,
+    previewSrc: "/images/replit/preview.png",
     images: [241, 241, 241],
     imageUrls: [
       "/work-images/replit-1.png",

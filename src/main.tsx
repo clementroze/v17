@@ -56,6 +56,15 @@ function App() {
   });
 
   React.useEffect(() => {
+    const handler = () => {
+      const isOn = document.documentElement.classList.contains('konami');
+      triggerWipe(!isOn);
+    };
+    window.addEventListener('toggle-rainbow', handler);
+    return () => window.removeEventListener('toggle-rainbow', handler);
+  }, [triggerWipe]);
+
+  React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && document.documentElement.classList.contains('konami')) {
         triggerWipe(false);

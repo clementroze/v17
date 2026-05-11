@@ -5,6 +5,111 @@ import { useReveal } from "../lib/reveal";
 import { Link } from "../lib/router";
 import work from "../data/work";
 
+function SunIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <circle cx="7" cy="7" r="3" fill="currentColor" />
+      <line
+        x1="7"
+        y1="0.5"
+        x2="7"
+        y2="2.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="7"
+        y1="11.5"
+        x2="7"
+        y2="13.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="0.5"
+        y1="7"
+        x2="2.5"
+        y2="7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="11.5"
+        y1="7"
+        x2="13.5"
+        y2="7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="2.4"
+        y1="2.4"
+        x2="3.8"
+        y2="3.8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="10.2"
+        y1="10.2"
+        x2="11.6"
+        y2="11.6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="11.6"
+        y1="2.4"
+        x2="10.2"
+        y2="3.8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="3.8"
+        y1="10.2"
+        x2="2.4"
+        y2="11.6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 13 13"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M11 7.5A5 5 0 0 1 5.5 2a5 5 0 1 0 5.5 5.5z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
@@ -20,7 +125,11 @@ const CITIES = [
 
 function isDaytime(now: Date, tz: string) {
   const h = parseInt(
-    now.toLocaleTimeString("en-US", { hour: "2-digit", hour12: false, timeZone: tz }),
+    now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      hour12: false,
+      timeZone: tz,
+    }),
     10,
   );
   return h >= 6 && h < 20;
@@ -60,6 +169,14 @@ export default function Footer() {
   const bottomRef = useReveal(240);
   const { local, localDaytime, cities } = useCurrentTime();
   const [cityHover, setCityHover] = useState(false);
+  const [rainbowOn, setRainbowOn] = useState(() =>
+    document.documentElement.classList.contains("konami"),
+  );
+
+  const toggleRainbow = () => {
+    window.dispatchEvent(new Event("toggle-rainbow"));
+    setRainbowOn((r) => !r);
+  };
 
   return (
     <footer className="footer">
@@ -72,6 +189,9 @@ export default function Footer() {
               {l.label}
             </Link>
           ))}
+          <button className="footer__rainbow-btn" onClick={toggleRainbow}>
+            {rainbowOn ? "Disable rainbow mode" : "Enable rainbow mode"}
+          </button>
         </div>
 
         {/* Work */}
@@ -156,14 +276,18 @@ export default function Footer() {
             {cities.map((c) => (
               <span key={c.label} className="footer__city-row">
                 <span className="footer__city-name">
-                  <span className="footer__city-icon">{c.daytime ? "☀" : "☽"}</span>
+                  <span className="footer__city-icon">
+                    {c.daytime ? <SunIcon /> : <MoonIcon />}
+                  </span>
                   {c.label}
                 </span>
                 <span className="footer__city-time">{c.time}</span>
               </span>
             ))}
           </span>
-          <span className="footer__time-icon" aria-hidden="true">{localDaytime ? "☀" : "☽"}</span>
+          <span className="footer__time-icon" aria-hidden="true">
+            {localDaytime ? <SunIcon /> : <MoonIcon />}
+          </span>
           {local} &bull; Ithaca, NY
         </span>
       </div>
