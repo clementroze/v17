@@ -427,9 +427,10 @@ export default function ProjectsNav({
     variant === "dark" ? " projects-nav--dark" : " projects-nav--light";
 
   return (
-    <div
+    <aside
       key={runId}
       className={`projects-nav${variantClass}${phaseClass}`}
+      aria-label="Section navigation"
       aria-hidden={phase !== "entering"}
     >
       <div
@@ -476,6 +477,6 @@ export default function ProjectsNav({
           );
         })}
       </div>
-    </div>
+    </aside>
   );
 }

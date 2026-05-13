@@ -5,7 +5,12 @@ import ProjectsNav from "../components/ProjectsNav";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
-import { parseCase, CaseStudy as CaseStudyData, Block, Col } from "../lib/parseCase";
+import {
+  parseCase,
+  CaseStudy as CaseStudyData,
+  Block,
+  Col,
+} from "../lib/parseCase";
 import { Reveal } from "../lib/reveal";
 import work from "../data/work";
 
@@ -13,7 +18,18 @@ function renderInlineLinks(text: string): React.ReactNode {
   const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
   return parts.map((part, i) => {
     const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (m) return <a key={i} href={m[2]} target="_blank" rel="noopener noreferrer" className="cs-link">{m[1]}</a>;
+    if (m)
+      return (
+        <a
+          key={i}
+          href={m[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cs-link"
+        >
+          {m[1]}
+        </a>
+      );
     return part;
   });
 }
@@ -30,7 +46,11 @@ function loadCase(slug: string): CaseStudyData | null {
 }
 
 // ── body block renderer ───────────────────────────────────────────────────────
-function renderBlock(block: Block, idx: number, prevBlock?: Block): React.ReactNode {
+function renderBlock(
+  block: Block,
+  idx: number,
+  prevBlock?: Block,
+): React.ReactNode {
   switch (block.type) {
     case "section":
       return (
@@ -51,7 +71,9 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block): React.ReactN
     case "quote":
       return (
         <Reveal key={idx} delay={40}>
-          <blockquote className="cs-quote">{renderInlineLinks(block.text)}</blockquote>
+          <blockquote className="cs-quote">
+            {renderInlineLinks(block.text)}
+          </blockquote>
         </Reveal>
       );
     case "hmw":
@@ -66,11 +88,19 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block): React.ReactN
       const afterImage = prevBlock?.type === "images";
       return (
         <Reveal key={idx}>
-          <div className={`cs-cols${afterImage ? " cs-cols--after-image" : ""}`}>
+          <div
+            className={`cs-cols${afterImage ? " cs-cols--after-image" : ""}`}
+          >
             {block.columns.map((col: Col, j: number) => (
               <div key={j} className="cs-cols__col">
-                {col.heading && <h3 className="cs-cols__heading">{renderInlineLinks(col.heading)}</h3>}
-                {col.body && <p className="cs-cols__body">{renderInlineLinks(col.body)}</p>}
+                {col.heading && (
+                  <h3 className="cs-cols__heading">
+                    {renderInlineLinks(col.heading)}
+                  </h3>
+                )}
+                {col.body && (
+                  <p className="cs-cols__body">{renderInlineLinks(col.body)}</p>
+                )}
               </div>
             ))}
           </div>
@@ -98,20 +128,26 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block): React.ReactN
         <Reveal key={idx}>
           <div
             className={`cs-images cs-images--${block.srcs.length}`}
-            style={block.width ? { maxWidth: block.width, width: '100%' } : undefined}
+            style={
+              block.width ? { maxWidth: block.width, width: "100%" } : undefined
+            }
           >
             {block.srcs.map((src, i) => {
               const isVideo = /\.(mp4|mov|webm|ogg)$/i.test(src);
               return (
                 <figure key={i} className="cs-figure">
                   <div className="cs-images__pic">
-                    {src && (isVideo
-                      ? <video src={src} autoPlay loop muted playsInline />
-                      : <img src={src} alt={block.alts?.[i] ?? ""} />
-                    )}
+                    {src &&
+                      (isVideo ? (
+                        <video src={src} autoPlay loop muted playsInline />
+                      ) : (
+                        <img src={src} alt={block.alts?.[i] ?? ""} />
+                      ))}
                   </div>
                   {block.captions?.[i] && (
-                    <figcaption className="cs-figcaption">{block.captions[i]}</figcaption>
+                    <figcaption className="cs-figcaption">
+                      {block.captions[i]}
+                    </figcaption>
                   )}
                 </figure>
               );
@@ -150,17 +186,19 @@ function renderBody(
       // Partition into alternating runs: inline (paragraphs/lists) and images.
       // Each run is rendered in order: inline runs go in a cs-section row,
       // image runs go full-width between rows.
-      type Run = { kind: 'inline'; items: Block[] } | { kind: 'image'; block: Block };
+      type Run =
+        | { kind: "inline"; items: Block[] }
+        | { kind: "image"; block: Block };
       const runs: Run[] = [];
       for (const b of bodyBlocks) {
         if (b.type === "images" || b.type === "hmw" || b.type === "cols") {
-          runs.push({ kind: 'image', block: b });
+          runs.push({ kind: "image", block: b });
         } else {
           const last = runs[runs.length - 1];
-          if (last?.kind === 'inline') {
+          if (last?.kind === "inline") {
             last.items.push(b);
           } else {
-            runs.push({ kind: 'inline', items: [b] });
+            runs.push({ kind: "inline", items: [b] });
           }
         }
       }
@@ -169,13 +207,15 @@ function renderBody(
       // get their own title-less section row (right-column aligned).
       let firstInline = true;
       runs.forEach((run, r) => {
-        if (run.kind === 'inline') {
+        if (run.kind === "inline") {
           if (firstInline) {
             firstInline = false;
             out.push(
               <Reveal key={`section-${i}-${r}`}>
                 <div className="cs-section">
-                  <h2 ref={titleRef} className="cs-section__title">{block.title}</h2>
+                  <h2 ref={titleRef} className="cs-section__title">
+                    {block.title}
+                  </h2>
                   <div className="cs-section__body">
                     {run.items.map((b, j) => renderInlineBlock(b, j))}
                   </div>
@@ -196,7 +236,7 @@ function renderBody(
           }
         } else {
           const prevRun = runs[r - 1];
-          const prev = prevRun?.kind === 'image' ? prevRun.block : undefined;
+          const prev = prevRun?.kind === "image" ? prevRun.block : undefined;
           out.push(renderBlock(run.block, i * 100 + r, prev));
         }
       });
@@ -206,7 +246,9 @@ function renderBody(
         out.push(
           <Reveal key={`section-${i}-title`}>
             <div className="cs-section">
-              <h2 ref={titleRef} className="cs-section__title">{block.title}</h2>
+              <h2 ref={titleRef} className="cs-section__title">
+                {block.title}
+              </h2>
               <div className="cs-section__body" />
             </div>
           </Reveal>,
@@ -233,7 +275,9 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
   if (block.type === "quote") {
     return (
       <Reveal key={idx} delay={idx * 50}>
-        <blockquote className="cs-quote">{renderInlineLinks(block.text)}</blockquote>
+        <blockquote className="cs-quote">
+          {renderInlineLinks(block.text)}
+        </blockquote>
       </Reveal>
     );
   }
@@ -295,7 +339,9 @@ function NavPreview({ items }: { items: typeof work }) {
   const handleEnter = (slug: string) => setActiveSlug(slug);
   const handleLeave = () => setActiveSlug(null);
 
-  const activeItem = activeSlug ? items.find(w => w.slug === activeSlug) : null;
+  const activeItem = activeSlug
+    ? items.find((w) => w.slug === activeSlug)
+    : null;
 
   return { onMouseMove, handleEnter, handleLeave, previewRef, activeItem };
 }
@@ -329,41 +375,67 @@ export default function CaseStudy({ slug }: { slug: string }) {
   const prevItem = work[(currentIdx - 1 + work.length) % work.length];
   const nextItem = work[(currentIdx + 1) % work.length];
 
-  const sectionTitles = blocks
-    .filter((b): b is Extract<Block, { type: "section" }> => b.type === "section")
+  const docSectionTitles = blocks
+    .filter(
+      (b): b is Extract<Block, { type: "section" }> => b.type === "section",
+    )
     .map((b) => b.title);
+  // The pill nav gets one extra leading step for the meta/info block — labelled
+  // "Info" — that scrolls to `cs-meta` instead of an h2.
+  const metaRef = useRef<HTMLDivElement>(null);
+  const sectionTitles = ["Info", ...docSectionTitles];
+  const docSectionCount = docSectionTitles.length;
   const sectionCount = sectionTitles.length;
   // ProjectsNav only reads getBoundingClientRect on these — any HTMLElement works,
   // but the prop type wants HTMLDivElement so we cast at the boundary.
-  const sectionTitleRefs = useRef<React.RefObject<HTMLDivElement>[]>(
-    Array.from({ length: sectionCount }, () => ({ current: null }) as React.RefObject<HTMLDivElement>),
+  // Index 0 is the meta block (`metaRef`); indices 1..N are the section h2 refs.
+  const docSectionTitleRefs = useRef<React.RefObject<HTMLDivElement>[]>(
+    Array.from(
+      { length: docSectionCount },
+      () => ({ current: null }) as React.RefObject<HTMLDivElement>,
+    ),
   );
-  if (sectionTitleRefs.current.length !== sectionCount) {
-    sectionTitleRefs.current = Array.from(
-      { length: sectionCount },
+  if (docSectionTitleRefs.current.length !== docSectionCount) {
+    docSectionTitleRefs.current = Array.from(
+      { length: docSectionCount },
       () => ({ current: null }) as React.RefObject<HTMLDivElement>,
     );
   }
   const setSectionTitleRef = useCallback(
     (idx: number, el: HTMLHeadingElement | null) => {
-      const ref = sectionTitleRefs.current[idx] as React.MutableRefObject<HTMLDivElement | null>;
+      const ref = docSectionTitleRefs.current[
+        idx
+      ] as React.MutableRefObject<HTMLDivElement | null>;
       if (ref) ref.current = el as unknown as HTMLDivElement | null;
     },
     [],
   );
+  const sectionTitleRefs = [metaRef, ...docSectionTitleRefs.current];
 
-  // Show ProjectsNav once the cs-meta block has scrolled into view; hide before it.
-  const metaRef = useRef<HTMLDivElement>(null);
+  // Show ProjectsNav once the cs-meta block has scrolled into view; hide before
+  // it AND hide again once the prev/next cards (.cs-nav) enter the viewport so
+  // the side rail doesn't overlap the footer navigation.
+  const csNavRef = useRef<HTMLDivElement>(null);
   const [navVisible, setNavVisible] = useState(false);
   useEffect(() => {
     const onScroll = () => {
-      const el = metaRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const meta = metaRef.current;
+      if (!meta) return;
+      const metaRect = meta.getBoundingClientRect();
       const vh = window.innerHeight;
-      // Visible once meta's top has risen above 70% of viewport
-      // (i.e., user has scrolled down to it).
-      const shouldShow = rect.top <= vh * 0.7;
+      const pastMeta = metaRect.top <= vh * 0.7;
+
+      // Hide the pill nav once the prev/next cards' top rises past 60% of the
+      // viewport (i.e. the cards are clearly approaching the vertical center
+      // where the side rail sits). This makes the exit fire well before the
+      // cards overlap with the rail, instead of only when they reach the
+      // bottom edge.
+      const csNav = csNavRef.current;
+      const beforeCsNav = csNav
+        ? csNav.getBoundingClientRect().top > vh * 0.9
+        : true;
+
+      const shouldShow = pastMeta && beforeCsNav;
       setNavVisible((cur) => (cur === shouldShow ? cur : shouldShow));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -377,7 +449,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
       {sectionCount > 0 && (
         <ProjectsNav
           count={sectionCount}
-          sectionRefs={sectionTitleRefs.current}
+          sectionRefs={sectionTitleRefs}
           variant="dark"
           alwaysVisible
           visible={navVisible}
@@ -460,7 +532,11 @@ export default function CaseStudy({ slug }: { slug: string }) {
             {renderBody(blocks, setSectionTitleRef)}
 
             {/* Prev / Next nav */}
-            <div className="cs-nav" onMouseMove={nav.onMouseMove}>
+            <div
+              ref={csNavRef}
+              className="cs-nav"
+              onMouseMove={nav.onMouseMove}
+            >
               {prevItem.comingSoon ? (
                 <div
                   className="cs-nav__card cs-nav__card--prev cs-nav__card--disabled"
@@ -481,7 +557,11 @@ export default function CaseStudy({ slug }: { slug: string }) {
                 >
                   <span className="cs-nav__name">{prevItem.name}</span>
                   <span className="cs-nav__meta">
-                    <img src={arrowBlack} alt="" className="cs-nav__arrow cs-nav__arrow--left" />
+                    <img
+                      src={arrowBlack}
+                      alt=""
+                      className="cs-nav__arrow cs-nav__arrow--left"
+                    />
                     <span className="cs-nav__label">Previous</span>
                   </span>
                 </Link>
@@ -516,10 +596,16 @@ export default function CaseStudy({ slug }: { slug: string }) {
               <div
                 ref={nav.previewRef}
                 className={`work-list__preview${nav.activeItem ? " work-list__preview--visible" : ""}`}
-                style={nav.activeItem ? {
-                  backgroundColor: nav.activeItem.accent,
-                  backgroundImage: nav.activeItem.previewSrc ? `url(${nav.activeItem.previewSrc})` : "none",
-                } : {}}
+                style={
+                  nav.activeItem
+                    ? {
+                        backgroundColor: nav.activeItem.accent,
+                        backgroundImage: nav.activeItem.previewSrc
+                          ? `url(${nav.activeItem.previewSrc})`
+                          : "none",
+                      }
+                    : {}
+                }
               />
             </div>
           </div>

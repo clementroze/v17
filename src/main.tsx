@@ -30,8 +30,13 @@ function App() {
   const [wipePhase, setWipePhase] = React.useState<WipePhase>("idle");
   const [wipeRainbow, setWipeRainbow] = React.useState(true);
   const [konamiOn, setKonamiOn] = React.useState(false);
-  const [konamiExiting, setKonamiExiting] = React.useState(false);
+  const [konamiPhase, setKonamiPhase] = React.useState<
+    "entering" | "idle" | "exiting"
+  >("idle");
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const phaseTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   // Restore from localStorage on first load
   React.useEffect(() => {
@@ -39,24 +44,40 @@ function App() {
       if (localStorage.getItem(LS_KEY) === "1") {
         document.documentElement.classList.add("konami");
         setKonamiOn(true);
+        setKonamiPhase("entering");
+        phaseTimerRef.current = setTimeout(
+          () => setKonamiPhase("idle"),
+          720,
+        );
       }
     } catch {}
   }, []);
 
   const triggerWipe = React.useCallback((targetOn: boolean) => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
     setWipeRainbow(targetOn);
     // Mark exiting so toast can animate out before .konami is removed
     if (!targetOn) {
       document.documentElement.classList.add("konami-exiting");
-      setKonamiExiting(true);
+      setKonamiPhase("exiting");
     }
     setWipePhase("covering");
     timerRef.current = setTimeout(() => {
       document.documentElement.classList.toggle("konami", targetOn);
       document.documentElement.classList.remove("konami-exiting");
       setKonamiOn(targetOn);
-      setKonamiExiting(false);
+      if (targetOn) {
+        // Mount toast in entering phase, then settle to idle after the
+        // entrance animation finishes so the resting state is stable.
+        setKonamiPhase("entering");
+        phaseTimerRef.current = setTimeout(
+          () => setKonamiPhase("idle"),
+          720,
+        );
+      } else {
+        setKonamiPhase("idle");
+      }
       try {
         localStorage.setItem(LS_KEY, targetOn ? "1" : "0");
       } catch {}
@@ -131,7 +152,7 @@ function App() {
       {konamiOn && (
         <button
           type="button"
-          className={`konami-toast${konamiExiting ? " konami-toast--exiting" : ""}`}
+          className={`konami-toast konami-toast--${konamiPhase}`}
           onClick={() => triggerWipe(false)}
           aria-label="Disable rainbow mode"
         >
