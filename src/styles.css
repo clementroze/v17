@@ -169,7 +169,16 @@ a {
   white-space: nowrap;
   pointer-events: all;
   color: #000;
-  transition: color 0.4s ease;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease;
+}
+
+/* !important is required because Navbar.tsx applies inline opacity (0.5 for
+   inactive links, 1 for active). Without !important the inline style wins
+   and the hover never visibly changes. */
+.navbar__link:hover {
+  opacity: 1 !important;
 }
 
 .navbar--white .navbar__link {
@@ -1265,11 +1274,12 @@ a {
 }
 
 .footer__archive:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.02);
 }
 
-.footer__archive:hover .footer__archive-link {
-  opacity: 1;
+.footer__archive:active {
+  transform: scale(1);
 }
 
 .footer__archive-thumb {
@@ -1286,7 +1296,6 @@ a {
   inset: 0;
   width: 102.67%;
   height: 108.29%;
-  left: -2.65%;
   top: -3.88%;
   object-fit: cover;
   transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -1318,7 +1327,7 @@ a {
 }
 
 .footer__archive-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   letter-spacing: var(--tracking-tight-sm);
   color: #fff;
@@ -1380,7 +1389,10 @@ a {
 .footer__city-popup {
   position: absolute;
   bottom: calc(100% + 10px);
-  right: -14px;
+  /* Shift the popup 4px right so the inner content reads aligned with the
+     bottom-bar row. Right padding also bumps by 4px so the time column stays
+     anchored at the same x as the bottom-bar `{local}` text. */
+  right: -20px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1388,7 +1400,7 @@ a {
   background: #1a1a1a;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 10px 18px 10px 14px;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
@@ -1425,7 +1437,7 @@ a {
 }
 
 .footer__city-time {
-  opacity: 0.9;
+  opacity: 0.5;
 }
 
 .footer__time-icon {
@@ -1433,6 +1445,18 @@ a {
   display: flex;
   align-items: center;
   opacity: 0.7;
+}
+
+/* Bottom-bar local row — mirrors the popup row layout (icon+name on the left,
+   time on the right) so the bottom line aligns with the popover above it. */
+.footer__local-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer__city-divider {
+  opacity: 0.5;
 }
 
 /* ── Konami easter egg ── */
@@ -1509,7 +1533,10 @@ html.konami {
     auto;
 }
 
-html.konami *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(.projects-nav__track):not(.projects-nav__dot-wrap):not(.projects-nav__pill) {
+html.konami
+  *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(
+    .projects-nav__track
+  ):not(.projects-nav__dot-wrap):not(.projects-nav__pill) {
   animation: konami-rainbow 2s linear infinite !important;
   cursor: inherit;
 }
@@ -1564,16 +1591,24 @@ html.konami canvas {
   initial-value: 0deg;
 }
 
-html.konami::after {
-  content: "🌈 Rainbow mode — press Esc to go back";
-  letter-spacing: var(--tracking-tight-sm);
+.konami-toast {
+  /* Reset native button defaults */
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  /* Anchor + centering — translateX(-50%) is baked into the keyframes so the
+     animation fill-mode keeps the toast centered after entrance. */
   position: fixed;
   bottom: 24px;
   left: 50%;
-  /* gradient border via padding + background-clip trick */
+  transform: translateX(-50%);
+  /* Layout mirrors footer bottom bar's icon + text alignment */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 10px 18px;
   border-radius: 999px;
-  /* 2px gradient ring: conic-gradient as bg, black inset via box-shadow */
+  /* 2px gradient ring: conic-gradient as bg, black inset via background-clip */
   background:
     linear-gradient(#000, #000) padding-box,
     conic-gradient(
@@ -1596,12 +1631,39 @@ html.konami::after {
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
   z-index: 99999;
-  pointer-events: none;
   white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s ease;
 }
 
-html.konami.konami-exiting::after {
+.konami-toast:hover {
+  transform: translateX(-50%) scale(1.04);
+}
+
+.konami-toast:active {
+  transform: translateX(-50%) scale(0.97);
+}
+
+/* Icon span — mirrors `.footer__time-icon` alignment (flex, vertically centered). */
+.konami-toast__icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0;
+}
+
+.konami-toast__sep {
+  opacity: 0.5;
+  /* margin: 0 4px; */
+}
+
+.konami-toast__hint {
+  opacity: 0.7;
+  letter-spacing: -0.02em;
+}
+
+.konami-toast--exiting {
   animation:
     konami-toast-out 350ms cubic-bezier(0.4, 0, 0.8, 1) both,
     konami-border-spin 2s linear infinite;
@@ -1626,6 +1688,22 @@ html.konami.konami-exiting::after {
 
 .effect-b__section {
   display: flex;
+}
+
+/* Reveal entrance for the first (expand) section only. Uses opacity + filter
+   only — no transform — so the JS parallax/expand math that reads
+   getBoundingClientRect() stays accurate during and after the animation. */
+.effect-b__section--reveal {
+  opacity: 0;
+  filter: blur(8px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.effect-b__section--revealed {
+  opacity: 1;
+  filter: blur(0);
 }
 
 .effect-b__bg {
@@ -1668,8 +1746,13 @@ html.konami.konami-exiting::after {
 .projects-nav {
   position: fixed;
   right: 24px;
-  top: 50%;
-  transform: translateY(-50%);
+  /* Full-height pinned right, flex-centered. Avoids transform: translateY(-50%)
+     because a transformed ancestor breaks backdrop-filter on descendants
+     (filters its own subtree instead of the page behind). */
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
   z-index: 50;
   pointer-events: none;
 }
@@ -1708,14 +1791,67 @@ html.konami.konami-exiting::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4pxmake;
+  gap: 2px;
   padding: 10px 8px;
   border-radius: 12px;
-  transition: background 0.2s ease;
+  position: relative;
+  z-index: 1;
+  transition:
+    background 0.2s ease,
+    transform 0.25s cubic-bezier(0.34, 1.5, 0.64, 1);
 }
 
-.projects-nav__track--hover {
+.projects-nav--light .projects-nav__track--hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.projects-nav--dark .projects-nav__track--hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Progressive blur + gradient overlay behind the hovered label
+   (dark/case-study variant). Anchored to each .projects-nav__dot-wrap so it
+   follows whichever pill is hovered, sized to roughly label height (~28px)
+   with a small offset above/below. Two stacked layers: strong blur near the
+   pill, softer blur extending further left. */
+/* Blur strip behind the hovered label. Rendered as a real <span> child
+   (not a ::before pseudo) because backdrop-filter on pseudo-elements of
+   <button> is broken in Chrome/Safari — the filter is silently dropped. */
+/* Label readability overlay (dark/case-study variant): a pre-rendered
+   progressive-blur PNG sits behind the label, anchored to its right edge
+   and extending leftward. Replaces the multi-layer backdrop-filter stack
+   (which was unreliable in Chromium under <button>). */
+/* Adaptive label overlay: width tracks the label's own width (since the label
+   has display: inline-block via position: absolute on text content, its
+   100% = the rendered text width) plus a fixed left-extension for the
+   gradient fade tail. The right side overshoots by --label-overlay-right to
+   add some bleed past the text on the pill side. */
+.projects-nav--dark .projects-nav__label::before {
+  --label-overlay-extend-left: 60px; /* px of fade tail past the text's left */
+  --label-overlay-extend-right: 10px; /* px of bleed past the text's right */
+  --label-overlay-pad-y: 35px; /* extra vertical padding above + below text */
+
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: calc(-1 * var(--label-overlay-extend-right));
+  width: calc(
+    100% + var(--label-overlay-extend-left) +
+      var(--label-overlay-extend-right) + 200px
+  );
+  height: calc(100% + var(--label-overlay-pad-y) * 4);
+  transform: translateY(-50%);
+  /* `100% 100%` stretches the image to fill the box on both axes, so the
+     pre-rendered progressive blur adapts to whatever label width we end up
+     with. If you need to preserve the source aspect ratio, swap to `cover`. */
+  background: url(/src/assets/side-nav-overlay.png) center / 200% 200% no-repeat;
+  pointer-events: none;
+  z-index: -1;
+  /* background: red; */
+}
+
+.projects-nav__track--pressed {
+  transform: scale(1.06);
 }
 
 .projects-nav__dot-wrap {
@@ -1736,6 +1872,45 @@ html.konami.konami-exiting::after {
   transform: scale(1.2);
 }
 
+.projects-nav__label {
+  position: absolute;
+  /* Anchor label's right edge to the pill's left edge (pill is centered at 50%
+     of the wrap, ~3px wide → its left edge sits ~3px left of center). */
+  right: 50%;
+  top: 50%;
+  margin-right: 20px;
+  transform: translateY(-50%) translateX(4px);
+  transform-origin: right center;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.projects-nav--light .projects-nav__label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.projects-nav--dark .projects-nav__label {
+  color: #000;
+  z-index: 5;
+}
+
+.projects-nav__dot-wrap {
+  position: relative;
+}
+
+.projects-nav__dot-wrap:hover .projects-nav__label,
+.projects-nav__dot-wrap:focus-visible .projects-nav__label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
 .projects-nav__dot-wrap {
   opacity: 0;
 }
@@ -1750,30 +1925,53 @@ html.konami.konami-exiting::after {
 
 .projects-nav__pill {
   --pill-alpha: 0.35;
+  --pill-ink: 255, 255, 255;
   width: 6px;
   height: 6px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, var(--pill-alpha));
+  background: rgba(var(--pill-ink), var(--pill-alpha));
+  position: relative; /* paint above the dot-wrap's blur pseudo */
   will-change: height;
   transition:
     height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
     background 0.25s ease;
 }
 
-.projects-nav__pill--hover {
+.projects-nav--dark .projects-nav__pill {
+  --pill-ink: 0, 0, 0;
+}
+
+.projects-nav--light .projects-nav__pill--hover {
   height: 20px !important;
   background: #fff !important;
+  opacity: 0.5 !important;
+}
+
+.projects-nav--dark .projects-nav__pill--hover {
+  height: 20px !important;
+  background: #000 !important;
+  opacity: 0.5 !important;
 }
 
 @keyframes projects-nav-pill-rainbow {
-  0%   { background-position: 0% 0%; }
-  100% { background-position: 0% 200%; }
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 0% 200%;
+  }
 }
 
 html.konami .projects-nav__pill {
   background-image: linear-gradient(
     180deg,
-    #ff0080, #ff6600, #ffee00, #00cc44, #00aaff, #7700ff, #ff0080
+    #ff0080,
+    #ff6600,
+    #ffee00,
+    #00cc44,
+    #00aaff,
+    #7700ff,
+    #ff0080
   );
   background-color: transparent;
   background-size: 100% 400%;

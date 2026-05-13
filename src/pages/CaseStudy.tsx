@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from "react"; // useCallback/useEffect used by NavPreview
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import ProjectsNav from "../components/ProjectsNav";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
@@ -124,14 +125,21 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block): React.ReactN
 // ── section-aware body renderer ───────────────────────────────────────────────
 // Within a section, images go full-width while paragraphs/lists always render
 // in the right column — even when they appear after an image.
-function renderBody(blocks: Block[]) {
+function renderBody(
+  blocks: Block[],
+  setSectionRef?: (idx: number, el: HTMLHeadingElement | null) => void,
+) {
   const out: React.ReactNode[] = [];
   let i = 0;
+  let sectionIdx = 0;
 
   while (i < blocks.length) {
     const block = blocks[i];
 
     if (block.type === "section") {
+      const thisSectionIdx = sectionIdx++;
+      const titleRef = (el: HTMLHeadingElement | null) =>
+        setSectionRef?.(thisSectionIdx, el);
       const bodyBlocks: Block[] = [];
       i++;
       while (i < blocks.length && blocks[i].type !== "section") {
@@ -167,7 +175,7 @@ function renderBody(blocks: Block[]) {
             out.push(
               <Reveal key={`section-${i}-${r}`}>
                 <div className="cs-section">
-                  <h2 className="cs-section__title">{block.title}</h2>
+                  <h2 ref={titleRef} className="cs-section__title">{block.title}</h2>
                   <div className="cs-section__body">
                     {run.items.map((b, j) => renderInlineBlock(b, j))}
                   </div>
@@ -198,7 +206,7 @@ function renderBody(blocks: Block[]) {
         out.push(
           <Reveal key={`section-${i}-title`}>
             <div className="cs-section">
-              <h2 className="cs-section__title">{block.title}</h2>
+              <h2 ref={titleRef} className="cs-section__title">{block.title}</h2>
               <div className="cs-section__body" />
             </div>
           </Reveal>,
@@ -321,9 +329,63 @@ export default function CaseStudy({ slug }: { slug: string }) {
   const prevItem = work[(currentIdx - 1 + work.length) % work.length];
   const nextItem = work[(currentIdx + 1) % work.length];
 
+  const sectionTitles = blocks
+    .filter((b): b is Extract<Block, { type: "section" }> => b.type === "section")
+    .map((b) => b.title);
+  const sectionCount = sectionTitles.length;
+  // ProjectsNav only reads getBoundingClientRect on these — any HTMLElement works,
+  // but the prop type wants HTMLDivElement so we cast at the boundary.
+  const sectionTitleRefs = useRef<React.RefObject<HTMLDivElement>[]>(
+    Array.from({ length: sectionCount }, () => ({ current: null }) as React.RefObject<HTMLDivElement>),
+  );
+  if (sectionTitleRefs.current.length !== sectionCount) {
+    sectionTitleRefs.current = Array.from(
+      { length: sectionCount },
+      () => ({ current: null }) as React.RefObject<HTMLDivElement>,
+    );
+  }
+  const setSectionTitleRef = useCallback(
+    (idx: number, el: HTMLHeadingElement | null) => {
+      const ref = sectionTitleRefs.current[idx] as React.MutableRefObject<HTMLDivElement | null>;
+      if (ref) ref.current = el as unknown as HTMLDivElement | null;
+    },
+    [],
+  );
+
+  // Show ProjectsNav once the cs-meta block has scrolled into view; hide before it.
+  const metaRef = useRef<HTMLDivElement>(null);
+  const [navVisible, setNavVisible] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const el = metaRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // Visible once meta's top has risen above 70% of viewport
+      // (i.e., user has scrolled down to it).
+      const shouldShow = rect.top <= vh * 0.7;
+      setNavVisible((cur) => (cur === shouldShow ? cur : shouldShow));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className="page cs-page">
       <Navbar watchShowRef={heroRef} activeLink="work" />
+      {sectionCount > 0 && (
+        <ProjectsNav
+          count={sectionCount}
+          sectionRefs={sectionTitleRefs.current}
+          variant="dark"
+          alwaysVisible
+          visible={navVisible}
+          snapOnRelease={false}
+          labels={sectionTitles}
+          scrollOffset={110}
+        />
+      )}
 
       {/* ── Hero block ────────────────────────────────────────────── */}
       <div className="cs-hero-wrap">
@@ -366,7 +428,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
           <div className="cs-body">
             {/* Meta block */}
             <Reveal>
-              <div className="cs-meta">
+              <div ref={metaRef} className="cs-meta">
                 <div className="cs-meta__left">
                   <div className="cs-meta__col">
                     <div className="cs-meta__row">
@@ -395,7 +457,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
             </Reveal>
 
             {/* Sections */}
-            {renderBody(blocks)}
+            {renderBody(blocks, setSectionTitleRef)}
 
             {/* Prev / Next nav */}
             <div className="cs-nav" onMouseMove={nav.onMouseMove}>

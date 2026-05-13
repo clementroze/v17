@@ -1,7 +1,7 @@
 /**
  * Effect B — Apple-style expand-to-fullbleed (first card only) + parallax + blur-fade text
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import arrowWhite from "../../assets/arrow.svg";
 import Button from "../Button";
 
@@ -31,9 +31,30 @@ function ParallaxProject({
   const sectionRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const numberRef = useRef<HTMLSpanElement>(null);
-  const nameRef = useRef<HTMLSpanElement>(null);
+  const numberRef = useRef<HTMLParagraphElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
   const btnRef = useRef<HTMLDivElement>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  // Reveal entrance — only for the first (expand) section. Uses
+  // opacity + filter so the section's getBoundingClientRect (used by the
+  // parallax/expand math below) is unaffected.
+  useEffect(() => {
+    if (!expand) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [expand]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -76,7 +97,10 @@ function ParallaxProject({
       if (showTimer) clearTimeout(showTimer);
       showTimer = setTimeout(() => {
         els.forEach((el, i) => {
-          setTimeout(() => el.classList.add("effect-b__item--visible"), STAGGER[i]);
+          setTimeout(
+            () => el.classList.add("effect-b__item--visible"),
+            STAGGER[i],
+          );
         });
       }, 16);
     };
@@ -107,8 +131,19 @@ function ParallaxProject({
     };
   }, [expand, sectionIndex]);
 
-  return (
-    <div ref={(el) => { (sectionRef as React.MutableRefObject<HTMLDivElement | null>).current = el; onSectionRef?.(el); }} className="project effect-b__section">
+  const section = (
+    <div
+      ref={(el) => {
+        (sectionRef as React.MutableRefObject<HTMLDivElement | null>).current =
+          el;
+        onSectionRef?.(el);
+      }}
+      className={`project effect-b__section${
+        expand
+          ? ` effect-b__section--reveal${revealed ? " effect-b__section--revealed" : ""}`
+          : ""
+      }`}
+    >
       <div
         ref={innerRef}
         className="effect-b__inner"
@@ -130,18 +165,18 @@ function ParallaxProject({
         />
         <div className="project__inner">
           <div className="effect-b__text project__text">
-            <span
+            <p
               ref={numberRef}
               className="project__number effect-b__item effect-b__item--number"
             >
               {project.number}
-            </span>
-            <span
+            </p>
+            <h2
               ref={nameRef}
               className="project__name effect-b__item effect-b__item--name"
             >
               {project.name}
-            </span>
+            </h2>
           </div>
           <div
             ref={btnRef}
@@ -161,6 +196,8 @@ function ParallaxProject({
       </div>
     </div>
   );
+
+  return section;
 }
 
 export default function EffectB({

@@ -253,7 +253,7 @@ export default function Footer() {
             <img src={footerThumb} alt="Version 17 thumbnail" />
           </div>
           <div className="footer__archive-text">
-            <span className="footer__archive-title">Version 17</span>
+            <p className="footer__archive-title">Version 17</p>
             <div className="footer__archive-link">
               <p>View archive</p>
               <img src={arrowWhite} alt="Arrow" />
@@ -274,7 +274,10 @@ export default function Footer() {
         >
           <span className="footer__city-popup" aria-hidden="true">
             {cities.map((c) => (
-              <span key={c.label} className="footer__city-row">
+              <span
+                key={c.label}
+                className="footer__city-row footer__city-row--popup"
+              >
                 <span className="footer__city-name">
                   <span className="footer__city-icon">
                     {c.daytime ? <SunIcon /> : <MoonIcon />}
@@ -285,10 +288,16 @@ export default function Footer() {
               </span>
             ))}
           </span>
-          <span className="footer__time-icon" aria-hidden="true">
-            {localDaytime ? <SunIcon /> : <MoonIcon />}
+          <span className="footer__local-row">
+            <span className="footer__city-name">
+              <span className="footer__city-icon" aria-hidden="true">
+                {localDaytime ? <SunIcon /> : <MoonIcon />}
+              </span>
+              Ithaca, NY
+            </span>
+            <span className="footer__city-divider"> &bull;</span>
+            <span className="footer__city-time">{local}</span>
           </span>
-          {local} &bull; Ithaca, NY
         </span>
       </div>
     </footer>

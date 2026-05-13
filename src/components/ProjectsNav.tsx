@@ -3,6 +3,15 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
   count: number;
   sectionRefs: React.RefObject<HTMLDivElement>[];
+  variant?: "light" | "dark";
+  alwaysVisible?: boolean;
+  snapOnRelease?: boolean;
+  labels?: string[];
+  /** Extra px subtracted from the click-to-scroll target — use to clear a sticky navbar. */
+  scrollOffset?: number;
+  /** When set, overrides the built-in scroll thresholds: true → entering, false → exiting.
+   *  Use together with alwaysVisible (it bypasses the hero/footer logic). */
+  visible?: boolean;
 };
 
 const DOT_SIZE = 6;
@@ -10,10 +19,33 @@ const ACTIVE_SIZE = 20;
 
 type Phase = "hidden" | "entering" | "exiting";
 
-export default function ProjectsNav({ count, sectionRefs }: Props) {
-  const [phase, setPhase] = useState<Phase>("hidden");
+export default function ProjectsNav({
+  count,
+  sectionRefs,
+  variant = "light",
+  alwaysVisible = false,
+  snapOnRelease = true,
+  labels,
+  scrollOffset = 0,
+  visible,
+}: Props) {
+  const initialPhase: Phase =
+    visible === false ? "hidden" : alwaysVisible || visible === true ? "entering" : "hidden";
+  const [phase, setPhase] = useState<Phase>(initialPhase);
   const [runId, setRunId] = useState(0);
+  const prevVisibleRef = useRef<boolean | undefined>(visible);
+
+  // When `visible` is controlled externally, run enter/exit animation on each change.
+  useEffect(() => {
+    if (visible === undefined) return;
+    const prev = prevVisibleRef.current;
+    prevVisibleRef.current = visible;
+    if (prev === visible) return;
+    setPhase(visible ? "entering" : "exiting");
+    setRunId((id) => id + 1);
+  }, [visible]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [pressed, setPressed] = useState(false);
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const trackRef = useRef<HTMLDivElement>(null);
   const wrapRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -64,6 +96,15 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
     updatePillsRef.current = updatePills;
 
     const onScroll = () => {
+      if (alwaysVisible) {
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+          reachedRef.current = true;
+        }
+        updatePills();
+        return;
+      }
+
       const tops = getSectionTops();
       const scrollY = window.scrollY;
       const vh = window.innerHeight;
@@ -115,7 +156,7 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [sectionRefs, count]);
+  }, [sectionRefs, count, alwaysVisible]);
 
   // ── Drag-to-scrub ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -199,8 +240,9 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
 
     scrollToIndexRef.current = (i: number) => {
       computeMetrics();
-      const top = sectionTops[i];
-      if (top === undefined) return;
+      const rawTop = sectionTops[i];
+      if (rawTop === undefined) return;
+      const top = Math.max(0, rawTop - scrollOffset);
       // Tell Home.tsx's snap controller to stand down while we animate, so its
       // idle-snap doesn't fight the click-driven scroll.
       (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging =
@@ -274,6 +316,7 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
       startY = e.clientY;
       startScrollY = window.scrollY;
       targetScrollY = startScrollY;
+      setPressed(true);
       // Defer pointer capture until real motion is detected. Capturing on
       // pointerdown suppresses the synthesized click event on the button, which
       // breaks tap-to-jump. We capture inside pointermove once dy > 3px.
@@ -310,24 +353,30 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
       if (!dragging || e.pointerId !== activePointerId) return;
       dragging = false;
       activePointerId = null;
+      setPressed(false);
       try {
         track.releasePointerCapture(e.pointerId);
       } catch {
         /* noop */
       }
-      // Snap to nearest section.
-      const cur = targetScrollY;
-      let nearest = sectionTops[0];
-      let bestDist = Math.abs(cur - nearest);
-      for (let i = 1; i < sectionTops.length; i++) {
-        const d = Math.abs(cur - sectionTops[i]);
-        if (d < bestDist) {
-          nearest = sectionTops[i];
-          bestDist = d;
+      if (snapOnRelease) {
+        // Snap to nearest section.
+        const cur = targetScrollY;
+        let nearest = sectionTops[0];
+        let bestDist = Math.abs(cur - nearest);
+        for (let i = 1; i < sectionTops.length; i++) {
+          const d = Math.abs(cur - sectionTops[i]);
+          if (d < bestDist) {
+            nearest = sectionTops[i];
+            bestDist = d;
+          }
         }
+        targetScrollY = nearest;
+        if (raf === null) raf = requestAnimationFrame(tick);
+      } else {
+        // No snap: leave page wherever the drag ended.
+        targetScrollY = window.scrollY;
       }
-      targetScrollY = nearest;
-      if (raf === null) raf = requestAnimationFrame(tick);
       // Release the drag flag a moment later so Home.tsx's snap controller doesn't fight us mid-settle.
       setTimeout(() => {
         (
@@ -365,7 +414,7 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
     };
     // Re-attach listeners when the container subtree re-mounts (runId change
     // remounts the .projects-nav div via key={runId}, replacing the track DOM).
-  }, [sectionRefs, count, runId]);
+  }, [sectionRefs, count, runId, snapOnRelease, scrollOffset]);
 
   const phaseClass =
     phase === "entering"
@@ -374,15 +423,18 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
         ? " projects-nav--exiting"
         : "";
 
+  const variantClass =
+    variant === "dark" ? " projects-nav--dark" : " projects-nav--light";
+
   return (
     <div
       key={runId}
-      className={`projects-nav${phaseClass}`}
+      className={`projects-nav${variantClass}${phaseClass}`}
       aria-hidden={phase !== "entering"}
     >
       <div
         ref={trackRef}
-        className={`projects-nav__track${hoveredIndex !== null ? " projects-nav__track--hover" : ""}`}
+        className={`projects-nav__track${hoveredIndex !== null ? " projects-nav__track--hover" : ""}${pressed ? " projects-nav__track--pressed" : ""}`}
         onMouseLeave={() => setHoveredIndex(null)}
         style={{ touchAction: "none" }}
       >
@@ -409,8 +461,11 @@ export default function ProjectsNav({ count, sectionRefs }: Props) {
                 scrollToIndexRef.current(i);
               }}
               onMouseEnter={() => setHoveredIndex(i)}
-              aria-label={`Go to project ${i + 1}`}
+              aria-label={labels?.[i] ?? `Go to project ${i + 1}`}
             >
+              {labels?.[i] && (
+                <span className="projects-nav__label">{labels[i]}</span>
+              )}
               <div
                 ref={(el) => {
                   if (el) dotRefs.current[i] = el;
