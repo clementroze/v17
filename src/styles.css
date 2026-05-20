@@ -21,9 +21,11 @@ body {
   background: #fff;
   color: #000;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  -webkit-text-size-adjust: 100%;
 }
 
 body::selection {
@@ -86,16 +88,16 @@ footer::selection {
    ============================================= */
 
 .container {
-  width: var(--max-width);
-  max-width: 100%;
+  max-width: var(--max-width);
+  width: 100%;
   margin: 0 auto;
 }
 
 .container-wrapper {
   display: flex;
   justify-content: center;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 24px;
+  padding-right: 24px;
   width: 100%;
 }
 
@@ -107,8 +109,9 @@ footer::selection {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: env(safe-area-inset-top, 0);
   position: fixed;
   top: 0;
   left: 0;
@@ -197,25 +200,34 @@ footer::selection {
   display: none; /* hidden on desktop */
   flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
+  /* Centre the bars so they grow/rotate symmetrically into the X. The closed
+     state still reads as right-weighted because bar 2 is narrower (see widths). */
+  align-items: center;
   gap: 6px;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
   margin-left: auto;
+  /* Bigger hit area than visual size — re-position to the right edge */
+  margin-right: -8px;
 }
 
 .hamburger__bar {
   display: block;
   height: 1.5px;
   border-radius: 2px;
+  background: #000;
+  transform-origin: center;
+  /* Animate width + transform + background with one easing so the two SAME bars
+     visibly rotate/translate from their resting position into the X — one
+     continuous gesture, never a fresh X dropping in. */
   transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.25s ease,
-    width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.4s ease;
 }
 
 /* bar widths: top full, bottom 60% */
@@ -226,19 +238,17 @@ footer::selection {
   width: 14px;
 }
 
-/* open state → X */
+/* open state → X: each bar converges to the container's vertical centre (they
+   sit 3.75px either side of it) and rotates ±45°, both growing to equal width
+   so the cross is symmetric. transform-origin:center keeps the width growth and
+   rotation pivoting on the same point, so they swing cleanly into place. */
 .hamburger--open .hamburger__bar:nth-child(1) {
   transform: translateY(3.75px) rotate(45deg);
-  width: 24px;
+  width: 22px;
 }
 .hamburger--open .hamburger__bar:nth-child(2) {
   transform: translateY(-3.75px) rotate(-45deg);
-  width: 24px;
-}
-
-.hamburger__bar {
-  background: #000;
-  transition: background 0.4s ease;
+  width: 22px;
 }
 
 .navbar--white .hamburger__bar,
@@ -251,6 +261,9 @@ footer::selection {
 .menu-overlay {
   position: fixed;
   inset: 0;
+  /* Use dynamic viewport height on mobile so iOS URL bar transitions don't
+     leave a gap at the bottom. */
+  height: 100dvh;
   background: #000;
   z-index: 200;
   display: flex;
@@ -285,7 +298,7 @@ footer::selection {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 24px 48px;
+  padding: 0 24px max(48px, env(safe-area-inset-bottom));
 }
 
 .menu-overlay__header {
@@ -321,8 +334,10 @@ footer::selection {
   line-height: 1.1;
   padding: 12px 0;
   transition: opacity 150ms ease;
-  /* stagger in */
-  animation: menuLinkIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* stagger in — bigger travel + longer duration so the per-link delay
+     (set inline in Navbar.tsx) reads as a clear cascade, not a near-simultaneous
+     fade. */
+  animation: menuLinkIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .menu-overlay__link--active,
@@ -333,8 +348,8 @@ footer::selection {
 @keyframes menuLinkIn {
   from {
     opacity: 0;
-    transform: translateY(24px);
-    filter: blur(8px);
+    transform: translateY(48px);
+    filter: blur(12px);
   }
   to {
     opacity: 0.25;
@@ -345,14 +360,14 @@ footer::selection {
 
 /* active link animates to full opacity */
 .menu-overlay__link--active {
-  animation: menuLinkInActive 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: menuLinkInActive 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes menuLinkInActive {
   from {
     opacity: 0;
-    transform: translateY(24px);
-    filter: blur(8px);
+    transform: translateY(48px);
+    filter: blur(12px);
   }
   to {
     opacity: 1;
@@ -363,524 +378,19 @@ footer::selection {
 
 /* =============================================
    RESPONSIVE
+   Breakpoints:
+   - ≤1024px (tablet): switch hero to single column, denser layouts
+   - ≤768px  (mobile): hamburger menu, stacked sections, fluid type
+   - ≤480px  (small):  iPhone-first tuning (375-430px), smaller footer/CS
    ============================================= */
 
-@media (max-width: 900px) {
-  /* ── Navbar ── */
-  .hamburger {
-    display: flex;
-  }
-  .navbar__col--desktop {
-    display: none;
-  }
-  .navbar__inner {
-    gap: 0;
-  }
+/* ───────────────────────── ≤1024px (tablet) ───────────────────────── */
 
-  /* ── Hero ── */
-  /*
-   * On mobile we collapse the two-row structure by making each
-   * hero__row "display: contents" (transparent to flex layout).
-   * Only the two non-empty children (hero__left with title, hero__right
-   * with subtitle) become direct flex items of .hero.
-   * Empty spacer divs are hidden so they add nothing.
-   */
-  .hero {
-    gap: 8px;
-    padding: 96px 0 40px;
-  }
-  .hero__row {
-    display: contents;
-  }
-  .hero__left,
-  .hero__right {
-    flex: none;
-    width: 100%;
-    min-width: 0;
-  }
-  .hero__left:empty,
-  .hero__right:empty {
-    display: none;
-  }
-  .hero__title {
-    font-size: clamp(36px, 8.5vw, 60px);
-    white-space: normal;
-    letter-spacing: -1.5px;
-    line-height: 1.06;
-  }
-  .hero__subtitle {
-    font-size: clamp(16px, 3.4vw, 26px);
-    width: 100%;
-    letter-spacing: -0.5px;
-    line-height: 1.32;
-    margin-top: 4px;
-  }
+/* ───────────────────────── ≤768px (mobile) ───────────────────────── */
 
-  /* ── Project cards ── */
-  .project {
-    height: 70vw;
-    min-height: 360px;
-  }
-  .effect-b__inner {
-    margin-left: 16px !important;
-    margin-right: 16px !important;
-    border-radius: var(--radius-img) !important;
-  }
-  .project__inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding-bottom: 24px;
-  }
-  .project__text {
-    white-space: normal;
-    width: 100%;
-  }
-  .project__name {
-    font-size: clamp(28px, 6vw, 48px);
-    letter-spacing: -1.2px;
-  }
-  .project__number {
-    font-size: clamp(16px, 3vw, 24px);
-  }
-  .project__btn,
-  .project__inner .btn {
-    width: 100%;
-    max-width: 332px;
-  }
+/* ───────────────────────── ≤480px (small, iPhone-first) ───────────────────────── */
 
-  /* ── Work grid ── */
-  .work-grid {
-    gap: 80px;
-  }
-  .work-grid__row {
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  .work-grid__pic {
-    flex: 0 0 calc(50% - 8px);
-    height: 40vw !important;
-  }
-  .work-grid__text {
-    flex: 0 0 100%;
-    height: auto;
-    padding: 16px 0 8px;
-  }
-
-  /* ── Work list ── */
-  .work-list__preview {
-    display: none;
-  }
-  .work-list__name {
-    font-size: clamp(28px, 7vw, 48px);
-  }
-  .work-list__role {
-    display: none;
-  }
-  .work-list__item {
-    padding: 24px 0;
-  }
-
-  /* ── About ── */
-  .about-sections {
-    gap: 48px;
-    padding-bottom: 64px;
-  }
-  .about-photo-wrap {
-    border-radius: var(--radius-img);
-    height: auto;
-    aspect-ratio: 4/5;
-  }
-  .about-section-row {
-    flex-direction: column;
-    gap: 16px;
-    padding-top: 16px;
-  }
-  .about-section-row > .reveal:first-child {
-    flex: none;
-  }
-  .about-section-row__label {
-    font-size: clamp(18px, 3.2vw, 22px);
-    letter-spacing: -0.5px;
-    line-height: 1.3;
-    opacity: 0.5;
-  }
-  .about-info-text {
-    gap: 16px;
-  }
-  .about-info-text p {
-    font-size: clamp(18px, 3.4vw, 22px);
-    letter-spacing: -0.5px;
-    line-height: 1.45;
-  }
-
-  /* ── Accordion rows ── */
-  .accordion-row__header {
-    flex-wrap: wrap;
-    gap: 4px 8px;
-  }
-  .accordion-row__name {
-    flex: 1 0 auto;
-  }
-  .accordion-row__role {
-    flex: 0 0 100%;
-    padding-left: 16px;
-    font-size: 12px;
-  }
-  .accordion-row__period {
-    width: 100%;
-    padding-left: 16px;
-    justify-content: space-between;
-  }
-
-  /* ── Craft ── */
-  .craft-grid {
-    gap: 16px;
-  }
-  .craft-col:last-child {
-    display: none;
-  }
-
-  /* ── Case study ── */
-  .cs-hero {
-    height: 56vw;
-    min-height: 360px;
-    margin-bottom: -120px;
-    padding-bottom: 240px;
-  }
-  .cs-hero__title {
-    font-size: clamp(32px, 7vw, 64px);
-    letter-spacing: -1.2px;
-  }
-  .cs-hero__subtitle {
-    font-size: clamp(16px, 3.5vw, 28px);
-    letter-spacing: -0.6px;
-  }
-  .cs-hero__back {
-    font-size: 16px;
-  }
-  .cs-hero__bottom {
-    top: 80px;
-  }
-  .cs-hero__text {
-    padding-bottom: 48px;
-  }
-  .cs-cover {
-    height: 48vw;
-    min-height: 280px;
-  }
-  .cs-body {
-    gap: 64px;
-    padding: 80px 0;
-  }
-  .cs-meta {
-    flex-direction: column;
-    gap: 24px;
-    font-size: 16px;
-    letter-spacing: -0.4px;
-  }
-  .cs-meta__left {
-    width: 100%;
-  }
-  .cs-section {
-    flex-direction: column;
-    gap: 16px;
-  }
-  .cs-section__title {
-    flex: none;
-    width: 100%;
-    font-size: clamp(24px, 5vw, 32px);
-  }
-  .cs-paragraph {
-    font-size: clamp(16px, 3vw, 20px);
-  }
-  .cs-list li {
-    font-size: clamp(16px, 3vw, 20px);
-  }
-  .cs-images--3 {
-    flex-wrap: wrap;
-  }
-  .cs-images--3 .cs-images__pic {
-    flex: 0 0 calc(50% - 12px);
-  }
-  .cs-nav {
-    margin-top: 32px;
-    padding-bottom: 48px;
-  }
-  .cs-nav__name {
-    font-size: clamp(18px, 4vw, 24px);
-  }
-
-  /* ── Work main ── */
-  .work-main {
-    padding: 80px 0;
-    gap: 24px;
-  }
-
-  /* ── Footer ── */
-  .footer__inner {
-    flex-wrap: wrap;
-    gap: 32px;
-    padding-top: 64px;
-    padding-bottom: 48px;
-  }
-  .footer__col {
-    flex: 0 0 calc(50% - 12px);
-  }
-  .footer__archive {
-    flex: 0 0 100%;
-  }
-  .footer__archive-thumb {
-    width: 140px;
-    height: 80px;
-  }
-  .footer__archive-screenshot {
-    height: 80px;
-  }
-}
-
-@media (max-width: 560px) {
-  /* ── Layout ── */
-  .container-wrapper {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  /* ── Hero ── */
-  .hero {
-    padding: 88px 0 32px;
-    gap: 6px;
-  }
-  .hero__title {
-    font-size: clamp(30px, 10vw, 48px);
-    letter-spacing: -1.2px;
-    line-height: 1.05;
-  }
-  .hero__subtitle {
-    font-size: clamp(15px, 4.2vw, 20px);
-    letter-spacing: -0.3px;
-    line-height: 1.35;
-    margin-top: 2px;
-  }
-
-  /* ── Project cards ── */
-  .project {
-    height: auto;
-    min-height: 480px;
-    aspect-ratio: 4/5;
-  }
-  .effect-b__inner {
-    margin-left: 8px !important;
-    margin-right: 8px !important;
-    border-radius: 16px !important;
-  }
-  .project__inner {
-    padding-bottom: 20px;
-  }
-  .project__name {
-    font-size: clamp(24px, 7vw, 36px);
-    letter-spacing: -0.8px;
-  }
-  .project__number {
-    font-size: 14px;
-  }
-
-  /* ── About ── */
-  .about-sections {
-    gap: 40px;
-    padding-bottom: 56px;
-  }
-  .about-section-row {
-    padding-top: 12px;
-    gap: 12px;
-  }
-  .about-section-row__label {
-    font-size: 14px;
-    letter-spacing: -0.4px;
-  }
-  .about-info-text {
-    gap: 12px;
-  }
-  .about-info-text p {
-    font-size: clamp(16px, 4.4vw, 20px);
-    letter-spacing: -0.4px;
-    line-height: 1.45;
-  }
-  .accordion-row__company,
-  .accordion-row__role,
-  .accordion-row__period {
-    font-size: 16px;
-    letter-spacing: -0.4px;
-  }
-
-  /* ── Work grid: single column ── */
-  .work-grid {
-    gap: 56px;
-  }
-  .work-grid__pic {
-    flex: 0 0 100%;
-    height: 64vw !important;
-  }
-  .work-grid__name {
-    font-size: clamp(22px, 5.5vw, 28px);
-  }
-  .work-grid__role {
-    font-size: clamp(16px, 4vw, 20px);
-  }
-  .work-grid__text {
-    height: auto;
-    gap: 16px;
-  }
-
-  /* ── Craft: single column ── */
-  .craft-grid {
-    flex-direction: column;
-    padding-bottom: 80px;
-  }
-  .craft-col {
-    display: flex !important;
-  }
-  .craft-col:last-child {
-    display: flex !important;
-  }
-  .craft-card {
-    height: auto !important;
-    aspect-ratio: 4/3;
-  }
-
-  /* ── Case study ── */
-  .cs-hero {
-    height: auto;
-    min-height: 280px;
-    margin-bottom: -80px;
-    padding-bottom: 160px;
-  }
-  .cs-cover {
-    height: 60vw;
-  }
-  .cs-body {
-    gap: 48px;
-    padding: 64px 0;
-  }
-  .cs-images {
-    flex-direction: column;
-  }
-  .cs-images__pic {
-    flex: none;
-    width: 100%;
-  }
-  .cs-meta__left {
-    flex-direction: column;
-  }
-  .cs-nav {
-    flex-direction: column;
-    gap: 0;
-    margin-top: 24px;
-  }
-  .cs-nav__card--next {
-    align-items: flex-start;
-  }
-
-  /* ── Footer ── */
-  .footer__inner {
-    padding-top: 48px;
-    padding-bottom: 32px;
-    gap: 24px;
-  }
-  .footer__col {
-    flex: 0 0 calc(50% - 12px);
-  }
-  .footer__archive-thumb {
-    width: 96px;
-    height: 64px;
-  }
-  .footer__archive-screenshot {
-    height: 64px;
-  }
-  .footer__archive-text {
-    padding: 10px;
-  }
-  .footer__bottom {
-    flex-direction: column;
-    gap: 4px;
-    text-align: center;
-    padding: 16px 0;
-  }
-}
-
-@media (max-width: 400px) {
-  .container-wrapper {
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-  .hero {
-    padding: 80px 0 24px;
-    gap: 4px;
-  }
-  .hero__title {
-    font-size: clamp(28px, 10vw, 38px);
-    letter-spacing: -1px;
-  }
-  .hero__subtitle {
-    font-size: clamp(14px, 4.2vw, 17px);
-    margin-top: 2px;
-  }
-  .menu-overlay__link {
-    font-size: clamp(40px, 11vw, 56px);
-    padding: 8px 0;
-  }
-  .menu-overlay__inner {
-    padding: 0 16px 32px;
-  }
-  .menu-overlay__name {
-    font-size: 18px;
-  }
-  .project__name {
-    font-size: clamp(22px, 7vw, 30px);
-  }
-  .work-grid {
-    gap: 40px;
-  }
-  .work-grid__name {
-    font-size: 22px;
-  }
-  .work-grid__role {
-    font-size: 16px;
-  }
-  .work-list__name {
-    font-size: clamp(24px, 7vw, 32px);
-  }
-  .cs-hero__title {
-    font-size: clamp(28px, 8vw, 40px);
-  }
-  .cs-hero__subtitle {
-    font-size: clamp(15px, 4vw, 20px);
-  }
-  .cs-section__title {
-    font-size: clamp(20px, 5vw, 24px);
-  }
-  .cs-paragraph,
-  .cs-list li {
-    font-size: 15px;
-  }
-  .cs-meta {
-    font-size: 14px;
-  }
-  .cs-nav__name {
-    font-size: 18px;
-  }
-  .footer__col-title,
-  .footer__col-item {
-    font-size: 13px;
-  }
-  .footer__archive-thumb {
-    width: 80px;
-    height: 56px;
-  }
-  .footer__archive-screenshot {
-    height: 56px;
-  }
-}
+/* ───────────────────────── ≤360px (very small) ───────────────────────── */
 
 /* =============================================
    HERO
@@ -931,6 +441,7 @@ footer::selection {
   line-height: normal;
   width: min(688px, 100%);
   color: inherit;
+  text-wrap: balance;
 }
 
 /* =============================================
@@ -969,6 +480,123 @@ footer::selection {
   transform: translateX(3px);
 }
 
+/* ── animated hourglass (Coming soon buttons) ──────────────────────────────── */
+
+.hourglass {
+  display: block;
+}
+
+/* The whole glass turns a full 360° per loop (two drains + two half-turns). The
+   sand level in each bulb is a clip "surface" that translates along the LOCAL Y
+   axis. The clips rotate with the glass, but the surface keyframes are authored
+   per-phase so that — in SCREEN space — the upper bulb always drains DOWNWARD to
+   the neck and the lower bulb always fills UPWARD from the floor, in BOTH
+   orientations. The sand is conserved (a flip carries the full bulb to the top
+   with no reset); the only level changes that aren't gravity-true are tucked
+   inside flip 2, hidden behind the spin, and land on values visually identical
+   to 0%. ~9s total. */
+.hourglass__rotor {
+  transform-origin: 8px 8px; /* neck = rotation centre */
+  animation: hourglass-flip 9s infinite;
+}
+
+/* Top bulb surface. translateY(0) = bulb fully covered (sand shown); a positive
+   slide clears it from the bar down toward the neck (drain when upright). */
+.hourglass__surface-top {
+  animation: hourglass-surface-top 9s infinite;
+}
+
+/* Bottom bulb surface. The inverse of the top, so the two bulbs are always
+   opposite — one draining as the other fills. */
+.hourglass__surface-bot {
+  animation: hourglass-surface-bot 9s infinite;
+}
+
+@keyframes hourglass-flip {
+  /* Phase A — upright & still while sand moves. */
+  0%,
+  38% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  /* Flip 1 → 180°, gentle damped settle (+15 → −6 → +2). */
+  44% {
+    transform: rotate(195deg);
+    animation-timing-function: ease-out;
+  }
+  47% {
+    transform: rotate(174deg);
+    animation-timing-function: ease-in-out;
+  }
+  50% {
+    transform: rotate(182deg);
+    animation-timing-function: ease-in-out;
+  }
+  /* Phase B — upside-down & still. */
+  53%,
+  88% {
+    transform: rotate(180deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  /* Flip 2 → 360° (≡ 0°), same damped settle, into the loop seam. */
+  94% {
+    transform: rotate(375deg);
+    animation-timing-function: ease-out;
+  }
+  97% {
+    transform: rotate(354deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Surface values verified by rendering at each anchor:
+   0%   upright   top 0  (full)  / bot 6.7 (empty)
+   38%  upright   top 7  (empty) / bot 0   (full)   ← phase A drained down
+   53%  flipped   top 7 / bot 0  held; the 180° flip alone makes the now-upper
+                  bulb read FULL and the lower EMPTY (no value change = no jump)
+   88%  flipped   top −3.5 (now-lower bulb filled from floor) /
+                  bot −6.7 (now-upper bulb drained to neck)   ← phase B, screen-correct
+   100% upright   back to 0 / 6.7 — visually identical to 88% once rotated, the
+                  small numeric change rides inside flip 2's spin. */
+@keyframes hourglass-surface-top {
+  0% {
+    transform: translateY(0);
+  }
+  38% {
+    transform: translateY(7px);
+  }
+  53% {
+    transform: translateY(7px);
+  }
+  88% {
+    transform: translateY(-3.5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes hourglass-surface-bot {
+  0% {
+    transform: translateY(6.7px);
+  }
+  38% {
+    transform: translateY(0);
+  }
+  53% {
+    transform: translateY(0);
+  }
+  88% {
+    transform: translateY(-6.7px);
+  }
+  100% {
+    transform: translateY(6.7px);
+  }
+}
+
 .btn--outline-black:hover .btn__icon {
   filter: invert(1);
 }
@@ -986,14 +614,31 @@ footer::selection {
   background: #d3d3d3;
 }
 
-.btn--outline-white {
+.btn--outline-gray {
+  position: relative;
+  overflow: hidden;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 
-.btn--outline-white:hover {
-  background: rgba(255, 255, 255, 0.1);
+.btn--outline-gray::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-101%);
+  transition: transform 320ms cubic-bezier(0.76, 0, 0.24, 1);
+  z-index: 0;
+}
+
+.btn--outline-gray:hover::before {
+  transform: translateX(0);
+}
+
+.btn--outline-gray > * {
+  position: relative;
+  z-index: 1;
 }
 
 .btn--outline-white-full {
@@ -1067,9 +712,19 @@ footer::selection {
 .btn--disabled {
   cursor: default;
   opacity: 0.8;
-  text-align: center;
-  justify-content: center;
+  text-align: left;
+  justify-content: space-between;
   pointer-events: none;
+  border-color: rgba(0 0 0 / 30%);
+  color: rgba(0 0 0 /50%);
+}
+
+/* White disabled variant — for dark surfaces like the homepage project sections.
+   Keeps the same transparency feel as the black version, just inverted. */
+.btn--disabled.btn--outline-white-full,
+.btn--disabled.btn--outline-gray {
+  border-color: rgba(255 255 255 / 100%);
+  color: rgba(255 255 255 / 100%);
 }
 
 /* =============================================
@@ -1166,8 +821,9 @@ footer::selection {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
   flex-direction: column;
 }
 
@@ -1309,7 +965,7 @@ footer::selection {
   overflow: hidden;
 }
 
-.footer__archive-screenshot img {
+.i img {
   position: absolute;
   height: 126.99%;
   left: -37.78%;
@@ -1383,45 +1039,6 @@ footer::selection {
 
 .footer__location-time {
   font-variant-numeric: tabular-nums;
-  position: relative;
-  cursor: default;
-}
-
-.footer__city-popup {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  /* Shift the popup 4px right so the inner content reads aligned with the
-     bottom-bar row. Right padding also bumps by 4px so the time column stays
-     anchored at the same x as the bottom-bar `{local}` text. */
-  right: -20px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  /* solid dark bg so the footer border-top doesn't bleed through */
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 10px 18px 10px 14px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity 180ms ease-out,
-    transform 180ms ease-out;
-}
-
-.footer__location-time--open .footer__city-popup {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.footer__city-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
 }
 
 .footer__city-name {
@@ -1441,23 +1058,10 @@ footer::selection {
   opacity: 0.5;
 }
 
-.footer__time-icon {
-  margin-right: 6px;
-  display: flex;
-  align-items: center;
-  opacity: 0.7;
-}
-
-/* Bottom-bar local row — mirrors the popup row layout (icon+name on the left,
-   time on the right) so the bottom line aligns with the popover above it. */
 .footer__local-row {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-
-.footer__city-divider {
-  opacity: 0.5;
+  gap: 4px;
 }
 
 /* ── Konami easter egg ── */
@@ -1601,9 +1205,10 @@ html.konami canvas {
      enter/exit animations apply this same base translate plus additional
      translateY/scale, so the toast stays centered throughout. */
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0));
   left: 50%;
   transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
   /* Layout mirrors footer bottom bar's icon + text alignment */
   display: inline-flex;
   align-items: center;
@@ -1678,6 +1283,9 @@ html.konami canvas {
   opacity: 0.7;
   letter-spacing: -0.02em;
 }
+
+/* Drop the "Click or Esc to disable" hint on narrow phones — it pushes the
+   toast too wide and feels redundant once you tap once. */
 
 /* =============================================
    PAGE
@@ -1989,10 +1597,56 @@ html.konami .projects-nav__pill {
   animation: projects-nav-pill-rainbow 2s linear infinite;
 }
 
-@media (max-width: 900px) {
-  .projects-nav {
-    display: none;
+/* Hide the desktop pill rail on mobile. The ProjectsNavMobile component
+   (.projects-nav-m) renders a bottom-right floating bar instead. */
+
+/* =============================================
+   PROJECTS NAV — MOBILE (bottom-right floating bar)
+   ============================================= */
+
+/* Hidden by default on desktop — only shown ≤768px */
+.projects-nav-m {
+  display: none;
+}
+
+@keyframes projects-nav-m-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes projects-nav-m-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+}
+
+/* Konami rainbow integration for mobile bar */
+html.konami .projects-nav-m__pill {
+  background-image: linear-gradient(
+    180deg,
+    #ff0080,
+    #ff6600,
+    #ffee00,
+    #00cc44,
+    #00aaff,
+    #7700ff,
+    #ff0080
+  );
+  background-color: transparent;
+  background-size: 100% 400%;
+  background-repeat: repeat;
+  animation: projects-nav-pill-rainbow 2s linear infinite;
 }
 
 /* =============================================
@@ -2004,7 +1658,7 @@ html.konami .projects-nav__pill {
   color: #fff;
 }
 
-no .page--craft {
+.page--craft {
   background: #dfdfdf;
   color: #000;
 }
@@ -2214,11 +1868,11 @@ no .page--craft {
 .accordion-row__role {
   flex: 1 0 0;
   min-width: 0;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.6px;
   line-height: 1.4;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .accordion-row__period {
@@ -2227,12 +1881,16 @@ no .page--craft {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 24px;
+  gap: 6px;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: -0.6px;
   line-height: 1.4;
   opacity: 0.5;
+}
+
+.accordion-row__period span {
+  font-size: 16px;
 }
 
 .accordion-row__arrow,
@@ -2247,8 +1905,8 @@ no .page--craft {
 
 .accordion-row__arrow img,
 .accordion-row__chevron img {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
 }
 
 .accordion-row__chevron {
@@ -2264,13 +1922,8 @@ no .page--craft {
   transform: translateX(4px);
 }
 
-.accordion-row__arrow img,
-.accordion-row__see-more img {
+.accordion-row__arrow img {
   transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.accordion-row__see-more:hover img {
-  transform: translateX(4px);
 }
 
 .accordion-row__body {
@@ -2310,28 +1963,6 @@ no .page--craft {
 }
 
 .accordion-row__link:hover {
-  opacity: 1;
-}
-
-.accordion-row__see-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  opacity: 0.6;
-  transition: opacity 150ms ease;
-  padding-left: 16px;
-}
-
-.accordion-row__see-more img {
-  width: 14px;
-  height: 14px;
-}
-
-.accordion-row__see-more:hover {
   opacity: 1;
 }
 
@@ -2520,6 +2151,8 @@ no .page--craft {
   height: 100%;
   object-fit: cover;
   display: block;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-img);
 }
 
 .work-grid__text {
@@ -2530,14 +2163,13 @@ no .page--craft {
   height: 332px;
   justify-content: space-between;
   overflow: visible;
-  padding: 4px;
-  margin: -4px;
+  /* padding: 4px; */
+  /* margin: -4px; */
 }
 
 .work-grid__text-top {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .work-grid__name {
@@ -3300,6 +2932,26 @@ no .page--craft {
   background: rgba(0, 0, 0, 0.08);
   overflow: hidden;
   flex-shrink: 0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  display: block;
+  transition:
+    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.craft-card:hover {
+  transform: translateY(-4px) scale(1.003);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.craft-card:active {
+  transform: translateY(-1px) scale(0.985);
+  transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .craft-card__img {
@@ -3307,11 +2959,348 @@ no .page--craft {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* Hover bounce — only on devices that actually hover (skip mobile/touch) */
+
+/* On non-hover devices, drop the hover lift so it doesn't get stuck */
 
 /* The Reveal wrapper inside a column should fill column width */
 .craft-col > .reveal {
   width: 100%;
+}
+
+/* =============================================
+   CRAFT LIGHTBOX
+   ============================================= */
+
+.craft-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  --lb-scroll-progress: 1;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  transition:
+    background-color 0.4s ease,
+    backdrop-filter 0.4s ease,
+    -webkit-backdrop-filter 0.4s ease;
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+}
+
+/* Root dialog gets programmatic focus on open — never show a focus ring on
+   the wrapper itself, only on actual controls when the user tabs. */
+.craft-lightbox:focus,
+.craft-lightbox:focus-visible {
+  outline: none;
+}
+
+/* When open, backdrop opacity follows scroll-dismiss progress so the overlay
+   gently dissolves as the user scrolls — Medium / Linear style. */
+.craft-lightbox.is-open {
+  background: rgba(0, 0, 0, calc(0.88 * var(--lb-scroll-progress)));
+  -webkit-backdrop-filter: blur(calc(6px * var(--lb-scroll-progress)));
+  backdrop-filter: blur(calc(6px * var(--lb-scroll-progress)));
+}
+
+.craft-lightbox.is-closing {
+  background: rgba(0, 0, 0, 0);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+}
+
+/* ── Meta (top-left) ── */
+
+.craft-lightbox__meta {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+  /* Parent only owns the open/close visibility; the inner element owns the
+     direction-aware swap animation. */
+  opacity: 0;
+  transition: opacity 0.4s ease 0.1s;
+}
+
+.craft-lightbox.is-open .craft-lightbox__meta {
+  opacity: 1;
+}
+
+.craft-lightbox__label {
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight-md);
+  font-size: 18px;
+}
+
+.craft-lightbox__date {
+  opacity: 0.6;
+  font-size: 12px;
+  letter-spacing: var(--tracking-tight-md);
+}
+
+/* ── Meta swap animation (on prev/next) ──
+   Subtle direction-aware reveal: blur + slight slide + fade. Inspired by
+   the global .reveal effect but tuned shorter and smaller for in-place
+   text swaps. */
+
+@keyframes craft-lb-meta-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes craft-lb-meta-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes craft-lb-meta-in-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.craft-lightbox__meta-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.craft-lightbox__meta-inner--next {
+  animation: craft-lb-meta-in-next 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.craft-lightbox__meta-inner--prev {
+  animation: craft-lb-meta-in-prev 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.craft-lightbox__meta-inner--enter {
+  animation: craft-lb-meta-in-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Controls ── */
+
+.craft-lightbox__top-actions {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.craft-lightbox__icon-btn,
+.craft-lightbox__nav {
+  /* Frosted-glass pill — readable on any image, light or dark, even when
+     zoomed so the photo scrolls behind the controls. */
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    opacity 0.25s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.craft-lightbox__nav {
+  position: absolute;
+  opacity: 0;
+}
+
+.craft-lightbox__top-actions {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.craft-lightbox.is-open .craft-lightbox__top-actions,
+.craft-lightbox.is-open .craft-lightbox__nav {
+  opacity: var(--lb-scroll-progress);
+}
+
+.craft-lightbox.is-open .craft-lightbox__meta {
+  opacity: var(--lb-scroll-progress);
+}
+
+.craft-lightbox__icon-btn:hover:not(:disabled),
+.craft-lightbox__nav:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.craft-lightbox__icon-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+/* Arrow-key feedback: just the movement, no background change. */
+
+.craft-lightbox__nav--prev {
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.craft-lightbox__nav--next {
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.craft-lightbox__nav--prev:hover,
+.craft-lightbox__nav--prev.is-pressed {
+  transform: translateY(-50%) translateX(-3px);
+}
+
+.craft-lightbox__nav--next:hover,
+.craft-lightbox__nav--next.is-pressed {
+  transform: translateY(-50%) translateX(3px);
+}
+
+/* ── Card ── */
+
+.craft-lightbox__card {
+  position: relative;
+  /* Card sizes to its inner <img>: 85vh tall, width follows the image's
+     natural aspect ratio. Capped to viewport width. */
+  display: block;
+  border-radius: var(--radius-img);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  max-width: calc(100vw - 128px);
+  max-height: 85vh;
+  line-height: 0;
+}
+
+/* Click-to-zoom / drag-to-pan cursors on the image */
+.craft-lightbox__card--zoom-in {
+  cursor: zoom-in;
+}
+
+.craft-lightbox__card--zoom-out {
+  cursor: zoom-out;
+}
+
+.craft-lightbox__card--grabbing {
+  cursor: grabbing;
+  /* Prevent text/image selection from interrupting the drag */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.craft-lightbox__card .craft-lightbox__img {
+  /* Suppress native image-drag so it doesn't interfere with the pan gesture. */
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.craft-lightbox__img {
+  display: block;
+  height: 85vh;
+  max-height: 85vh;
+  max-width: calc(100vw - 128px);
+  width: auto;
+  object-fit: contain;
+}
+
+.craft-lightbox__placeholder {
+  width: min(720px, calc(100vw - 128px));
+  height: 85vh;
+  max-height: 85vh;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+}
+
+/* ── Image swap animation (on prev/next) ──
+   Same blur+opacity+slide language as the meta swap, applied to the image
+   inside the lightbox card. The card itself keeps its inline transform
+   (zoom + pan) free of CSS animation to avoid conflicts. */
+
+@keyframes craft-lb-img-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes craft-lb-img-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+/* No CSS animation — JS-driven FLIP morph applies inline transforms */
+.craft-lightbox__card--morph,
+.craft-lightbox__card--next,
+.craft-lightbox__card--prev {
+  animation: none;
+}
+
+.craft-lightbox__card--next .craft-lightbox__img {
+  animation: craft-lb-img-in-next 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.craft-lightbox__card--prev .craft-lightbox__img {
+  animation: craft-lb-img-in-prev 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* =============================================
@@ -3386,7 +3375,887 @@ no .page--craft {
 }
 
 /* Disable on mobile — hamburger menu handles its own transition */
-@media (max-width: 900px) {
+
+/* =============================================
+   RESPONSIVE / FEATURE MEDIA QUERIES
+   Kept together at the END so each override beats the base rule it
+   targets (media queries add no specificity — source order decides).
+   ============================================= */
+
+@media (max-width: 1024px) {
+  .container-wrapper {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero {
+    padding: 144px 0 96px;
+    gap: 32px;
+  }
+
+  .hero__left {
+    flex: 0 !important;
+  }
+
+  .hero__row--right {
+    justify-content: flex-start !important;
+  }
+
+  .hero__row {
+    gap: 0 !important;
+  }
+
+  .cs-hero {
+    height: auto;
+    min-height: 520px;
+    margin-bottom: -160px;
+    padding-bottom: 320px;
+  }
+  .cs-cover {
+    height: 56vw;
+    min-height: 360px;
+  }
+  .cs-hero__title {
+    font-size: clamp(40px, 6vw, 56px);
+  }
+  .cs-hero__subtitle {
+    font-size: clamp(20px, 3vw, 26px);
+  }
+
+  /* Body padding for case study */
+  .cs-body {
+    gap: 96px;
+    padding: 96px 0;
+  }
+
+  /* About page */
+  .about-sections {
+    gap: 96px;
+    padding-bottom: 96px;
+  }
+
+  /* Work main spacing */
+  .work-main {
+    padding: 96px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .container-wrapper {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* ── Navbar: hamburger appears ── */
+  .hamburger {
+    display: flex;
+  }
+  .navbar__col--desktop {
+    display: none;
+  }
+  .navbar__inner {
+    gap: 0;
+  }
+  .navbar__link {
+    font-size: 14px;
+  }
+
+  /* ── Hero: collapse 2-row structure to 1-col stack ── */
+  .hero {
+    gap: 12px;
+    padding: 112px 0 56px;
+  }
+  .hero__row {
+    display: contents;
+  }
+  .hero__left,
+  .hero__right {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  .hero__left:empty,
+  .hero__right:empty {
+    display: none;
+  }
+  .hero__title {
+    font-size: clamp(36px, 9vw, 56px);
+    white-space: normal;
+    letter-spacing: -1.4px;
+    line-height: 1.06;
+    word-break: break-word;
+  }
+  .hero__subtitle {
+    font-size: clamp(17px, 3.8vw, 22px);
+    width: 100%;
+    letter-spacing: -0.4px;
+    line-height: 1.32;
+  }
+
+  /* ── Project cards ── */
+  /* Full-height sections like desktop. Margin/radius are left to the JS-driven
+     inline styles, so only the first project is inset (and it animates flush as
+     you scroll); every other project is full-bleed. */
+  .project {
+    height: 100vh;
+  }
+  .project__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 24px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .project__text {
+    white-space: normal;
+    width: 100%;
+  }
+  .project__name {
+    font-size: clamp(28px, 6vw, 44px);
+    letter-spacing: -1.2px;
+  }
+  .project__number {
+    font-size: 16px;
+  }
+  .project__btn,
+  .project__inner .btn {
+    width: 100%;
+    max-width: 332px;
+  }
+
+  /* ── Work grid ── */
+  .work-grid {
+    gap: 80px;
+  }
+  .work-grid__row {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .work-grid__pic {
+    flex: 0 0 calc(50% - 8px);
+  }
+  /* Rows interleave the text block at different positions on desktop; on mobile
+     force it FIRST every time, with the images flowing below. */
+  .work-grid__text {
+    order: -1;
+    flex: 0 0 100%;
+    height: auto;
+    padding: 16px 0 8px;
+  }
+
+  /* ── Work list ── */
+  .work-list__preview {
+    display: none;
+  }
+  .work-list__name {
+    font-size: clamp(28px, 7vw, 42px);
+  }
+  .work-list__role {
+    display: none;
+  }
+  .work-list__item {
+    padding: 24px 0;
+  }
+
+  /* ── About ── */
+  .about-sections {
+    gap: 56px;
+    padding-bottom: 64px;
+  }
+  .about-photo-wrap {
+    border-radius: var(--radius-img);
+    height: auto;
+    aspect-ratio: 4/5;
+  }
+  .about-section-row {
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+  }
+  .about-section-row > .reveal:first-child {
+    flex: none;
+  }
+  .about-section-row__label {
+    font-size: 16px;
+    letter-spacing: -0.4px;
+    line-height: 1.3;
+    opacity: 0.5;
+  }
+  .about-info-text {
+    gap: 20px;
+  }
+  .about-info-text p {
+    font-size: clamp(18px, 3.6vw, 22px);
+    letter-spacing: -0.45px;
+    line-height: 1.45;
+  }
+
+  /* ── Accordion rows (mobile re-layout) ──
+     Two-row layout:
+       Row 1: [dot] company    [chevron]
+       Row 2: role                  period
+     Period and chevron stay visible; role wraps cleanly below. */
+  .accordion-row__header {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    padding-top: 20px;
+  }
+  .accordion-row__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: center;
+  }
+  .accordion-row__company {
+    white-space: normal;
+    word-break: break-word;
+    font-size: 17px;
+  }
+  .accordion-row__role {
+    flex: 0 0 100%;
+    order: 3;
+    padding-left: 16px;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  .accordion-row__period {
+    flex: 0 0 auto;
+    order: 2;
+    width: auto;
+    padding-left: 0;
+    justify-content: flex-end;
+    gap: 12px;
+    font-size: 14px;
+    align-items: center;
+  }
+  .accordion-row__period > span:first-child {
+    display: none; /* hide period text on mobile to keep row tidy; show in role row instead */
+  }
+  .accordion-row__arrow,
+  .accordion-row__chevron {
+    width: 20px;
+    height: 20px;
+  }
+  .accordion-row__arrow img,
+  .accordion-row__chevron img {
+    width: 20px;
+    height: 20px;
+  }
+  .accordion-row__description {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  /* ── Craft: keep all 3 columns, just tighter gaps ── */
+  .craft-grid {
+    gap: 12px;
+  }
+
+  /* ── Case study ── */
+  .cs-hero {
+    height: auto;
+    min-height: 420px;
+    margin-bottom: -120px;
+    padding-bottom: 240px;
+  }
+  .cs-hero__title {
+    font-size: clamp(32px, 7.5vw, 48px);
+    letter-spacing: -1.2px;
+  }
+  .cs-hero__subtitle {
+    font-size: clamp(16px, 3.6vw, 22px);
+    letter-spacing: -0.5px;
+  }
+  .cs-hero__back {
+    font-size: 15px;
+  }
+  .cs-hero__back-arrow {
+    width: 16px;
+    height: 16px;
+  }
+  .cs-hero__bottom {
+    top: 72px;
+  }
+  .cs-hero__text {
+    padding-bottom: 40px;
+  }
+  .cs-cover {
+    height: 56vw;
+    min-height: 280px;
+  }
+  .cs-body {
+    gap: 64px;
+    padding: 64px 0;
+  }
+  .cs-meta {
+    flex-direction: column;
+    gap: 24px;
+    font-size: 15px;
+    letter-spacing: -0.4px;
+  }
+  .cs-meta__left {
+    width: 100%;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .cs-meta__col {
+    padding-top: 16px;
+    gap: 16px;
+  }
+  .cs-meta__about {
+    padding-top: 16px;
+    gap: 16px;
+  }
+  .cs-role {
+    max-width: none;
+  }
+  .cs-section {
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 80px;
+  }
+  .cs-hmw-wrap {
+    padding-top: 80px;
+  }
+  .cs-hmw {
+    font-size: clamp(22px, 4.5vw, 28px);
+    line-height: 1.3;
+  }
+  .cs-cols {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .cs-cols--after-image {
+    margin-top: calc(24px - 64px);
+  }
+  .cs-section__title {
+    flex: none;
+    width: 100%;
+    font-size: clamp(22px, 5.2vw, 28px);
+  }
+  .cs-paragraph {
+    font-size: 16px;
+    letter-spacing: -0.4px;
+    line-height: 1.55;
+  }
+  .cs-list li {
+    font-size: 16px;
+    letter-spacing: -0.4px;
+    line-height: 1.5;
+  }
+  .cs-quote {
+    font-size: 17px;
+    line-height: 1.4;
+  }
+  .cs-heading {
+    font-size: 20px;
+    line-height: 1.3;
+  }
+  .cs-images--3 {
+    flex-wrap: wrap;
+  }
+  .cs-images--3 .cs-images__pic {
+    flex: 0 0 100%;
+  }
+  .cs-nav {
+    flex-direction: column;
+    gap: 0;
+    margin-top: 32px;
+    padding-bottom: 56px;
+  }
+  .cs-nav__card {
+    padding: 20px 0;
+  }
+  .cs-nav__card--next {
+    align-items: flex-start;
+  }
+  .cs-nav__name {
+    font-size: clamp(22px, 5.5vw, 28px);
+  }
+
+  /* ── Work main ── */
+  .work-main {
+    padding: 72px 0;
+    gap: 24px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .footer__inner {
+    flex-wrap: wrap;
+    gap: 32px;
+    padding-top: 64px;
+    padding-bottom: 48px;
+  }
+  .footer__col {
+    flex: 0 0 calc(50% - 16px);
+  }
+  /* When the footer columns wrap, the archive drops onto its own row — keep it a
+     full-width ROW (thumb beside text), not a stacked column. */
+  .footer__archive {
+    flex: 0 0 100%;
+    flex-direction: row;
+  }
+  .footer__archive-thumb {
+    width: 140px;
+    height: 80px;
+  }
+  .footer__archive-screenshot {
+    height: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-wrapper {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* ── Navbar ── */
+  .navbar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .navbar__link {
+    font-size: 13px;
+    padding: 14px 0;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 96px 0 40px;
+    gap: 10px;
+  }
+  .hero__title {
+    font-size: clamp(34px, 11vw, 44px);
+    letter-spacing: -1.2px;
+    line-height: 1.04;
+  }
+  .hero__subtitle {
+    font-size: clamp(15px, 4.4vw, 19px);
+    letter-spacing: -0.3px;
+    line-height: 1.35;
+  }
+
+  /* ── Project cards: aspect ratio for portrait phones ── */
+  .project {
+    height: 100vh;
+  }
+  .project__inner {
+    padding-bottom: 24px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .project__name {
+    font-size: clamp(26px, 7vw, 34px);
+    letter-spacing: -0.8px;
+  }
+  .project__number {
+    font-size: 14px;
+  }
+
+  /* ── About ── */
+  .about-sections {
+    gap: 40px;
+    padding-bottom: 56px;
+  }
+  .about-section-row {
+    padding-top: 12px;
+    gap: 12px;
+  }
+  .about-section-row__label {
+    font-size: 13px;
+    letter-spacing: -0.3px;
+  }
+  .about-info-text {
+    gap: 16px;
+  }
+  .about-info-text p {
+    font-size: clamp(16px, 4.4vw, 18px);
+    letter-spacing: -0.35px;
+    line-height: 1.45;
+  }
+  .accordion-row__company {
+    font-size: 15px;
+  }
+  .accordion-row__role,
+  .accordion-row__period {
+    font-size: 13px;
+  }
+  .accordion-row__description {
+    font-size: 14px;
+    padding-left: 16px;
+  }
+  .accordion-row__header {
+    padding-top: 18px;
+  }
+
+  /* ── Work grid: single column ── */
+  .work-grid {
+    gap: 56px;
+  }
+  .work-grid__pic {
+    flex: 0 0 100%;
+  }
+  .work-grid__name {
+    font-size: clamp(22px, 6vw, 26px);
+  }
+  .work-grid__role {
+    font-size: clamp(15px, 4.2vw, 18px);
+  }
+  .work-grid__text {
+    height: auto;
+    gap: 12px;
+  }
+
+  /* ── Work list ── */
+  .work-list__name {
+    font-size: clamp(24px, 7vw, 32px);
+  }
+  .work-list__item {
+    padding: 20px 0;
+  }
+
+  /* ── Craft: single column ── */
+  .craft-grid {
+    flex-direction: column;
+    padding-bottom: 80px;
+    gap: 12px;
+  }
+  .craft-col {
+    display: flex !important;
+  }
+  /* On mobile, drop the inline pixel height so aspect-ratio (set inline per
+     item) controls the box. Each card keeps its real image aspect. */
+  .craft-card {
+    height: auto !important;
+  }
+
+  /* ── Case study ── */
+  .cs-hero {
+    min-height: 360px;
+    margin-bottom: -80px;
+    padding-bottom: 180px;
+  }
+  .cs-hero__title {
+    font-size: clamp(28px, 8.5vw, 36px);
+  }
+  .cs-hero__subtitle {
+    font-size: clamp(15px, 4vw, 18px);
+  }
+  .cs-hero__bottom {
+    top: 60px;
+  }
+  .cs-cover {
+    height: 60vw;
+    min-height: 240px;
+  }
+  .cs-body {
+    gap: 56px;
+    padding: 56px 0;
+  }
+  .cs-section {
+    padding-top: 56px;
+  }
+  .cs-hmw-wrap {
+    padding-top: 56px;
+  }
+  .cs-cols--after-image {
+    margin-top: calc(16px - 56px);
+  }
+  .cs-hmw {
+    font-size: 20px;
+  }
+  .cs-section__title {
+    font-size: clamp(20px, 5.4vw, 24px);
+  }
+  .cs-paragraph,
+  .cs-list li {
+    font-size: 15px;
+  }
+  .cs-meta {
+    font-size: 14px;
+  }
+  .cs-images {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cs-images__pic {
+    flex: none;
+    width: 100%;
+  }
+  .cs-meta__left {
+    flex-direction: column;
+  }
+  .cs-nav__name {
+    font-size: 22px;
+  }
+  .cs-nav {
+    margin-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .footer__inner {
+    padding-top: 48px;
+    padding-bottom: 32px;
+    gap: 24px 16px;
+  }
+  .footer__col {
+    flex: 0 0 calc(50% - 8px);
+    gap: 6px;
+  }
+  .footer__col-title,
+  .footer__col-item,
+  .footer__rainbow-btn {
+    font-size: 13px;
+  }
+  .footer__archive {
+    flex: 0 0 100%;
+    flex-direction: row;
+  }
+  .footer__archive-thumb {
+    width: 120px;
+    height: 72px;
+  }
+  .footer__archive-screenshot {
+    height: 72px;
+  }
+  .footer__archive-text {
+    padding: 10px;
+  }
+  .footer__archive-title {
+    font-size: 14px;
+  }
+  .footer__archive-link p {
+    font-size: 13px;
+  }
+  .footer__bottom {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    align-items: center;
+    padding: 16px 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .container-wrapper {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .hero {
+    padding: 88px 0 32px;
+    gap: 8px;
+  }
+  .hero__title {
+    font-size: clamp(28px, 11vw, 36px);
+    letter-spacing: -1px;
+  }
+  .hero__subtitle {
+    font-size: 14px;
+  }
+  .menu-overlay__link {
+    font-size: clamp(40px, 11vw, 52px);
+    padding: 8px 0;
+  }
+  .menu-overlay__inner {
+    padding: 0 16px 24px;
+  }
+  .menu-overlay__name {
+    font-size: 18px;
+  }
+  .footer__col {
+    flex: 0 0 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hourglass__rotor,
+  .hourglass__surface-top,
+  .hourglass__surface-bot {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .konami-toast {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0));
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .konami-toast__sep,
+  .konami-toast__hint {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .projects-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .projects-nav-m {
+    display: flex;
+    position: fixed;
+    /* Bottom-right with safe-area + visual rest position */
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0));
+    z-index: 50;
+    pointer-events: auto;
+    /* Subtle backdrop for legibility against busy content */
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 999px;
+    padding: 8px 10px;
+  }
+
+  .projects-nav-m--dark {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .projects-nav-m--entering {
+    animation: projects-nav-m-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .projects-nav-m--exiting {
+    animation: projects-nav-m-out 0.35s cubic-bezier(0.4, 0, 0.8, 1) both;
+    pointer-events: none;
+  }
+
+  .projects-nav-m__track {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    touch-action: none;
+  }
+
+  /* While dragging, the active pill is resized every frame — drop the width
+     transition so it tracks the thumb instantly instead of lagging behind. */
+  .projects-nav-m__track--pressed .projects-nav-m__pill {
+    transition: background 0.25s ease;
+  }
+
+  .projects-nav-m__dot-wrap {
+    background: none;
+    border: none;
+    /* Generous tap target (44x32) wrapping a small visual pill */
+    padding: 10px 4px;
+    margin: 0 -2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .projects-nav-m__pill {
+    --pill-alpha: 0.35;
+    --pill-ink: 255, 255, 255;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(var(--pill-ink), var(--pill-alpha));
+    transition:
+      width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      background 0.25s ease;
+  }
+
+  .projects-nav-m--dark .projects-nav-m__pill {
+    --pill-ink: 0, 0, 0;
+  }
+
+  /* Light variant on dark backgrounds (homepage projects): bar already has
+     white-tinted bg, pills are white */
+  .projects-nav-m--light .projects-nav-m__pill {
+    --pill-ink: 255, 255, 255;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .craft-card {
+    transition:
+      transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.3s ease;
+  }
+
+  .craft-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+  }
+
+  .craft-card:hover .craft-card__img {
+    transform: scale(1.03);
+  }
+}
+
+@media not all and (hover: hover) {
+  .craft-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .craft-card:hover .craft-card__img {
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .craft-lightbox {
+    padding: 24px;
+  }
+  /* Leave vertical room for the bottom nav controls, and clamp the actual
+     height (not just max-height) so portrait images can't grow tall and drag a
+     huge shadow with them. */
+  .craft-lightbox__card,
+  .craft-lightbox__img {
+    max-width: calc(100vw - 32px);
+    height: auto;
+    max-height: calc(100vh - 150px);
+  }
+  /* Tighter shadow on mobile — the big 30px/80px offset reads as "too tall". */
+  .craft-lightbox__card {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+  /* Move prev/next off the image: dock them as a centered pair at the bottom so
+     they never overlap the photo's edges. */
+  .craft-lightbox__nav--prev,
+  .craft-lightbox__nav--next {
+    top: auto;
+    bottom: 20px;
+    transform: none;
+  }
+  .craft-lightbox__nav--prev {
+    left: 50%;
+    margin-left: -48px;
+  }
+  .craft-lightbox__nav--next {
+    right: 50%;
+    margin-right: -48px;
+  }
+  .craft-lightbox__nav--prev:hover,
+  .craft-lightbox__nav--prev.is-pressed {
+    transform: translateX(-3px);
+  }
+  .craft-lightbox__nav--next:hover,
+  .craft-lightbox__nav--next.is-pressed {
+    transform: translateX(3px);
+  }
+}
+
+@media (max-width: 768px) {
   .page-transition {
     display: none;
   }

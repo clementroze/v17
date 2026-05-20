@@ -15,7 +15,7 @@ export type WorkItem = {
   imageSrc: string; // hero image for homepage EffectB and case study hero
   previewSrc?: string; // floating preview image in work list
   images: number[]; // column heights for Work page grid
-  imageUrls: string[]; // actual image URLs/imports for Work page grid (parallel to images)
+  imageUrls: string[]; // Work page grid images, served from public/images/{slug}/grid-N.png (parallel to images)
   href: string;
   comingSoon?: boolean;
 };
@@ -33,9 +33,9 @@ const work: WorkItem[] = [
     comingSoon: true,
     images: [332, 332, 332],
     imageUrls: [
-      "/work-images/ibm-1.png",
-      "/work-images/ibm-2.png",
-      "/work-images/ibm-3.png",
+      "/images/ibm/grid-1.png",
+      "/images/ibm/grid-2.png",
+      "/images/ibm/grid-3.png",
     ],
     href: "/work/ibm",
   },
@@ -50,9 +50,9 @@ const work: WorkItem[] = [
     previewSrc: "/images/google/preview.png",
     images: [332, 332, 332],
     imageUrls: [
-      "/work-images/google-1.png",
-      "/work-images/google-2.png",
-      "/work-images/google-3.png",
+      "/images/google/grid-1.png",
+      "/images/google/grid-2.png",
+      "/images/google/grid-3.png",
     ],
     href: "/work/google",
   },
@@ -65,11 +65,11 @@ const work: WorkItem[] = [
     accent: "#ad00e6",
     imageSrc: frogHero,
     previewSrc: "/images/frog/preview.png",
-    images: [490, 490, 490],
+    images: [530, 530, 530],
     imageUrls: [
-      "/work-images/frog-1.png",
-      "/work-images/frog-2.png",
-      "/work-images/frog-3.png",
+      "/images/frog/grid-1.png",
+      "/images/frog/grid-2.png",
+      "/images/frog/grid-3.png",
     ],
     href: "/work/frog",
   },
@@ -84,9 +84,9 @@ const work: WorkItem[] = [
     previewSrc: "/images/microsoft/preview.png",
     images: [420, 332, 420],
     imageUrls: [
-      "/work-images/microsoft-1.png",
-      "/work-images/microsoft-2.png",
-      "/work-images/microsoft-3.png",
+      "/images/microsoft/grid-1.png",
+      "/images/microsoft/grid-2.png",
+      "/images/microsoft/grid-3.png",
     ],
     href: "/work/microsoft",
   },
@@ -101,9 +101,9 @@ const work: WorkItem[] = [
     previewSrc: "/images/gcai/preview.png",
     images: [241, 241, 241],
     imageUrls: [
-      "/work-images/gcai-1.png",
-      "/work-images/gcai-2.png",
-      "/work-images/gcai-3.png",
+      "/images/gcai/grid-1.png",
+      "/images/gcai/grid-2.png",
+      "/images/gcai/grid-3.png",
     ],
     href: "/work/gcai",
   },
@@ -116,12 +116,8 @@ const work: WorkItem[] = [
     accent: "#ff3d00",
     imageSrc: replitHero,
     previewSrc: "/images/replit/preview.png",
-    images: [241, 241, 241],
-    imageUrls: [
-      "/work-images/replit-1.png",
-      "/work-images/replit-2.png",
-      "/work-images/replit-3.png",
-    ],
+    images: [332, 332],
+    imageUrls: ["/images/replit/grid-1.png", "/images/replit/grid-2.png"],
     href: "/work/replit",
   },
 ];

@@ -30,9 +30,16 @@ export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false,
     const observers: IntersectionObserver[] = [];
 
     if (watchHideRef?.current) {
+      // Shrink the observer root to a thin band at the top of the viewport (just
+      // the navbar zone). The instant the hero's bottom scrolls above that band —
+      // i.e. as the snap into the first project begins — the hero stops
+      // intersecting and the navbar flips to white, instead of waiting for the
+      // hero to fully clear the viewport.
+      const NAV_BAND = 96;
+      const bottomMargin = Math.max(0, window.innerHeight - NAV_BAND);
       const obs = new IntersectionObserver(
         ([entry]) => setWhite(!entry.isIntersecting),
-        { threshold: 0 }
+        { threshold: 0, rootMargin: `0px 0px -${bottomMargin}px 0px` }
       );
       obs.observe(watchHideRef.current);
       observers.push(obs);
@@ -132,7 +139,7 @@ export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false,
                   href={href}
                   onClick={handleMobileNav(href)}
                   className={`menu-overlay__link${activeLink === key ? ' menu-overlay__link--active' : ''}`}
-                  style={{ animationDelay: `${i * 70 + 80}ms` }}
+                  style={{ animationDelay: `${i * 120 + 120}ms` }}
                 >
                   {label}
                 </a>

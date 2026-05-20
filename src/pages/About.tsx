@@ -31,12 +31,19 @@ export default function About() {
       sessionStorage.removeItem('about_scroll');
       setOpenCompany(company);
       if (scrollY) {
-        // defer scroll until after render + layout
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            window.scrollTo({ top: parseInt(scrollY, 10), behavior: 'instant' });
-          });
-        });
+        const target = parseInt(scrollY, 10);
+        const onTransitionEnd = (e: TransitionEvent) => {
+          if ((e.target as HTMLElement).closest('.accordion-row__body')) {
+            document.removeEventListener('transitionend', onTransitionEnd);
+            window.scrollTo({ top: target, behavior: 'instant' });
+          }
+        };
+        document.addEventListener('transitionend', onTransitionEnd);
+        // fallback in case transition never fires
+        setTimeout(() => {
+          document.removeEventListener('transitionend', onTransitionEnd);
+          window.scrollTo({ top: target, behavior: 'instant' });
+        }, 600);
       }
     }
   }, []);

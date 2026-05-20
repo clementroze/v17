@@ -13,9 +13,21 @@ const WORK_ITEMS = work;
 
 // ─── grid item ────────────────────────────────────────────────────────────────
 
+// Width of a single grid column at the max layout (1400px container, 4 equal
+// cells, three 24px gaps): (1400 - 3*24) / 4 = 332px. The `images` numbers are
+// authored as the column's HEIGHT at this width, so we turn each into an
+// aspect-ratio (332 : h). The image then keeps those proportions and scales
+// fluidly as the column flexes narrower below 1400px — the raw px value only
+// pins the shape, not a fixed size.
+const GRID_COL_WIDTH = 332;
+
 function GridItem({ item, index }: { item: WorkItem; index: number }) {
   const picCols = item.images.map((h, i) => (
-    <div key={i} className="work-grid__pic" style={{ height: h }}>
+    <div
+      key={i}
+      className="work-grid__pic"
+      style={{ aspectRatio: `${GRID_COL_WIDTH} / ${h}` }}
+    >
       {item.imageUrls[i] && <img src={item.imageUrls[i]} alt="" />}
     </div>
   ));
@@ -210,7 +222,9 @@ function WorkList({
           activeItem
             ? {
                 backgroundColor: activeItem.accent,
-                backgroundImage: activeItem.previewSrc ? `url(${activeItem.previewSrc})` : "none",
+                backgroundImage: activeItem.previewSrc
+                  ? `url(${activeItem.previewSrc})`
+                  : "none",
               }
             : {}
         }
@@ -252,7 +266,7 @@ export default function Work() {
 
       <Hero
         title="Work"
-        subtitle="Designs and builds web experiences that are accessible, intentional, and beautifully."
+        subtitle="A closer look at the projects, decisions, and details behind my work."
       />
 
       {/* Main */}

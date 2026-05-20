@@ -117,12 +117,6 @@ const NAV_LINKS = [
   { label: "Craft", href: "/craft" },
 ];
 
-const CITIES = [
-  { label: "Paris", tz: "Europe/Paris" },
-  { label: "Singapore", tz: "Asia/Singapore" },
-  { label: "London", tz: "Europe/London" },
-];
-
 function isDaytime(now: Date, tz: string) {
   const h = parseInt(
     now.toLocaleTimeString("en-US", {
@@ -153,11 +147,6 @@ function useCurrentTime() {
   return {
     local: fmt("America/New_York"),
     localDaytime: isDaytime(now, "America/New_York"),
-    cities: CITIES.map((c) => ({
-      label: c.label,
-      time: fmt(c.tz),
-      daytime: isDaytime(now, c.tz),
-    })),
   };
 }
 
@@ -167,8 +156,7 @@ export default function Footer() {
   const col2Ref = useReveal(120);
   const archiveRef = useReveal<HTMLAnchorElement>(180);
   const bottomRef = useReveal(240);
-  const { local, localDaytime, cities } = useCurrentTime();
-  const [cityHover, setCityHover] = useState(false);
+  const { local, localDaytime } = useCurrentTime();
   const [rainbowOn, setRainbowOn] = useState(() =>
     document.documentElement.classList.contains("konami"),
   );
@@ -267,35 +255,14 @@ export default function Footer() {
         <p className="footer__copyright">
           &copy; {new Date().getFullYear()} Cl&eacute;ment Roz&eacute;
         </p>
-        <span
-          className={`footer__location-time${cityHover ? " footer__location-time--open" : ""}`}
-          onMouseEnter={() => setCityHover(true)}
-          onMouseLeave={() => setCityHover(false)}
-        >
-          <span className="footer__city-popup" aria-hidden="true">
-            {cities.map((c) => (
-              <span
-                key={c.label}
-                className="footer__city-row footer__city-row--popup"
-              >
-                <span className="footer__city-name">
-                  <span className="footer__city-icon">
-                    {c.daytime ? <SunIcon /> : <MoonIcon />}
-                  </span>
-                  {c.label}
-                </span>
-                <span className="footer__city-time">{c.time}</span>
-              </span>
-            ))}
-          </span>
+        <span className="footer__location-time">
           <span className="footer__local-row">
             <span className="footer__city-name">
+              Ithaca, NY
               <span className="footer__city-icon" aria-hidden="true">
                 {localDaytime ? <SunIcon /> : <MoonIcon />}
               </span>
-              Ithaca, NY
             </span>
-            <span className="footer__city-divider"> &bull;</span>
             <span className="footer__city-time">{local}</span>
           </span>
         </span>

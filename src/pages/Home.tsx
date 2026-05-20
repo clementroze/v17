@@ -4,6 +4,7 @@ import Hero from '../components/Hero';
 import Footer from '../components/Footer';
 import EffectB from '../components/effects/EffectB';
 import ProjectsNav from '../components/ProjectsNav';
+import ProjectsNavMobile from '../components/ProjectsNavMobile';
 import work from '../data/work';
 
 export default function Home() {
@@ -278,6 +279,7 @@ export default function Home() {
       </div>
       <EffectB projects={work} onSectionRef={handleSectionRef} />
       <ProjectsNav count={work.length} sectionRefs={sectionRefs.current} />
+      <ProjectsNavMobile count={work.length} sectionRefs={sectionRefs.current} variant="light" />
       <div ref={footerRef} style={{ width: '100%' }}><Footer /></div>
     </div>
   );

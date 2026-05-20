@@ -31,17 +31,24 @@ export const workExperience: AccordionRowProps[] = [
 
       "I revamped the RUI design system, polished every surface, designed marketing pages, and helped launch the Following Feed, Bounties, and Blog.",
     ],
+    caseStudyHref: "/work/replit",
   },
 ];
 
 export const freelancing: AccordionRowProps[] = [
   {
-    dotColor: "#003047",
+    dotColor: "#50abda",
     company: "General Counsel AI",
     role: "Designer & Developer",
     period: "2024 – Now",
     hasBorderTop: false,
-    description: "xxx.",
+    description: [
+      "General Counsel AI, or GC AI is a legal workspace that helps in-house teams with their day-to-day legal tasks.",
+
+      "I joined as the first designer to lead the design and development of the user interface, working closely with the founders to shape multiple iterations of the product.",
+
+      "As the sole designer I also helped out on various tasks, like polishing the landing page and creating conference asses to designing lawyer-themed Slack emojis and custom GC AI mugs!",
+    ],
     caseStudyHref: "/work/gcai",
   },
   {
@@ -49,35 +56,51 @@ export const freelancing: AccordionRowProps[] = [
     company: "Monarcha",
     role: "Web Designer",
     period: "2025",
-    description: "xxx",
+    description:
+      "Designed and developed Monarcha’s initial marketing website in Figma Sites, helping launch the AI-powered geospatial intelligence platform with a polished early web presence.",
   },
   {
     dotColor: "#C0120D",
     company: "Deadline",
-    role: "Game Designer",
+    role: "UI & Game Designer",
     period: "2024 - 26",
-    description: "xxx",
+    description: [
+      "Deadline, developed by RECOIL Studios, is a fast-paced, semi-realistic shooter on Roblox featuring one of the platform’s most advanced gun customization systems.",
+      "After discovering the game as a player, I noticed the interface felt inconsistent and difficult to navigate. I reached out to the developers with suggestions for improving the UI, which eventually led to a part-time role redesigning every major screen in the game — from the main menu to the in-depth gun editor.",
+      "This was my first experience designing for games, and it pushed me to think beyond traditional UI design. I worked on systems and interactions tied to gameplay, including spawn-in flows, attachment texture Scustomization, and end-of-match animations.",
+    ],
+    caseStudyHref: "https://www.roblox.com/games/12144402492/Deadline",
+    caseStudyLabel: "Play on Roblox",
   },
   {
     dotColor: "#F3EDE9",
     company: "ROZE Clinics",
     role: "Web Designer",
     period: "2024",
-    description: "xxx",
+    description:
+      "Website audit and design work for a Dubai-based dental clinic ecommerce site.",
   },
   {
     dotColor: "#62FA20",
     company: "Hyperform",
     role: "Multidiscplinary Designer",
     period: "2022 - 24",
-    description: "xxx",
+    description:
+      "Concept UI design for a UGC creator payments and invoicing app.",
+    caseStudyHref:
+      "https://web.archive.org/web/20221116004249/https://www.hyperform.app/",
+    caseStudyLabel: "View archived site",
   },
   {
     dotColor: "#ee6a0c",
     company: "OSS Capital",
     role: "Web Designer",
     period: "2022",
-    description: "xxx",
+    description:
+      "My first freelancing gig! Since then, OSS Capital has changed their website, but I remember how immensely proud I was to have something I designed actually be built out live on the web! This led me to take on more freelance work.",
+    caseStudyHref:
+      "https://web.archive.org/web/20230317210013/https://oss.capital/",
+    caseStudyLabel: "View archived site",
   },
 ];
 
@@ -116,17 +139,19 @@ export const activities: AccordionRowProps[] = [
     role: "",
     period: "",
     description: [
-      "I joined DCC, the Ivy League's only student-run design consultancy, in Fall 2024 as a freshman consultant. I first worked with AlgoLink, a startup building an interview hiring platform.",
-      "The next semester, I became a Project Manager, leading collaborations with Microsoft on Copilot-powered B2B sales tools and with Google to engage college-age users with Google products.",
+      "I joined DCC, the Ivy League's only student-run design consultancy, in Fall 2024 as a consultant. I first worked with AlgoLink, a startup building an interview hiring platform.",
+      [
+        "The next semester, I became a Project Manager, leading collaborations with ",
+        { label: "Microsoft", href: "/work/microsoft" },
+        " on Copilot-powered B2B sales tools and with ",
+        { label: "Google", href: "/work/google" },
+        " to engage college-age users with Google products.",
+      ],
       "As New Member Educator, I taught, mentored, and onboarded two classes of newbies into the club.",
       "Now, as Vice President, I oversee club operations and events while cultivating a vibrant design community.",
-      [
-        {
-          label: "Learn more about DCC here",
-          href: "https://www.designconsultingcornell.com",
-        },
-      ],
     ],
+    caseStudyHref: "https://www.designconsultingcornell.com",
+    caseStudyLabel: "Learn more about DCC",
     hasBorderTop: false,
   },
   {
@@ -135,10 +160,23 @@ export const activities: AccordionRowProps[] = [
     role: "",
     period: "",
     description: [
-      "I also joined DTI, Cornell's largest software development project team,  in Fall 2024 as part of the Design team, while also contributing code across DTI projects. I regularly participate in both design critiques and pull request reviews.",
-      "On the Internal Tools team, I led the redesign and launch of our new website to better showcase our team and projects. It was rebuilt from the ground up with accessibility, open-source design, and delightful interactions in mind.",
-      [{ label: "Learn more about DTI here", href: "https://cornelldti.org" }],
+      "I also joined DTI, Cornell's largest software development project team,  as a freshman on the Design team, while contributing code across multiple projects. I regularly participate in both design critiques and pull request reviews.",
+      [
+        "On the Internal Tools team, I led the redesign and launch of ",
+        {
+          label: "our new website",
+          href: "https://cornelldti.org/design-system",
+        },
+        " to better showcase our team and projects. It was rebuilt from the ground up with accessibility, open-source design, and delightful interactions in mind.",
+      ],
+      [
+        "With ",
+        { label: "Redi", href: "https://redi.love" },
+        ", we created Cornell's first viral dating app!",
+      ],
     ],
+    caseStudyHref: "https://cornelldti.org",
+    caseStudyLabel: "Learn more about DTI",
   },
   {
     dotColor: "#5DA8A5",
@@ -160,14 +198,14 @@ export const activities: AccordionRowProps[] = [
     role: "",
     period: "",
     description: [
-      "Cornell's student-run radio station, operated by the Cornell Media Guild. As Web Director, I built and launched a new website celebrating the Guild's 90th anniversary.",
+      "Cornell's student-run radio station, operated by the Cornell Media Guild. ",
       [
-        "I designed and developed the ",
+        "As Web Director, I built and launched the new ",
         {
           label: "Cornell Media Guild website",
           href: "https://cornellmediaguild.org/",
         },
-        " and the ",
+        " celebrating the Guild's 90th anniversary, and the ",
         {
           label: "Electric Buffalo Records",
           href: "https://www.electricbuffalorecords.com",

@@ -85,7 +85,7 @@ export function RouterProvider({ children }: { children: React.ReactNode }) {
         window.history.pushState(null, '', next);
         setPreviousPath(path);
         setPath(next);
-        window.scrollTo(0, 0);
+        if (next !== '/about') window.scrollTo(0, 0);
         setPhase('revealing');
 
         timerRef.current = setTimeout(() => {

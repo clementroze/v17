@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from "react"; // useC
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import ProjectsNav from "../components/ProjectsNav";
+import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
@@ -352,7 +353,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
   const nav = NavPreview({ items: work });
   const { previousPath } = useRouter();
   const backHref = previousPath === "/about" ? "/about" : "/work";
-  const backLabel = previousPath === "/about" ? "Back to About" : "Back";
+  const backLabel = previousPath === "/about" ? "Back to about" : "Back";
   const data = loadCase(slug);
 
   if (!data) {
@@ -447,16 +448,26 @@ export default function CaseStudy({ slug }: { slug: string }) {
     <div className="page cs-page">
       <Navbar watchShowRef={heroRef} activeLink="work" />
       {sectionCount > 0 && (
-        <ProjectsNav
-          count={sectionCount}
-          sectionRefs={sectionTitleRefs}
-          variant="dark"
-          alwaysVisible
-          visible={navVisible}
-          snapOnRelease={false}
-          labels={sectionTitles}
-          scrollOffset={110}
-        />
+        <>
+          <ProjectsNav
+            count={sectionCount}
+            sectionRefs={sectionTitleRefs}
+            variant="dark"
+            alwaysVisible
+            visible={navVisible}
+            snapOnRelease={false}
+            labels={sectionTitles}
+            scrollOffset={110}
+          />
+          <ProjectsNavMobile
+            count={sectionCount}
+            sectionRefs={sectionTitleRefs}
+            variant="dark"
+            alwaysVisible
+            visible={navVisible}
+            scrollOffset={88}
+          />
+        </>
       )}
 
       {/* ── Hero block ────────────────────────────────────────────── */}
