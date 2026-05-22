@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Fragment } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
@@ -50,50 +50,23 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
     </div>
   );
 
-  if (index === 0) {
-    return (
-      <Reveal delay={index * 60}>
-        <div className="work-grid__row">
-          {textCol}
-          {picCols[0]}
-          {picCols[1]}
-          {picCols[2]}
-        </div>
-      </Reveal>
-    );
-  }
-  if (index === 1) {
-    return (
-      <Reveal delay={index * 60}>
-        <div className="work-grid__row">
-          {picCols[0]}
-          {picCols[1]}
-          {textCol}
-          {picCols[2]}
-        </div>
-      </Reveal>
-    );
-  }
-  if (index === 2) {
-    return (
-      <Reveal delay={index * 60}>
-        <div className="work-grid__row">
-          {picCols[0]}
-          {picCols[1]}
-          {picCols[2]}
-          {textCol}
-        </div>
-      </Reveal>
-    );
-  }
-  // index === 3
+  // Where the text column sits among the images. Prefer the per-item
+  // `textPosition`; otherwise fall back to the original rotating default
+  // (0, 2, 3, 0, then repeating) keyed off the row index.
+  const DEFAULT_POSITIONS = [0, 2, 3, 0];
+  const rawPos =
+    item.textPosition ?? DEFAULT_POSITIONS[index % DEFAULT_POSITIONS.length];
+  const textPos = Math.max(0, Math.min(picCols.length, rawPos));
+
+  const cells = [...picCols];
+  cells.splice(textPos, 0, textCol);
+
   return (
     <Reveal delay={index * 60}>
       <div className="work-grid__row">
-        {textCol}
-        {picCols[0]}
-        {picCols[1]}
-        {picCols[2]}
+        {cells.map((cell, i) => (
+          <Fragment key={i}>{cell}</Fragment>
+        ))}
       </div>
     </Reveal>
   );

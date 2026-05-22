@@ -270,7 +270,7 @@ export default function Home() {
 
   return (
     <div className="page">
-      <Navbar watchHideRef={heroRef} />
+      <Navbar watchPastRef={sectionRefs.current[0]} />
       <div ref={heroRef} className="home__hero-snap">
         <Hero
           title="Welcome."

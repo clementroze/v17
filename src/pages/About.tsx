@@ -21,15 +21,16 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export default function About() {
-  const [openCompany, setOpenCompany] = useState<string | null>(null);
+  // Slug of the accordion to auto-open after returning from a case study.
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    const company = sessionStorage.getItem('about_open');
+    const slug = sessionStorage.getItem('about_open');
     const scrollY = sessionStorage.getItem('about_scroll');
-    if (company) {
+    if (slug) {
       sessionStorage.removeItem('about_open');
       sessionStorage.removeItem('about_scroll');
-      setOpenCompany(company);
+      setOpenSlug(slug);
       if (scrollY) {
         const target = parseInt(scrollY, 10);
         const onTransitionEnd = (e: TransitionEvent) => {
@@ -95,8 +96,8 @@ export default function About() {
               <div className="about-section-row__content">
                 <div className="about-accordion-list">
                   {workExperience.map((item, i) => (
-                    <Reveal key={item.company} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openCompany === item.company} />
+                    <Reveal key={item.slug} delay={i * 60}>
+                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
                     </Reveal>
                   ))}
                 </div>
@@ -109,8 +110,8 @@ export default function About() {
               <div className="about-section-row__content">
                 <div className="about-accordion-list">
                   {freelancing.map((item, i) => (
-                    <Reveal key={item.company} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openCompany === item.company} />
+                    <Reveal key={item.slug} delay={i * 60}>
+                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
                     </Reveal>
                   ))}
                 </div>
@@ -123,8 +124,8 @@ export default function About() {
               <div className="about-section-row__content">
                 <div className="about-accordion-list">
                   {collaborations.map((item, i) => (
-                    <Reveal key={item.company} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openCompany === item.company} />
+                    <Reveal key={item.slug} delay={i * 60}>
+                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
                     </Reveal>
                   ))}
                 </div>
@@ -137,8 +138,8 @@ export default function About() {
               <div className="about-section-row__content">
                 <div className="about-accordion-list">
                   {activities.map((item, i) => (
-                    <Reveal key={item.company} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openCompany === item.company} />
+                    <Reveal key={item.slug} delay={i * 60}>
+                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
                     </Reveal>
                   ))}
                 </div>

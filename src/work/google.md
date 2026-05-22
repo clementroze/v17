@@ -2,13 +2,11 @@
 slug: google
 title: Google
 subtitle: Designing and evaluating user experiences to engage college-age users with Google products.
-year: 2025
 role: Lead Designer & PM of 6 consultants
 type: DCC Collaboration
-cover: /images/google/cover.png
 about:
-  - Through Design Consulting at Cornell, I led a team of 6 consultants during a five-month collaboration with Microsoft.
-  - We analyzed 50 research papers, conducted 90 interviews, and designed two integrated solutions spanning the B2B buyer journey.
+  - Through Design Consulting at Cornell, I led an 8-person team to develop a three stages mixed method research program on engaging users with various Google products.
+  - I guided the design, refinement, and testing of conceptual interventions based on findings and stakeholder feedback.
 ---
 
 ## More

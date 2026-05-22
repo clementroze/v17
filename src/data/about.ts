@@ -1,46 +1,39 @@
 import { AccordionRowProps } from "../components/AccordionRow";
 
+// About-page accordions. Each row references a registry entity by `slug`
+// (data.ts) for its color, name, and default link, and supplies only the
+// About-specific copy: role, description, and — for entities without a case
+// study — an external link + label. The date/period now comes from the registry
+// (data.ts), shared with the case study. The four exported arrays encode the
+// About page's section grouping and order (an About-only concern).
+
 export const workExperience: AccordionRowProps[] = [
   {
-    dotColor: "#1d68fe",
-    company: "IBM",
-    role: "Design Internship",
-    period: "2026 – Now",
+    slug: "ibm",
     description:
       "Incoming Design Intern at IBM's Silicon Valley Lab in San Jose.",
     hasBorderTop: false,
   },
   {
-    dotColor: "#ad00e6",
-    company: "frog",
-    role: "Design Internship",
-    period: "Summer 2025",
+    slug: "frog",
     description: [
       "As a Design Intern at frog, I spent the summer in Paris collaborating with a cross-functional team to build Egypt’s first B2C mobile trading platform for grain.",
       "I mapped out complex trading workflows, partnered with experts, and designed  “wheel-inspired” interface to make market data and transactions accessible for first-time users.",
     ],
-    caseStudyHref: "/work/frog",
   },
   {
-    dotColor: "#ff3d00",
-    company: "Replit",
-    role: "Design Internship",
-    period: "2022 – 24",
+    slug: "replit",
     description: [
       "I joined Replit at 15 and loved it so much I stayed for three years, working part-time throughout high school!",
 
       "I revamped the RUI design system, polished every surface, designed marketing pages, and helped launch the Following Feed, Bounties, and Blog.",
     ],
-    caseStudyHref: "/work/replit",
   },
 ];
 
 export const freelancing: AccordionRowProps[] = [
   {
-    dotColor: "#50abda",
-    company: "General Counsel AI",
-    role: "Designer & Developer",
-    period: "2024 – Now",
+    slug: "gcai",
     hasBorderTop: false,
     description: [
       "General Counsel AI, or GC AI is a legal workspace that helps in-house teams with their day-to-day legal tasks.",
@@ -49,21 +42,14 @@ export const freelancing: AccordionRowProps[] = [
 
       "As the sole designer I also helped out on various tasks, like polishing the landing page and creating conference asses to designing lawyer-themed Slack emojis and custom GC AI mugs!",
     ],
-    caseStudyHref: "/work/gcai",
   },
   {
-    dotColor: "#da8535",
-    company: "Monarcha",
-    role: "Web Designer",
-    period: "2025",
+    slug: "monarcha",
     description:
       "Designed and developed Monarcha’s initial marketing website in Figma Sites, helping launch the AI-powered geospatial intelligence platform with a polished early web presence.",
   },
   {
-    dotColor: "#C0120D",
-    company: "Deadline",
-    role: "UI & Game Designer",
-    period: "2024 - 26",
+    slug: "deadline",
     description: [
       "Deadline, developed by RECOIL Studios, is a fast-paced, semi-realistic shooter on Roblox featuring one of the platform’s most advanced gun customization systems.",
       "After discovering the game as a player, I noticed the interface felt inconsistent and difficult to navigate. I reached out to the developers with suggestions for improving the UI, which eventually led to a part-time role redesigning every major screen in the game — from the main menu to the in-depth gun editor.",
@@ -73,18 +59,12 @@ export const freelancing: AccordionRowProps[] = [
     caseStudyLabel: "Play on Roblox",
   },
   {
-    dotColor: "#F3EDE9",
-    company: "ROZE Clinics",
-    role: "Web Designer",
-    period: "2024",
+    slug: "roze",
     description:
       "Website audit and design work for a Dubai-based dental clinic ecommerce site.",
   },
   {
-    dotColor: "#62FA20",
-    company: "Hyperform",
-    role: "Multidiscplinary Designer",
-    period: "2022 - 24",
+    slug: "hyperform",
     description:
       "Concept UI design for a UGC creator payments and invoicing app.",
     caseStudyHref:
@@ -92,10 +72,7 @@ export const freelancing: AccordionRowProps[] = [
     caseStudyLabel: "View archived site",
   },
   {
-    dotColor: "#ee6a0c",
-    company: "OSS Capital",
-    role: "Web Designer",
-    period: "2022",
+    slug: "oss",
     description:
       "My first freelancing gig! Since then, OSS Capital has changed their website, but I remember how immensely proud I was to have something I designed actually be built out live on the web! This led me to take on more freelance work.",
     caseStudyHref:
@@ -106,38 +83,27 @@ export const freelancing: AccordionRowProps[] = [
 
 export const collaborations: AccordionRowProps[] = [
   {
-    dotColor: "#F3B80B",
-    company: "Google",
-    role: "Student Project",
-    period: "Fall 2025",
+    slug: "google",
     hasBorderTop: false,
     description: [
       "Through Design Consulting at Cornell, I led an 8-person team to develop a three stages mixed method research program on engaging users with various Google products.",
 
       "I guided the design, refinement, and testing of conceptual interventions based on findings and stakeholder feedback.",
     ],
-    caseStudyHref: "/work/google",
   },
   {
-    dotColor: "#00a651",
-    company: "Microsoft",
-    role: "Student Project",
-    period: "Spring 2024",
+    slug: "microsoft",
     description: [
       "Also through DCC, I led a team of 6 consultants during a five-month collaboration with Microsoft.",
 
       "We analyzed 50 research papers, conducted 90 interviews, and designed two integrated solutions spanning the B2B buyer journey.",
     ],
-    caseStudyHref: "/work/microsoft",
   },
 ];
 
 export const activities: AccordionRowProps[] = [
   {
-    dotColor: "#FE5FB7",
-    company: "Design Consulting at Cornell",
-    role: "",
-    period: "",
+    slug: "dcc",
     description: [
       "I joined DCC, the Ivy League's only student-run design consultancy, in Fall 2024 as a consultant. I first worked with AlgoLink, a startup building an interview hiring platform.",
       [
@@ -155,10 +121,7 @@ export const activities: AccordionRowProps[] = [
     hasBorderTop: false,
   },
   {
-    dotColor: "#FF575F",
-    company: "Cornell Digital Tech & Innovation",
-    role: "",
-    period: "",
+    slug: "dti",
     description: [
       "I also joined DTI, Cornell's largest software development project team,  as a freshman on the Design team, while contributing code across multiple projects. I regularly participate in both design critiques and pull request reviews.",
       [
@@ -179,10 +142,7 @@ export const activities: AccordionRowProps[] = [
     caseStudyLabel: "Learn more about DTI",
   },
   {
-    dotColor: "#5DA8A5",
-    company: "Cornell User Experience Design",
-    role: "",
-    period: "",
+    slug: "cuxd",
     description: [
       "Cornell's community for UX designers to connect, learn, and grow together.",
       [
@@ -193,10 +153,7 @@ export const activities: AccordionRowProps[] = [
     ],
   },
   {
-    dotColor: "#BD4A49",
-    company: "WVBR 93.5 FM",
-    role: "",
-    period: "",
+    slug: "wvbr",
     description: [
       "Cornell's student-run radio station, operated by the Cornell Media Guild. ",
       [

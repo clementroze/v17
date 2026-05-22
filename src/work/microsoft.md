@@ -1,13 +1,13 @@
 ---
 slug: microsoft
 title: Microsoft
-subtitle: Reimagining the document creation experience for the next billion users.
-year: Jan - May 2025
+subtitle: Copilot-powered B2B sales tools designed for Gen Z buyers.
 role: Lead Designer & PM of 6 consultants
 type: DCC Collaboration
-cover: /images/microsoft/cover.png
 about:
-  - Through Design Consulting at Cornell, we designed AI-powered B2B sales tools inspired by Gen Z‘s digital fluency and expectations.
+  - Through Design Consulting at Cornell, I led a team of 6 consultants during a five-month collaboration with Microsoft.
+  - We analyzed 50 research papers, conducted 90 interviews, and designed two integrated solutions spanning the B2B buyer journey.
+finalDesigns: Final flow & high-fidelity mockups
 ---
 
 ## Intro

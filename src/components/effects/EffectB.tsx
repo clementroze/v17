@@ -13,7 +13,10 @@ type Project = {
   comingSoon?: boolean;
 };
 
-const MARGIN_START = 64;
+// Resting inset margin of the first project before it expands to full-bleed.
+// Tighter on mobile (16px) so the card uses more of the narrow screen; 64px on
+// larger viewports.
+const marginStart = () => (window.innerWidth <= 768 ? 16 : 64);
 const RADIUS_START = 32;
 const EXPAND_ZONE = 0.5;
 
@@ -76,8 +79,9 @@ function ParallaxProject({
       img.style.transform = `translateY(${(mid / range) * rect.height * 0.28}px)`;
       if (expand) {
         const t = Math.min(1, Math.max(0, 1 - rect.top / (EXPAND_ZONE * vh)));
-        inner.style.marginLeft = `${MARGIN_START * (1 - t)}px`;
-        inner.style.marginRight = `${MARGIN_START * (1 - t)}px`;
+        const m = marginStart();
+        inner.style.marginLeft = `${m * (1 - t)}px`;
+        inner.style.marginRight = `${m * (1 - t)}px`;
         inner.style.borderRadius = `${RADIUS_START * (1 - t)}px`;
       }
     };
@@ -150,8 +154,8 @@ function ParallaxProject({
         style={
           expand
             ? {
-                marginLeft: MARGIN_START,
-                marginRight: MARGIN_START,
+                marginLeft: marginStart(),
+                marginRight: marginStart(),
                 borderRadius: RADIUS_START,
               }
             : { marginLeft: 0, marginRight: 0, borderRadius: 0 }

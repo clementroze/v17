@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from "react"; // useCallback/useEffect used by NavPreview
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import Button from "../components/Button";
 import ProjectsNav from "../components/ProjectsNav";
 import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import { Link, useRouter } from "../lib/router";
@@ -14,6 +15,26 @@ import {
 } from "../lib/parseCase";
 import { Reveal } from "../lib/reveal";
 import work from "../data/work";
+import { bySlug } from "../data/data";
+
+// Pick black or white for legible text on top of a given hex background, using
+// the W3C relative-luminance threshold. Used for the per-case ::selection color.
+function contrastText(hex?: string): string {
+  if (!hex) return "#fff";
+  const m = hex.replace("#", "").match(/^([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!m) return "#fff";
+  let h = m[1];
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  const toLin = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const r = toLin(parseInt(h.slice(0, 2), 16));
+  const g = toLin(parseInt(h.slice(2, 4), 16));
+  const b = toLin(parseInt(h.slice(4, 6), 16));
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.5 ? "#000" : "#fff";
+}
 
 function renderInlineLinks(text: string): React.ReactNode {
   const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
@@ -57,10 +78,10 @@ function renderBlock(
       return (
         <Reveal key={idx}>
           <div className="cs-section__divider" />
-          <div className="cs-section">
+          <section className="cs-section">
             <h2 className="cs-section__title">{block.title}</h2>
             <div className="cs-section__body" />
-          </div>
+          </section>
         </Reveal>
       );
     case "heading":
@@ -213,25 +234,25 @@ function renderBody(
             firstInline = false;
             out.push(
               <Reveal key={`section-${i}-${r}`}>
-                <div className="cs-section">
+                <section className="cs-section">
                   <h2 ref={titleRef} className="cs-section__title">
                     {block.title}
                   </h2>
                   <div className="cs-section__body">
                     {run.items.map((b, j) => renderInlineBlock(b, j))}
                   </div>
-                </div>
+                </section>
               </Reveal>,
             );
           } else {
             out.push(
               <Reveal key={`section-${i}-${r}`}>
-                <div className="cs-section cs-section--no-border">
+                <section className="cs-section cs-section--no-border">
                   <div className="cs-section__title" />
                   <div className="cs-section__body">
                     {run.items.map((b, j) => renderInlineBlock(b, j))}
                   </div>
-                </div>
+                </section>
               </Reveal>,
             );
           }
@@ -246,12 +267,12 @@ function renderBody(
       if (firstInline) {
         out.push(
           <Reveal key={`section-${i}-title`}>
-            <div className="cs-section">
+            <section className="cs-section">
               <h2 ref={titleRef} className="cs-section__title">
                 {block.title}
               </h2>
               <div className="cs-section__body" />
-            </div>
+            </section>
           </Reveal>,
         );
       }
@@ -369,8 +390,15 @@ export default function CaseStudy({ slug }: { slug: string }) {
 
   const { meta, blocks } = data;
   const workItem = work.find((w) => w.slug === slug);
+  // Meta "About" links use the light variant of the case's text accent,
+  // defaulting to its `accent` color (the case study page is light mode).
+  const metaLinkColor =
+    workItem?.textAccentColor?.light ?? workItem?.accent;
+  // "Year" comes from the global registry (shared with About), not frontmatter.
+  const entityDate = bySlug(slug)?.date ?? "";
   const heroBg = workItem?.imageSrc || "";
-  const coverBg = meta.cover || "";
+  // Cover image follows the slug convention, served from /public.
+  const coverBg = `/images/${slug}/cover.png`;
 
   const currentIdx = work.findIndex((w) => w.slug === slug);
   const prevItem = work[(currentIdx - 1 + work.length) % work.length];
@@ -413,6 +441,20 @@ export default function CaseStudy({ slug }: { slug: string }) {
   );
   const sectionTitleRefs = [metaRef, ...docSectionTitleRefs.current];
 
+  // "View final designs" button (opt-in via `finalDesigns:` frontmatter). The
+  // value matches a `## ` section heading; clicking scrolls to that section,
+  // clearing the sticky navbar with the same offset the pill nav uses.
+  const finalDesignsIdx = meta.finalDesigns
+    ? docSectionTitles.findIndex((t) => t === meta.finalDesigns)
+    : -1;
+  const hasFinalDesigns = finalDesignsIdx !== -1;
+  const scrollToFinalDesigns = useCallback(() => {
+    const el = docSectionTitleRefs.current[finalDesignsIdx]?.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 110;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [finalDesignsIdx]);
+
   // Show ProjectsNav once the cs-meta block has scrolled into view; hide before
   // it AND hide again once the prev/next cards (.cs-nav) enter the viewport so
   // the side rail doesn't overlap the footer navigation.
@@ -445,7 +487,17 @@ export default function CaseStudy({ slug }: { slug: string }) {
   }, []);
 
   return (
-    <div className="page cs-page">
+    <div
+      className="page cs-page"
+      style={
+        metaLinkColor
+          ? ({
+              "--cs-accent": metaLinkColor,
+              "--cs-on-accent": contrastText(metaLinkColor),
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <Navbar watchShowRef={heroRef} activeLink="work" />
       {sectionCount > 0 && (
         <>
@@ -516,7 +568,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
                   <div className="cs-meta__col">
                     <div className="cs-meta__row">
                       <p className="cs-meta__label">Year</p>
-                      <p className="cs-meta__value">{meta.year}</p>
+                      <p className="cs-meta__value">{entityDate}</p>
                     </div>
                     <div className="cs-meta__row">
                       <p className="cs-meta__label">Role</p>
@@ -535,6 +587,17 @@ export default function CaseStudy({ slug }: { slug: string }) {
                       {renderInlineLinks(p)}
                     </p>
                   ))}
+                  {hasFinalDesigns && (
+                    <div className="cs-meta__cta cs-meta__cta--down">
+                      <Button
+                        variant="outline-black"
+                        iconSrc={arrowBlack}
+                        onClick={scrollToFinalDesigns}
+                      >
+                        View final designs
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </Reveal>

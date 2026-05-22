@@ -18,8 +18,8 @@ html {
 
 body {
   font-family: "Inter", sans-serif;
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
@@ -29,8 +29,8 @@ body {
 }
 
 body::selection {
-  background: #000;
-  color: #fff;
+  background: var(--black);
+  color: var(--white);
 }
 
 img {
@@ -45,8 +45,31 @@ a {
 
 .page--dark::selection,
 footer::selection {
-  background: #fff !important;
-  color: #000 !important;
+  background: var(--white) !important;
+  color: var(--black) !important;
+}
+
+/* Per-case-study selection: highlight in the case's accent, with a
+   contrast-aware text color (--cs-on-accent: black on light accents, white on
+   dark), both set on .cs-page from the registry. Falls back to the global
+   black/white selection when the vars are absent. */
+.cs-page::selection,
+.cs-page ::selection {
+  background: var(--cs-accent, var(--black)) !important;
+  color: var(--cs-on-accent, var(--white)) !important;
+}
+
+/* The footer keeps its own white-on-dark selection even inside a case study
+   page (override the accent rule above with matching specificity). */
+.cs-page .footer::selection,
+.cs-page .footer ::selection {
+  background: var(--white) !important;
+  color: var(--black) !important;
+}
+.cs-page .footer::-moz-selection,
+.cs-page .footer ::-moz-selection {
+  background: var(--white) !important;
+  color: var(--black) !important;
 }
 
 /* Suppress default outline globally */
@@ -78,9 +101,31 @@ footer::selection {
   --tracking-tight-2xl: -1.44px; /* 48px text */
   --tracking-tight-3xl: -1.92px; /* 64px text */
 
-  /* page-transition column color: overridden to #fff on dark pages */
+  /* page-transition column color: overridden to var(--white) on dark pages */
   --radius-img: 4px; /* cards, images, craft cards, project cards */
   --radius-btn: 4px; /* buttons */
+
+  /* ── Color ──────────────────────────────────────────────────
+     Black ink on light surfaces, white ink on dark surfaces. Use the
+     muted/faint steps for secondary text and the line/scrim steps for
+     hairlines and overlays — instead of `opacity` on the element. */
+  --black: #000;
+  --black-muted: rgba(0, 0, 0, 0.6); /* secondary / body text */
+  --black-faint: rgba(0, 0, 0, 0.3); /* labels, captions, tertiary */
+  --black-line: rgba(0, 0, 0, 0.12); /* hairlines, dividers, borders */
+  --black-scrim: rgba(0, 0, 0, 0.5); /* image / modal overlays */
+
+  --white: #fff;
+  --white-muted: rgba(255, 255, 255, 0.7); /* secondary text on dark */
+  --white-faint: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* hairlines / subtle fills on dark */
+
+  --surface: #e5e5e5; /* light gray surfaces, skeletons, hover bg */
+  --surface-dark: #1a1a2e; /* dark placeholder bg (hero) */
 }
 
 /* =============================================
@@ -172,7 +217,7 @@ footer::selection {
   cursor: pointer;
   white-space: nowrap;
   pointer-events: all;
-  color: #000;
+  color: var(--black);
   transition:
     color 0.25s ease,
     opacity 0.25s ease;
@@ -185,8 +230,56 @@ footer::selection {
   opacity: 1 !important;
 }
 
+/* Active-link indicator: a small dot centered under the link text. Desktop
+   only (the active link in the mobile overlay has its own treatment). */
+.navbar__link--active {
+  position: relative;
+}
+
+/* The dot slides up into place with a tiny bounce, but only AFTER the page-
+   transition columns have finished revealing — otherwise the staggered
+   columns (which cover the navbar through the cover + reveal phases) would
+   hide it. Reveal completes ~795ms after the new page mounts, so we hold the
+   dot hidden (translated down, scaled to 0) and delay the animation ~1s. */
+.navbar__link--active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateX(-50%) translateY(8px) scale(0);
+  opacity: 0;
+  animation: navbar-dot-in 0.6s ease-out 0.6s forwards;
+}
+
+/* Slides up from below, overshoots slightly past its resting spot (and grows a
+   touch oversized) for a bit of physics, then settles back down to land. */
+@keyframes navbar-dot-in {
+  0% {
+    transform: translateX(-50%) translateY(8px) scale(0);
+    opacity: 0;
+  }
+  55% {
+    transform: translateX(-50%) translateY(-3px) scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
 .navbar--white .navbar__link {
-  color: #fff;
+  color: var(--white);
+}
+
+/* While the navbar sits above the open black overlay, force its links white so
+   the name stays visible even if the menu was opened over a light section. */
+.navbar--above-overlay .navbar__link {
+  color: var(--white);
 }
 
 /* Hamburger re-enables clicks (navbar container is pointer-events:none) */
@@ -200,9 +293,10 @@ footer::selection {
   display: none; /* hidden on desktop */
   flex-direction: column;
   justify-content: center;
-  /* Centre the bars so they grow/rotate symmetrically into the X. The closed
-     state still reads as right-weighted because bar 2 is narrower (see widths). */
-  align-items: center;
+  /* Right-align the bars in the resting state so they hang off the right edge;
+     the second (shorter) bar then reads as right-weighted. They re-center into
+     a symmetric X in the open state — see the --open rules below. */
+  align-items: flex-end;
   gap: 6px;
   width: 40px;
   height: 40px;
@@ -219,7 +313,7 @@ footer::selection {
   display: block;
   height: 1.5px;
   border-radius: 2px;
-  background: #000;
+  background: var(--black);
   transform-origin: center;
   /* Animate width + transform + background with one easing so the two SAME bars
      visibly rotate/translate from their resting position into the X — one
@@ -230,30 +324,41 @@ footer::selection {
     background 0.4s ease;
 }
 
-/* bar widths: top full, bottom 60% */
+/* resting bar widths: top full, bottom shorter (right-weighted) */
 .hamburger__bar:nth-child(1) {
   width: 24px;
 }
 .hamburger__bar:nth-child(2) {
-  width: 14px;
+  width: 16px;
 }
 
-/* open state → X: each bar converges to the container's vertical centre (they
-   sit 3.75px either side of it) and rotates ±45°, both growing to equal width
-   so the cross is symmetric. transform-origin:center keeps the width growth and
-   rotation pivoting on the same point, so they swing cleanly into place. */
+/* open state → X: both bars grow to the SAME width and, because they're
+   right-aligned, equal width gives them a shared centre (right edge − w/2).
+   They then converge to the container's vertical centre (3.75px either side)
+   and rotate ±45°, so the cross is uniform. transform-origin:center keeps the
+   width growth and rotation pivoting on the same point. */
 .hamburger--open .hamburger__bar:nth-child(1) {
   transform: translateY(3.75px) rotate(45deg);
-  width: 22px;
+  width: 24px;
 }
 .hamburger--open .hamburger__bar:nth-child(2) {
   transform: translateY(-3.75px) rotate(-45deg);
-  width: 22px;
+  width: 24px;
 }
 
 .navbar--white .hamburger__bar,
 .menu-overlay .hamburger__bar {
-  background: #fff;
+  background: var(--white);
+}
+
+/* When the menu is open/closing, the navbar is lifted above the black overlay
+   (z-index 200) so its persistent hamburger stays visible while the SAME bars
+   morph into the X. The bars switch to white over the dark panel. */
+.navbar--above-overlay {
+  z-index: 300;
+}
+.hamburger--over-overlay .hamburger__bar {
+  background: var(--white);
 }
 
 /* ── Full-page menu overlay ───────────────────────────────── */
@@ -264,34 +369,13 @@ footer::selection {
   /* Use dynamic viewport height on mobile so iOS URL bar transitions don't
      leave a gap at the bottom. */
   height: 100dvh;
-  background: #000;
+  background: var(--black);
   z-index: 200;
   display: flex;
   flex-direction: column;
-  /* slide down in */
-  animation: menuSlideIn 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.menu-overlay--closing {
-  animation: menuSlideOut 0.44s cubic-bezier(0.4, 0, 0.6, 1) both;
-}
-
-@keyframes menuSlideIn {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes menuSlideOut {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-100%);
-  }
+  /* No slide of its own — the staggered column wipe (page-transition) acts as
+     the curtain: it covers, the menu mounts behind it, then it reveals the
+     menu. The menu just appears in place. */
 }
 
 .menu-overlay__inner {
@@ -309,14 +393,6 @@ footer::selection {
   padding: 16px 0;
 }
 
-.menu-overlay__name {
-  font-size: 24px;
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight-lg);
-  color: #fff;
-  white-space: nowrap;
-}
-
 .menu-overlay__nav {
   display: flex;
   flex-direction: column;
@@ -329,7 +405,7 @@ footer::selection {
   font-size: clamp(48px, 12vw, 80px);
   font-weight: 500;
   letter-spacing: -0.03em;
-  color: #fff;
+  color: var(--white);
   opacity: 0.25;
   line-height: 1.1;
   padding: 12px 0;
@@ -606,27 +682,27 @@ footer::selection {
 }
 
 .btn--white {
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
 }
 
 .btn--white:hover {
-  background: #d3d3d3;
+  background: var(--surface);
 }
 
 .btn--outline-gray {
   position: relative;
   overflow: hidden;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  border: 1px solid var(--white-faint);
+  color: var(--white);
 }
 
 .btn--outline-gray::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--white-faint);
   transform: translateX(-101%);
   transition: transform 320ms cubic-bezier(0.76, 0, 0.24, 1);
   z-index: 0;
@@ -645,8 +721,8 @@ footer::selection {
   position: relative;
   overflow: hidden;
   background: transparent;
-  border: 1px solid #fff;
-  color: #fff;
+  border: 1px solid var(--white);
+  color: var(--white);
   transition: color 320ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
@@ -654,7 +730,7 @@ footer::selection {
   content: "";
   position: absolute;
   inset: 0;
-  background: #fff;
+  background: var(--white);
   transform: translateX(-101%);
   transition: transform 320ms cubic-bezier(0.76, 0, 0.24, 1);
   z-index: 0;
@@ -665,7 +741,7 @@ footer::selection {
 }
 
 .btn--outline-white-full:hover {
-  color: #000;
+  color: var(--black);
 }
 
 .btn--outline-white-full > * {
@@ -677,8 +753,8 @@ footer::selection {
   position: relative;
   overflow: hidden;
   background: transparent;
-  border: 1px solid #000;
-  color: #000;
+  border: 1px solid var(--black);
+  color: var(--black);
   transition: color 320ms cubic-bezier(0.76, 0, 0.24, 1);
 }
 
@@ -686,7 +762,7 @@ footer::selection {
   content: "";
   position: absolute;
   inset: 0;
-  background: #000;
+  background: var(--black);
   transform: translateX(-101%);
   transition: transform 320ms cubic-bezier(0.76, 0, 0.24, 1);
   z-index: 0;
@@ -697,7 +773,7 @@ footer::selection {
 }
 
 .btn--outline-black:hover {
-  color: #fff;
+  color: var(--white);
 }
 
 .btn--outline-black > * {
@@ -715,16 +791,16 @@ footer::selection {
   text-align: left;
   justify-content: space-between;
   pointer-events: none;
-  border-color: rgba(0 0 0 / 30%);
-  color: rgba(0 0 0 /50%);
+  border-color: var(--black-scrim);
+  color: var(--black-scrim);
 }
 
 /* White disabled variant — for dark surfaces like the homepage project sections.
    Keeps the same transparency feel as the black version, just inverted. */
 .btn--disabled.btn--outline-white-full,
 .btn--disabled.btn--outline-gray {
-  border-color: rgba(255 255 255 / 100%);
-  color: rgba(255 255 255 / 100%);
+  border-color: var(--white);
+  color: var(--white);
 }
 
 /* =============================================
@@ -788,7 +864,7 @@ footer::selection {
   display: flex;
   flex-direction: column;
   font-weight: 500;
-  color: #fff;
+  color: var(--white);
   white-space: nowrap;
   line-height: normal;
 }
@@ -796,7 +872,7 @@ footer::selection {
 .project__number {
   font-size: 24px;
   letter-spacing: var(--tracking-tight-lg);
-  opacity: 0.5;
+  opacity: 0.1;
 }
 
 .project__name {
@@ -817,7 +893,7 @@ footer::selection {
    ============================================= */
 
 .footer {
-  background: #000;
+  background: var(--black);
   width: 100%;
   display: flex;
   justify-content: center;
@@ -843,7 +919,7 @@ footer::selection {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: #fff;
+  color: var(--white);
   min-width: 0;
 }
 
@@ -858,14 +934,14 @@ footer::selection {
   font-size: 14px;
   font-weight: 400;
   letter-spacing: var(--tracking-tight-sm);
-  opacity: 0.6;
+  color: var(--white-muted);
   line-height: normal;
-  transition: opacity 120ms ease-out;
+  transition: collor 120ms ease-out;
   width: fit-content;
 }
 
 .footer__col-item:hover {
-  opacity: 1;
+  color: var(--white);
 }
 
 .footer__rainbow-btn {
@@ -917,8 +993,8 @@ footer::selection {
   display: flex;
   align-items: center;
   border-radius: var(--radius-img);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--white-faint);
+  background: var(--white-faint);
   overflow: hidden;
   cursor: pointer;
   text-decoration: none;
@@ -931,7 +1007,7 @@ footer::selection {
 }
 
 .footer__archive:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--white-faint);
   transform: scale(1.02);
 }
 
@@ -945,7 +1021,7 @@ footer::selection {
   height: 96px;
   flex-shrink: 0;
   overflow: hidden;
-  background: #000;
+  background: var(--black);
 }
 
 .footer__archive-thumb img {
@@ -987,7 +1063,7 @@ footer::selection {
   font-size: 16px;
   font-weight: 500;
   letter-spacing: var(--tracking-tight-sm);
-  color: #fff;
+  color: var(--white);
   line-height: normal;
 }
 
@@ -1002,7 +1078,7 @@ footer::selection {
   font-size: 14px;
   font-weight: 400;
   letter-spacing: var(--tracking-tight-sm);
-  color: #fff;
+  color: var(--white);
   white-space: nowrap;
   line-height: normal;
 }
@@ -1026,8 +1102,8 @@ footer::selection {
   width: 100%;
   max-width: var(--max-width);
   margin: 0 auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  color: #fff;
+  border-top: 1px solid var(--white-faint);
+  color: var(--white);
   font-size: 12px;
   font-weight: 400;
   letter-spacing: var(--tracking-tight-sm);
@@ -1217,7 +1293,7 @@ html.konami canvas {
   border-radius: 999px;
   /* 2px gradient ring: conic-gradient as bg, black inset via background-clip */
   background:
-    linear-gradient(#000, #000) padding-box,
+    linear-gradient(var(--black), var(--black)) padding-box,
     conic-gradient(
         from var(--konami-angle),
         #ff0040,
@@ -1230,7 +1306,7 @@ html.konami canvas {
       )
       border-box;
   border: 2px solid transparent;
-  color: #fff;
+  color: var(--white);
   /* Border spin always runs; enter/exit animations are applied per-phase. */
   animation: konami-border-spin 2s linear infinite;
   font-family: var(--font-inter) !important;
@@ -1295,7 +1371,7 @@ html.konami canvas {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #fff;
+  background: var(--white);
   min-height: 100vh;
   width: 100%;
 }
@@ -1420,11 +1496,11 @@ html.konami canvas {
 }
 
 .projects-nav--light .projects-nav__track--hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--white-faint);
 }
 
 .projects-nav--dark .projects-nav__track--hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--black-line);
 }
 
 /* Progressive blur + gradient overlay behind the hovered label
@@ -1511,11 +1587,11 @@ html.konami canvas {
 }
 
 .projects-nav--light .projects-nav__label {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--white-muted);
 }
 
 .projects-nav--dark .projects-nav__label {
-  color: #000;
+  color: var(--black);
   z-index: 5;
 }
 
@@ -1561,13 +1637,13 @@ html.konami canvas {
 
 .projects-nav--light .projects-nav__pill--hover {
   height: 20px !important;
-  background: #fff !important;
+  background: var(--white) !important;
   opacity: 0.5 !important;
 }
 
 .projects-nav--dark .projects-nav__pill--hover {
   height: 20px !important;
-  background: #000 !important;
+  background: var(--black) !important;
   opacity: 0.5 !important;
 }
 
@@ -1654,13 +1730,13 @@ html.konami .projects-nav-m__pill {
    ============================================= */
 
 .page--dark {
-  background: #000;
-  color: #fff;
+  background: var(--black);
+  color: var(--white);
 }
 
 .page--craft {
-  background: #dfdfdf;
-  color: #000;
+  background: var(--surface);
+  color: var(--black);
 }
 
 /* =============================================
@@ -1706,7 +1782,7 @@ html.konami .projects-nav-m__pill {
   display: flex;
   gap: 24px;
   align-items: flex-start;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--white-faint);
   padding-top: 24px;
   width: 100%;
 }
@@ -1722,7 +1798,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-xl);
   line-height: 1.4;
-  color: #fff;
+  color: var(--white);
 }
 
 .about-section-row__content {
@@ -1766,8 +1842,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-xl);
   line-height: 1.4;
-  color: #fff;
-  opacity: 0.5;
+  color: var(--white-muted);
 }
 
 /* =============================================
@@ -1795,7 +1870,7 @@ html.konami .projects-nav-m__pill {
   left: 0;
   right: 0;
   height: 1px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--white-faint);
 }
 
 /* Accent overlay that grows left-to-right on hover / open */
@@ -1831,7 +1906,7 @@ html.konami .projects-nav-m__pill {
   background: none;
   border: none;
   padding: 24px 0 0;
-  color: #fff;
+  color: var(--white);
   text-align: left;
   gap: 0;
 }
@@ -1872,7 +1947,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: -0.6px;
   line-height: 1.4;
-  opacity: 0.7;
+  color: var(--white-muted);
 }
 
 .accordion-row__period {
@@ -1951,19 +2026,41 @@ html.konami .projects-nav-m__pill {
   font-weight: 400;
   letter-spacing: var(--tracking-tight-sm);
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--white-muted);
   padding-left: 16px;
 }
 
+/* Per-row accent (dark variant of textAccentColor; falls back to dotColor, set
+   by AccordionRow.tsx; --white as a final guard). Same sliding underline as
+   .cs-link: a dim accent bar at rest, full-accent bar wipes in left→right on
+   hover, no text-color change. */
 .accordion-row__link {
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  transition: opacity 150ms ease;
+  --link-accent-color: var(--link-accent, var(--white));
+  color: var(--link-accent-color);
+  text-decoration: none;
+  background-image:
+    linear-gradient(var(--link-accent-color), var(--link-accent-color)),
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
+  background-repeat: no-repeat;
+  background-position:
+    0 100%,
+    0 100%;
+  background-size:
+    0% 1px,
+    100% 1px;
+  transition: background-size 320ms cubic-bezier(0.76, 0, 0.24, 1);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-bottom: 2px;
 }
 
 .accordion-row__link:hover {
-  opacity: 1;
+  background-size:
+    100% 1px,
+    100% 1px;
 }
 
 /* =============================================
@@ -1994,7 +2091,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-sm);
   line-height: normal;
-  color: #000;
+  color: var(--black);
 }
 
 .work-main__toggle {
@@ -2011,7 +2108,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-sm);
   line-height: normal;
-  color: #000;
+  color: var(--black);
   cursor: pointer;
   opacity: 0.3;
   transition: opacity 120ms ease;
@@ -2116,7 +2213,7 @@ html.konami .projects-nav-m__pill {
 .work-main__divider {
   height: 1px;
   width: 100%;
-  background: var(--divider-color, rgba(0, 0, 0, 0.1));
+  background: var(--divider-color, var(--black-line));
   transition: background 220ms ease;
 }
 
@@ -2141,7 +2238,7 @@ html.konami .projects-nav-m__pill {
 .work-grid__pic {
   flex: 1 0 0;
   min-width: 0;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--black-line);
   border-radius: var(--radius-img);
   overflow: hidden;
 }
@@ -2151,7 +2248,7 @@ html.konami .projects-nav-m__pill {
   height: 100%;
   object-fit: cover;
   display: block;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--black-line);
   border-radius: var(--radius-img);
 }
 
@@ -2178,7 +2275,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-xl);
   line-height: normal;
-  color: #000;
+  color: var(--black);
 }
 
 .work-grid__role {
@@ -2187,7 +2284,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-lg);
   line-height: normal;
-  color: #000;
+  color: var(--black);
   opacity: 0.5;
 }
 
@@ -2223,7 +2320,7 @@ html.konami .projects-nav-m__pill {
   left: 0;
   right: 0;
   height: 1px;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--black-line);
 }
 
 /* Accent overlay */
@@ -2257,7 +2354,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-2xl);
   line-height: normal;
-  color: #000;
+  color: var(--black);
   transition: color 200ms ease;
 }
 
@@ -2272,7 +2369,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-lg);
   line-height: normal;
-  color: #000;
+  color: var(--black);
   opacity: 0.5;
 }
 
@@ -2299,14 +2396,14 @@ html.konami .projects-nav-m__pill {
 
 .work-list__item--disabled {
   cursor: default;
-  opacity: 0.5;
+  /* opacity: 0.5; */
 }
 
 .work-list__coming-soon {
   font-size: 16px;
   font-weight: 500;
   letter-spacing: var(--tracking-tight-sm);
-  opacity: 0.6;
+  color: var(--black-muted);
 }
 
 /* Floating preview — fixed to viewport, spring-animated via JS transform */
@@ -2327,7 +2424,7 @@ html.konami .projects-nav-m__pill {
     opacity 200ms ease,
     scale 200ms ease;
   will-change: transform;
-  border: 1px solid rgba(0 0 0 / 10%);
+  border: 1px solid var(--black-line);
 }
 
 .work-list__preview--visible {
@@ -2340,8 +2437,8 @@ html.konami .projects-nav-m__pill {
    ============================================= */
 
 .cs-page {
-  background: #fff;
-  color: #000;
+  background: var(--white);
+  color: var(--black);
 }
 
 /* ── Not found ─────────────────────────────────────────────── */
@@ -2353,13 +2450,13 @@ html.konami .projects-nav-m__pill {
 
 .cs-not-found__message {
   font-size: 24px;
-  opacity: 0.4;
+  color: var(--black-faint);
 }
 
 .cs-not-found__back {
   display: inline-block;
   margin-top: 16px;
-  opacity: 0.6;
+  color: var(--black-muted);
 }
 
 /* ── Hero ──────────────────────────────────────────────────── */
@@ -2381,7 +2478,7 @@ html.konami .projects-nav-m__pill {
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
-  background: #1a1a2e;
+  background: var(--surface-dark);
   /* hero bottom overlaps the cover card by 200px */
   margin-bottom: -200px;
   padding-bottom: 400px;
@@ -2403,8 +2500,8 @@ html.konami .projects-nav-m__pill {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.25) 0%,
-    rgba(0, 0, 0, 0.55) 100%
+    var(--black-line) 0%,
+    var(--black-scrim) 100%
   );
   pointer-events: none;
 }
@@ -2440,7 +2537,7 @@ html.konami .projects-nav-m__pill {
   font-size: 20px;
   font-weight: 500;
   letter-spacing: var(--tracking-tight-lg);
-  color: #fff;
+  color: var(--white);
   opacity: 0.5;
   line-height: normal;
   cursor: pointer;
@@ -2467,7 +2564,7 @@ html.konami .projects-nav-m__pill {
   font-size: 64px;
   font-weight: 500;
   letter-spacing: var(--tracking-tight-3xl);
-  color: #fff;
+  color: var(--white);
   line-height: normal;
 }
 
@@ -2475,8 +2572,7 @@ html.konami .projects-nav-m__pill {
   font-size: 32px;
   font-weight: 500;
   letter-spacing: var(--tracking-tight-xl);
-  color: #fff;
-  opacity: 0.7;
+  color: var(--white-muted);
   line-height: normal;
 }
 
@@ -2492,7 +2588,7 @@ html.konami .projects-nav-m__pill {
   width: 100%;
   height: 600px;
   border-radius: var(--radius-img);
-  background: #e5e5e5;
+  background: var(--surface);
   background-size: cover;
   background-position: center;
 }
@@ -2533,7 +2629,7 @@ html.konami .projects-nav-m__pill {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--black-line);
   padding-top: 24px;
 }
 
@@ -2545,7 +2641,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .cs-meta__label {
-  opacity: 0.3;
+  color: var(--black-faint);
   flex: 1 0 0;
   min-width: 0;
   white-space: nowrap;
@@ -2569,13 +2665,29 @@ html.konami .projects-nav-m__pill {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--black-line);
   padding-top: 24px;
 }
 
 .cs-meta__about .cs-meta__value {
   display: block;
   width: 100%;
+}
+
+/* "View final designs" CTA below the About column (opt-in via frontmatter). */
+.cs-meta__cta {
+  margin-top: 4px;
+  display: flex;
+}
+
+/* "View final designs" scrolls down, so its arrow points down and — mirroring
+   the View-case-study button's rightward nudge — slides DOWN on hover. The base
+   90° rotation is kept in the hover transform so only the translate changes. */
+.cs-meta__cta--down .btn__icon {
+  transform: rotate(90deg);
+}
+.cs-meta__cta--down .btn:hover .btn__icon {
+  transform: rotate(90deg) translateX(3px);
 }
 
 /* ── Section ───────────────────────────────────────────────── */
@@ -2585,13 +2697,13 @@ html.konami .projects-nav-m__pill {
   gap: 24px;
   align-items: flex-start;
   width: 100%;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--black-line);
   padding-top: 128px;
 }
 
 .cs-hmw-wrap {
   width: 100%;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--black-line);
   padding-top: 128px;
 }
 
@@ -2600,7 +2712,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-xl);
   line-height: normal;
-  color: #000;
+  color: var(--black);
   text-align: center;
   max-width: 800px;
   margin: 0 auto;
@@ -2629,7 +2741,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-md);
   line-height: 1.3;
-  color: #000;
+  color: var(--black);
 }
 
 .cs-cols__body {
@@ -2637,8 +2749,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 400;
   letter-spacing: var(--tracking-tight-sm);
   line-height: 1.6;
-  color: #000;
-  opacity: 0.7;
+  color: var(--black-muted);
 }
 
 .cs-section--no-border {
@@ -2652,7 +2763,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-xl);
   line-height: normal;
-  color: #000;
+  color: var(--black);
 }
 
 .cs-section__body {
@@ -2670,19 +2781,19 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: var(--tracking-tight-lg);
   line-height: 1.3;
-  color: #000;
+  color: var(--black);
   width: 100%;
 }
 
 .cs-quote {
-  border-left: 3px solid #000;
+  border-left: 3px solid var(--black);
   padding-left: 12px;
   font-size: 20px;
   font-weight: 500;
   font-style: italic;
   letter-spacing: -0.6px;
   line-height: 1.5;
-  color: #000;
+  color: var(--black);
   width: 100%;
 }
 
@@ -2691,7 +2802,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: -0.6px;
   line-height: 1.6;
-  color: #000;
+  color: var(--black);
   width: 100%;
 }
 
@@ -2710,19 +2821,44 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: -0.6px;
   line-height: 1.5;
-  color: #000;
+  color: var(--black);
 }
 
+/* Case-study inline links. Text uses the page accent (--cs-accent, set on
+   .cs-page from the case's light textAccentColor / `accent`; falls back to the
+   surrounding text color). Underline is drawn with two stacked gradient layers
+   so it slides in and survives line wraps: a dim accent bar (full width) at
+   rest, and a full-accent bar that wipes left→right on hover. No text-color
+   change on hover. */
 .cs-link {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  color: inherit;
+  --link-accent-color: var(--cs-accent, currentColor);
+  color: var(--cs-accent, inherit);
   cursor: pointer;
-  transition: opacity 120ms ease-out;
+  text-decoration: none;
+  background-image:
+    linear-gradient(var(--link-accent-color), var(--link-accent-color)),
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
+  background-repeat: no-repeat;
+  background-position:
+    0 100%,
+    0 100%;
+  background-size:
+    0% 1px,
+    100% 1px;
+  transition: background-size 320ms cubic-bezier(0.76, 0, 0.24, 1);
+  /* Keep the underline continuous across wrapped lines. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-bottom: 2px;
 }
 
 .cs-link:hover {
-  opacity: 0.5;
+  background-size:
+    100% 1px,
+    100% 1px;
 }
 
 /* ── Image groups ──────────────────────────────────────────── */
@@ -2755,7 +2891,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .cs-images__pic {
-  background: #e5e5e5;
+  background: var(--surface);
   border-radius: var(--radius-img);
   overflow: hidden;
 }
@@ -2765,7 +2901,7 @@ html.konami .projects-nav-m__pill {
   width: 100%;
   height: auto;
   display: block;
-  border: 1px solid rgba(0 0 0 / 5%);
+  border: 1px solid var(--black-line);
   border-radius: var(--radius-img);
 }
 
@@ -2804,7 +2940,7 @@ html.konami .projects-nav-m__pill {
   left: 0;
   right: 0;
   height: 1.5px;
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--black-line);
 }
 
 /* Accent overlay grows left-to-right */
@@ -2865,7 +3001,7 @@ html.konami .projects-nav-m__pill {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--black-scrim);
   transition: color 160ms ease-out;
 }
 
@@ -2894,7 +3030,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .cs-nav__card:hover .cs-nav__label {
-  color: #000;
+  color: var(--black);
 }
 
 .cs-nav__card--disabled {
@@ -2929,7 +3065,7 @@ html.konami .projects-nav-m__pill {
 .craft-card {
   width: 100%;
   border-radius: var(--radius-img);
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--black-line);
   overflow: hidden;
   flex-shrink: 0;
   border: none;
@@ -2946,7 +3082,7 @@ html.konami .projects-nav-m__pill {
 
 .craft-card:hover {
   transform: translateY(-4px) scale(1.003);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 8px var(--black-line);
 }
 
 .craft-card:active {
@@ -3020,7 +3156,7 @@ html.konami .projects-nav-m__pill {
   position: absolute;
   top: 24px;
   left: 32px;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--white-muted);
   font-size: 13px;
   line-height: 1.4;
   pointer-events: none;
@@ -3041,7 +3177,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .craft-lightbox__date {
-  opacity: 0.6;
+  color: var(--white-muted);
   font-size: 12px;
   letter-spacing: var(--tracking-tight-md);
 }
@@ -3123,11 +3259,11 @@ html.konami .projects-nav-m__pill {
 .craft-lightbox__nav {
   /* Frosted-glass pill — readable on any image, light or dark, even when
      zoomed so the photo scrolls behind the controls. */
-  background: rgba(0, 0, 0, 0.32);
+  background: var(--black-scrim);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #fff;
+  border: 1px solid var(--white-faint);
+  color: var(--white);
   width: 40px;
   height: 40px;
   border-radius: 999px;
@@ -3165,8 +3301,8 @@ html.konami .projects-nav-m__pill {
 
 .craft-lightbox__icon-btn:hover:not(:disabled),
 .craft-lightbox__nav:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.32);
+  background: var(--black-scrim);
+  border-color: var(--white-faint);
 }
 
 .craft-lightbox__icon-btn:disabled {
@@ -3207,8 +3343,8 @@ html.konami .projects-nav-m__pill {
   display: block;
   border-radius: var(--radius-img);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  background: var(--white-faint);
+  box-shadow: 0 30px 80px var(--black-scrim);
   max-width: calc(100vw - 128px);
   max-height: 85vh;
   line-height: 0;
@@ -3250,11 +3386,7 @@ html.konami .projects-nav-m__pill {
   width: min(720px, calc(100vw - 128px));
   height: 85vh;
   max-height: 85vh;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0.02)
-  );
+  background: linear-gradient(135deg, var(--white-faint), var(--white-faint));
 }
 
 /* ── Image swap animation (on prev/next) ──
@@ -3332,9 +3464,10 @@ html.konami .projects-nav-m__pill {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  /* Grid instead of flex — eliminates sub-pixel gaps between columns */
+  /* Grid instead of flex — eliminates sub-pixel gaps between columns. The
+     column count (and thus grid-template-columns) is set inline in router.tsx:
+     4 on mobile, 6 on larger screens. */
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
 }
 
 /* Each column — color driven by inline style set in router.tsx */
@@ -3350,31 +3483,12 @@ html.konami .projects-nav-m__pill {
 }
 
 /* Revealing: columns start fully covering. animation-fill-mode:both keeps
-   them at translateY(0) during their stagger delay, then slides them off. */
+   them at translateY(0) during their stagger delay, then slides them off.
+   The right-to-left reveal stagger is set inline per-column in router.tsx so
+   it adapts to any column count. */
 .page-transition--revealing .page-transition__col {
   animation: col-cover-out 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
 }
-/* Right-to-left stagger — override the inline left-to-right delay */
-.page-transition--revealing .page-transition__col:nth-child(1) {
-  animation-delay: 275ms;
-}
-.page-transition--revealing .page-transition__col:nth-child(2) {
-  animation-delay: 220ms;
-}
-.page-transition--revealing .page-transition__col:nth-child(3) {
-  animation-delay: 165ms;
-}
-.page-transition--revealing .page-transition__col:nth-child(4) {
-  animation-delay: 110ms;
-}
-.page-transition--revealing .page-transition__col:nth-child(5) {
-  animation-delay: 55ms;
-}
-.page-transition--revealing .page-transition__col:nth-child(6) {
-  animation-delay: 0ms;
-}
-
-/* Disable on mobile — hamburger menu handles its own transition */
 
 /* =============================================
    RESPONSIVE / FEATURE MEDIA QUERIES
@@ -4069,9 +4183,6 @@ html.konami .projects-nav-m__pill {
   .menu-overlay__inner {
     padding: 0 16px 24px;
   }
-  .menu-overlay__name {
-    font-size: 18px;
-  }
   .footer__col {
     flex: 0 0 100%;
   }
@@ -4113,8 +4224,8 @@ html.konami .projects-nav-m__pill {
     z-index: 50;
     pointer-events: auto;
     /* Subtle backdrop for legibility against busy content */
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--white-faint);
+    border: 1px solid var(--white-faint);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 999px;
@@ -4122,8 +4233,8 @@ html.konami .projects-nav-m__pill {
   }
 
   .projects-nav-m--dark {
-    background: rgba(0, 0, 0, 0.06);
-    border-color: rgba(0, 0, 0, 0.08);
+    background: var(--black-line);
+    border-color: var(--black-line);
   }
 
   .projects-nav-m--entering {
@@ -4194,7 +4305,7 @@ html.konami .projects-nav-m__pill {
 
   .craft-card:hover {
     transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 16px 36px var(--black-line);
   }
 
   .craft-card:hover .craft-card__img {
@@ -4227,7 +4338,7 @@ html.konami .projects-nav-m__pill {
   }
   /* Tighter shadow on mobile — the big 30px/80px offset reads as "too tall". */
   .craft-lightbox__card {
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 12px 32px var(--black-scrim);
   }
   /* Move prev/next off the image: dock them as a centered pair at the bottom so
      they never overlap the photo's edges. */
@@ -4252,11 +4363,5 @@ html.konami .projects-nav-m__pill {
   .craft-lightbox__nav--next:hover,
   .craft-lightbox__nav--next.is-pressed {
     transform: translateX(3px);
-  }
-}
-
-@media (max-width: 768px) {
-  .page-transition {
-    display: none;
   }
 }

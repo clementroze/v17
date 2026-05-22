@@ -5,15 +5,20 @@
 //   slug: frog
 //   title: frog
 //   subtitle: Designing the next-generation…
-//   year: 2025
 //   role: Design Intern
 //   type: Research, UX design, …
 //   about:
 //     - paragraph one
 //     - paragraph two
+//   finalDesigns: Final flow & high-fidelity mockups   (optional)
 //   ---
 //
-// Hero image comes from work.ts (imageSrc). Cover image is set via `cover:` in the MD frontmatter.
+// The "Year" shown in the meta block comes from the global registry (data.ts,
+// the entity's `date`) — NOT from frontmatter — so it stays consistent with the
+// About page. Hero image comes from work.ts (imageSrc), and the cover image is
+// derived from the slug as /images/<slug>/cover.png (NOT frontmatter).
+// `finalDesigns` (optional) enables a "View final designs" button below the About
+// block; its value must match a `## ` section heading exactly to scroll there.
 //
 // Body block types:
 //
@@ -29,11 +34,15 @@ export type Meta = {
   slug: string;
   title: string;
   subtitle: string;
-  year: string;
   role: string;
   type: string;
-  cover?: string;
   about: string[];
+  /**
+   * Optional. When set, a "View final designs" button is rendered below the
+   * About meta block. The value is the exact text of a `## ` section heading in
+   * the body — clicking the button scrolls to that section.
+   */
+  finalDesigns?: string;
 };
 
 export type Col = { heading?: string; body?: string };

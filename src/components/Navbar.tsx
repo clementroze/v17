@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useRouter } from '../lib/router';
+import { Link, useRouter, COVER_MS, DOT_LEAD_MS } from '../lib/router';
 
 type NavbarProps = {
   watchHideRef?: React.RefObject<Element>;
   watchShowRef?: React.RefObject<Element>;
+  // White once this element's top scrolls up to the navbar band, i.e. you've
+  // left the hero and are now over the first project. Stays white for every
+  // section below it; only the hero (above this element) is black.
+  watchPastRef?: React.RefObject<Element>;
   forceWhite?: boolean;
   activeLink?: 'about' | 'work' | 'craft';
 };
@@ -14,13 +18,17 @@ const LINKS = [
   { label: 'Craft', href: '/craft', key: 'craft' },
 ] as const;
 
-export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false, activeLink }: NavbarProps) {
-  const { navigate } = useRouter();
+export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, forceWhite = false, activeLink }: NavbarProps) {
+  const { navigate, wipe } = useRouter();
   const [open,    setOpen]    = useState(false);
   const [closing, setClosing] = useState(false);
+  // The hamburger morph reflects intent immediately on tap (the menu itself
+  // only mounts/unmounts after the column curtain covers, so `open` lags).
+  const [showX,   setShowX]   = useState(false);
   const [white,   setWhite]   = useState(forceWhite);
 
   const navRef = useRef<HTMLElement>(null);
+  const isMobile = () => typeof window !== 'undefined' && window.innerWidth <= 768;
 
   // ── color: observe watched elements ──────────────────────────────────────────
 
@@ -57,21 +65,78 @@ export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false,
     return () => observers.forEach(o => o.disconnect());
   }, [watchHideRef, watchShowRef, forceWhite]);
 
+  // ── color: "past the hero" — white once the watched element's top reaches
+  // the navbar band. Black is reserved for the hero (everything above it). ──────
+
+  useEffect(() => {
+    if (forceWhite || !watchPastRef) return;
+
+    const NAV_BAND = 96;
+    const update = () => {
+      const el = watchPastRef.current;
+      if (!el) return;
+      // The element's top has scrolled up to (or above) the navbar band → we're
+      // on the first project or below, so the navbar should be white.
+      setWhite(el.getBoundingClientRect().top <= NAV_BAND);
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [watchPastRef, forceWhite]);
+
   // ── mobile menu ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
+    document.body.style.overflow = open || showX ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [open]);
+  }, [open, showX]);
+
+  // Open: on mobile, fire the column wipe and mount the menu once the curtain
+  // is fully covering, so the staggered reveal exposes the open menu.
+  const openMenu = useCallback(() => {
+    setShowX(true);
+    if (isMobile()) {
+      wipe('#000');
+      setTimeout(() => setOpen(true), COVER_MS);
+    } else {
+      setOpen(true);
+    }
+  }, [wipe]);
 
   const closeMenu = useCallback((cb?: () => void) => {
-    setClosing(true);
-    setTimeout(() => { setOpen(false); setClosing(false); cb?.(); }, 440);
-  }, []);
+    setShowX(false);
+    if (isMobile()) {
+      // Curtain covers, we unmount the menu under it, then it reveals the page.
+      wipe();
+      setClosing(true);
+      setTimeout(() => {
+        setOpen(false);
+        setClosing(false);
+        cb?.();
+      }, COVER_MS);
+    } else {
+      setClosing(true);
+      setTimeout(() => { setOpen(false); setClosing(false); cb?.(); }, 440);
+    }
+  }, [wipe]);
 
   const handleMobileNav = (href: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    closeMenu(() => navigate(href));
+    // Navigation runs its OWN column wipe to bring in the new page, so we don't
+    // play a separate close-wipe (that would double up). Keep the menu mounted
+    // under the curtain while it covers, then unmount once the page has swapped
+    // — so there's no flash of the old page and the full wipe plays out.
+    setShowX(false);
+    navigate(href);
+    setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, COVER_MS + DOT_LEAD_MS);
   };
 
   const linkStyle = (active: boolean) => ({ opacity: active ? 1 : 0.5 });
@@ -80,7 +145,10 @@ export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false,
     <>
       <div className="navbar__blur-bg" aria-hidden />
 
-      <nav ref={navRef} className={`navbar${white ? ' navbar--white' : ''}`}>
+      <nav
+        ref={navRef}
+        className={`navbar${white ? ' navbar--white' : ''}${open || closing || showX ? ' navbar--above-overlay' : ''}`}
+      >
         <div className="navbar__inner">
 
           <div className="navbar__col">
@@ -97,17 +165,20 @@ export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false,
             <div key={key} className="navbar__col navbar__col--desktop">
               <Link
                 href={href}
-                className="navbar__link"
+                className={`navbar__link${activeLink === key ? ' navbar__link--active' : ''}`}
                 style={linkStyle(activeLink === key)}
               >{label}</Link>
             </div>
           ))}
 
+          {/* Single, persistent hamburger: the SAME two bars morph from lines
+              into the X in place. It sits above the overlay (see CSS z-index)
+              and doubles as the close button when the menu is open. */}
           <button
-            className={`hamburger${open ? ' hamburger--open' : ''}`}
-            onClick={() => open ? closeMenu() : setOpen(true)}
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
+            className={`hamburger${showX ? ' hamburger--open' : ''}${open || closing || showX ? ' hamburger--over-overlay' : ''}`}
+            onClick={() => (showX ? closeMenu() : openMenu())}
+            aria-label={showX ? 'Close menu' : 'Open menu'}
+            aria-expanded={showX}
           >
             <span className="hamburger__bar" />
             <span className="hamburger__bar" />
@@ -119,19 +190,11 @@ export default function Navbar({ watchHideRef, watchShowRef, forceWhite = false,
       {(open || closing) && (
         <div className={`menu-overlay${closing ? ' menu-overlay--closing' : ''}`}>
           <div className="menu-overlay__inner">
-            <div className="menu-overlay__header">
-              <a href="/" onClick={handleMobileNav('/')} className="menu-overlay__name">
-                Clément Rozé
-              </a>
-              <button
-                className="hamburger hamburger--open"
-                onClick={() => closeMenu()}
-                aria-label="Close menu"
-              >
-                <span className="hamburger__bar" />
-                <span className="hamburger__bar" />
-              </button>
-            </div>
+            {/* Empty spacer matching the navbar height. The name and the
+                hamburger both live in the navbar above this overlay (z-index
+                300), so the overlay needs neither — just the top offset so the
+                links start below the navbar. */}
+            <div className="menu-overlay__header" aria-hidden />
             <nav className="menu-overlay__nav">
               {LINKS.map(({ label, href, key }, i) => (
                 <a

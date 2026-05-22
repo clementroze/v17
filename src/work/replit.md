@@ -2,25 +2,24 @@
 slug: replit
 title: Replit
 subtitle: Fostering polish, revamping design systems, building marketing pages.
-year: 2022 - 2024
 role: Product Design & Marketing Intern
 type: Product Design, Marketing, Front-end development
-cover: /images/replit/cover.png
 about:
   - [Replit](https://replit.com/) an online platform that offers a place for both experienced developers and novices to build, share, and deploy software. Their goal is to empower the next billion software creators.
   - I joined Replit when I was 15 years old and loved it so much that I worked there for two and a half years, even part-time during high school! My work involved revamping the Replit User Interface (RUI) design system, ensuring every surface received a quality dose of CSS polish. I also built slide decks and other support materials for conferences and presentations.
   - My biggest accomplishment was designing the following marketing pages as part of a company-wide rebrand.
+finalDesigns: AI Comparison page
 ---
 
 ## AI Comparison page
 
-The Comparison page is designed to highlight the advantages of Replit AI over GitHub Copilot. In the hero section, a comparison table provides a clear, side-by-side view of key features, offering an intuitive way for users to quickly grasp the differences. The sections that follow dive deeper, elaborating on what makes each Replit AI feature stand out. Testimonials provide valuable social proof, reinforcing the credibility and effectiveness of the product.
+The [Comparison page](https://web.archive.org/web/20240820034931/https://replit.com/comparison) is designed to highlight the advantages of Replit AI over GitHub Copilot. In the hero section, a comparison table provides a clear, side-by-side view of key features, offering an intuitive way for users to quickly grasp the differences. The sections that follow dive deeper, elaborating on what makes each Replit AI feature stand out. Testimonials provide valuable social proof, reinforcing the credibility and effectiveness of the product.
 
 ![card](/images/replit/comparison.png) Comparison page
 
 ## About and Careers pages
 
-The About and Careers pages are crafted to convey Replit’s mission, culture, and opportunities to both potential users and employees. The About page focuses on Replit’s vision to make software development accessible and impactful, while the Careers page highlights the company’s values and current job openings.
+The [About](https://web.archive.org/web/20250401013012/https://replit.com/about) and [Careers](https://web.archive.org/web/20250201135509/https://replit.com/careers) pages are crafted to convey Replit’s mission, culture, and opportunities to both potential users and employees. The About page focuses on Replit’s vision to make software development accessible and impactful, while the Careers page highlights the company’s values and current job openings.
 
 A key aspect of this project was optimizing these marketing pages for search engines. This involved refining the language in the hero section – the first content users see upon landing on the page – and selecting strategic keywords behind the scenes to improve discoverability.
 

@@ -2,33 +2,47 @@ import { useState, useEffect } from "react";
 import arrowWhite from "../assets/arrow.svg";
 import Button from "./Button";
 import { Link } from "../lib/router";
+import { bySlug, darkAccent, aboutRole } from "../data/data";
 
 type Segment = string | { label: string; href: string };
 export type DescriptionPara = string | Segment[];
 
 export type AccordionRowProps = {
-  dotColor: string;
-  company: string;
-  role: string;
-  period: string;
+  /** Registry key (data.ts). Supplies the dot/link color, name, role, date, link. */
+  slug: string;
+  /** Override the registry name if About wants a different label. */
+  company?: string;
   description?: DescriptionPara | DescriptionPara[];
   hasBorderTop?: boolean;
+  /**
+   * Link target for the row's CTA. Defaults to the registry `href` (the case
+   * study). About entries with no case study set an external link here.
+   */
   caseStudyHref?: string;
   caseStudyLabel?: string;
   defaultOpen?: boolean;
 };
 
 export default function AccordionRow({
-  dotColor,
-  company,
-  role,
-  period,
+  slug,
+  company: companyOverride,
   description,
   hasBorderTop = true,
-  caseStudyHref,
+  caseStudyHref: caseStudyHrefOverride,
   caseStudyLabel = "View case study",
   defaultOpen = false,
 }: AccordionRowProps) {
+  const entity = bySlug(slug);
+  // The dot and inline-link color: dark variant of the entity's text accent,
+  // falling back to its accent. (About renders dark.)
+  const dotColor = entity?.accent ?? "#000";
+  const linkColor = entity ? darkAccent(entity) : dotColor;
+  const company = companyOverride ?? entity?.name ?? slug;
+  // Role + date/period come from the registry (role allows an About-only
+  // override via aboutRole). Date is shared verbatim with the case study.
+  const role = entity ? aboutRole(entity) : "";
+  const period = entity?.date ?? "";
+  const caseStudyHref = caseStudyHrefOverride ?? entity?.href;
   const [open, setOpen] = useState(defaultOpen);
 
   useEffect(() => {
@@ -39,13 +53,15 @@ export default function AccordionRow({
 
   const saveScrollState = () => {
     sessionStorage.setItem("about_scroll", String(window.scrollY));
-    sessionStorage.setItem("about_open", company);
+    sessionStorage.setItem("about_open", slug);
   };
 
   return (
     <div
       className={`accordion-row${hasBorderTop ? " accordion-row--border" : " accordion-row--border-first"}`}
-      style={{ "--accent": dotColor } as React.CSSProperties}
+      style={
+        { "--accent": dotColor, "--link-accent": linkColor } as React.CSSProperties
+      }
     >
       <button
         className={`accordion-row__header${hasContent ? " accordion-row__header--interactive" : ""}`}
