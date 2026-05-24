@@ -121,6 +121,8 @@ The pills stay visually minimal when collapsed, which keeps the interface calm d
 
 ![loading](/images/gcai/loading.png) A loading state that keeps users informed
 
+![thinking states](/images/gcai/thinking-states.mov) Prototype of the thinking states
+
 ## Learnings & reflections
 
 Being the first designer at GC AI meant wearing every hat: researcher, product designer, and sometimes front-end developer. This was particulary useful when I was prototyping complex interactions like the [pill loading states](#loading-states).
