@@ -36,21 +36,80 @@ function contrastText(hex?: string): string {
   return luminance > 0.5 ? "#000" : "#fff";
 }
 
+// Turn heading text into a URL-fragment id, e.g. "Loading states" →
+// "loading-states". Used so in-page `[label](#anchor)` links can target a
+// subheading by its slug.
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+// Smooth-scroll to an in-page anchor, clearing the sticky navbar with the same
+// 110px offset the pill nav uses.
+function scrollToAnchor(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - 110;
+  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
+// Inline tokenizer for body text. Splits on two token kinds and leaves the rest
+// as plain strings:
+//   [label](href)  → an accent-underlined link (in-page #anchor or external)
+//   #rrggbb / #rgb → a syntax-highlighted hex code chip with a color swatch
+const INLINE_RE = /(\[[^\]]+\]\([^)]+\))|(#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b)/g;
+
 function renderInlineLinks(text: string): React.ReactNode {
-  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  const parts = text.split(INLINE_RE).filter((p) => p !== undefined);
   return parts.map((part, i) => {
-    const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (m)
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      const href = link[2];
+      // In-page anchor: scroll smoothly within the page (same tab), accounting
+      // for the sticky navbar — rather than opening a new tab like external links.
+      if (href.startsWith("#")) {
+        const id = href.slice(1);
+        return (
+          <a
+            key={i}
+            href={href}
+            className="cs-link"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToAnchor(id);
+              history.replaceState(null, "", href);
+            }}
+          >
+            {link[1]}
+          </a>
+        );
+      }
       return (
         <a
           key={i}
-          href={m[2]}
+          href={href}
           target="_blank"
           rel="noopener noreferrer"
           className="cs-link"
         >
-          {m[1]}
+          {link[1]}
         </a>
+      );
+    }
+    const hex = part.match(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/);
+    if (hex)
+      return (
+        <code key={i} className="cs-hex">
+          <span
+            className="cs-hex__swatch"
+            style={{ backgroundColor: part }}
+            aria-hidden="true"
+          />
+          {part}
+        </code>
       );
     return part;
   });
@@ -87,7 +146,9 @@ function renderBlock(
     case "heading":
       return (
         <Reveal key={idx} delay={40}>
-          <h3 className="cs-heading">{renderInlineLinks(block.text)}</h3>
+          <h3 id={slugify(block.text)} className="cs-heading">
+            {renderInlineLinks(block.text)}
+          </h3>
         </Reveal>
       );
     case "quote":
@@ -290,7 +351,9 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
   if (block.type === "heading") {
     return (
       <Reveal key={idx} delay={idx * 50}>
-        <h3 className="cs-heading">{renderInlineLinks(block.text)}</h3>
+        <h3 id={slugify(block.text)} className="cs-heading">
+          {renderInlineLinks(block.text)}
+        </h3>
       </Reveal>
     );
   }
@@ -335,9 +398,14 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
 function NavPreview({ items }: { items: typeof work }) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: 0, y: 0 });
   const target = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number>(0);
+  // Which card the cursor is over — determines the clamp side so the card's
+  // name stays legible: "prev" is left-aligned (clamp X to a left boundary),
+  // "next" is right-aligned (clamp to a right boundary).
+  const side = useRef<"prev" | "next" | null>(null);
 
   const animate = useCallback(() => {
     const LERP = 0.1;
@@ -354,18 +422,60 @@ function NavPreview({ items }: { items: typeof work }) {
     return () => cancelAnimationFrame(rafRef.current);
   }, [animate]);
 
-  const onMouseMove = (e: React.MouseEvent) => {
-    target.current = { x: e.clientX, y: e.clientY };
+  // Clamp the cursor X so the preview can't cover the active card's name: it
+  // stops 25% of the nav width shy of the side the name sits on. Mirrors the
+  // "damping" on the Work list, but one-sided per card.
+  const clampX = (clientX: number) => {
+    const nav = navRef.current;
+    if (!nav || !side.current) return clientX;
+    const rect = nav.getBoundingClientRect();
+    const inset = rect.width * 0.25;
+    return side.current === "prev"
+      ? Math.max(rect.left + inset, clientX) // keep off the left-aligned name
+      : Math.min(rect.right - inset, clientX); // keep off the right-aligned name
   };
 
-  const handleEnter = (slug: string) => setActiveSlug(slug);
-  const handleLeave = () => setActiveSlug(null);
+  const onMouseMove = (e: React.MouseEvent) => {
+    target.current = { x: clampX(e.clientX), y: e.clientY };
+  };
+
+  const handleEnter = (slug: string, s: "prev" | "next", e: React.MouseEvent) => {
+    side.current = s;
+    setActiveSlug(slug);
+    // Snap to the cursor on enter so the preview appears under the pointer
+    // instead of springing in from the top-left (translate 0,0).
+    const point = { x: clampX(e.clientX), y: e.clientY };
+    target.current = point;
+    pos.current = { ...point };
+  };
+  const handleLeave = () => {
+    side.current = null;
+    setActiveSlug(null);
+  };
 
   const activeItem = activeSlug
     ? items.find((w) => w.slug === activeSlug)
     : null;
 
-  return { onMouseMove, handleEnter, handleLeave, previewRef, activeItem };
+  // The item whose background is painted. It lags `activeItem` on the way out so
+  // the preview fades out showing its image rather than snapping to an empty box
+  // the instant the cursor leaves. Updated only while an item is active.
+  const [displayItem, setDisplayItem] = useState<(typeof items)[number] | null>(
+    null,
+  );
+  useEffect(() => {
+    if (activeItem) setDisplayItem(activeItem);
+  }, [activeItem]);
+
+  return {
+    onMouseMove,
+    handleEnter,
+    handleLeave,
+    previewRef,
+    navRef,
+    activeItem,
+    displayItem,
+  };
 }
 
 // ── page ──────────────────────────────────────────────────────────────────────
@@ -607,7 +717,13 @@ export default function CaseStudy({ slug }: { slug: string }) {
 
             {/* Prev / Next nav */}
             <div
-              ref={csNavRef}
+              ref={(el) => {
+                (csNavRef as React.MutableRefObject<HTMLDivElement | null>).current =
+                  el;
+                (
+                  nav.navRef as React.MutableRefObject<HTMLDivElement | null>
+                ).current = el;
+              }}
               className="cs-nav"
               onMouseMove={nav.onMouseMove}
             >
@@ -626,7 +742,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
                   href={prevItem.href}
                   className="cs-nav__card cs-nav__card--prev"
                   style={{ "--accent": prevItem.accent } as React.CSSProperties}
-                  onMouseEnter={() => nav.handleEnter(prevItem.slug)}
+                  onMouseEnter={(e) => nav.handleEnter(prevItem.slug, "prev", e)}
                   onMouseLeave={nav.handleLeave}
                 >
                   <span className="cs-nav__name">{prevItem.name}</span>
@@ -655,7 +771,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
                   href={nextItem.href}
                   className="cs-nav__card cs-nav__card--next"
                   style={{ "--accent": nextItem.accent } as React.CSSProperties}
-                  onMouseEnter={() => nav.handleEnter(nextItem.slug)}
+                  onMouseEnter={(e) => nav.handleEnter(nextItem.slug, "next", e)}
                   onMouseLeave={nav.handleLeave}
                 >
                   <span className="cs-nav__name">{nextItem.name}</span>
@@ -671,11 +787,11 @@ export default function CaseStudy({ slug }: { slug: string }) {
                 ref={nav.previewRef}
                 className={`work-list__preview${nav.activeItem ? " work-list__preview--visible" : ""}`}
                 style={
-                  nav.activeItem
+                  nav.displayItem
                     ? {
-                        backgroundColor: nav.activeItem.accent,
-                        backgroundImage: nav.activeItem.previewSrc
-                          ? `url(${nav.activeItem.previewSrc})`
+                        backgroundColor: nav.displayItem.accent,
+                        backgroundImage: nav.displayItem.previewSrc
+                          ? `url(${nav.displayItem.previewSrc})`
                           : "none",
                       }
                     : {}

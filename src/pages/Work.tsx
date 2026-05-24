@@ -88,6 +88,14 @@ function WorkList({
   const target = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number>(0);
   const activeItem = hoveredIndex !== null ? items[hoveredIndex] : null;
+  // The item whose background is painted. It lags `activeItem` on the way out:
+  // when the cursor leaves, `activeItem` goes null (opacity fades to 0) but the
+  // background stays so the preview fades out showing its image, not an empty
+  // box. Only cleared once hidden — switching between items updates it at once.
+  const [displayItem, setDisplayItem] = useState<WorkItem | null>(null);
+  useEffect(() => {
+    if (activeItem) setDisplayItem(activeItem);
+  }, [activeItem]);
 
   const animate = useCallback(() => {
     const LERP = 0.1;
@@ -104,23 +112,28 @@ function WorkList({
     return () => cancelAnimationFrame(rafRef.current);
   }, [animate]);
 
-  const onMouseMove = (e: React.MouseEvent) => {
-    // Clamp X to the center column: between 1/3 and 2/3 of the list width
+  // Clamp X to the center column (between 25% and 75% of the list width) so the
+  // preview never drifts far enough to cover an item's name on either side.
+  const clampToCenter = (clientX: number, clientY: number) => {
     const list = listRef.current;
-    if (list) {
-      const rect = list.getBoundingClientRect();
-      const minX = rect.left + rect.width * 0.25;
-      const maxX = rect.right - rect.width * 0.25;
-      target.current = {
-        x: Math.min(maxX, Math.max(minX, e.clientX)),
-        y: e.clientY,
-      };
-    } else {
-      target.current = { x: e.clientX, y: e.clientY };
-    }
+    if (!list) return { x: clientX, y: clientY };
+    const rect = list.getBoundingClientRect();
+    const minX = rect.left + rect.width * 0.25;
+    const maxX = rect.right - rect.width * 0.25;
+    return { x: Math.min(maxX, Math.max(minX, clientX)), y: clientY };
   };
 
-  const handleEnter = (i: number) => {
+  const onMouseMove = (e: React.MouseEvent) => {
+    target.current = clampToCenter(e.clientX, e.clientY);
+  };
+
+  const handleEnter = (i: number, e: React.MouseEvent) => {
+    // Seed the target from the entry event and snap the spring to it, so the
+    // preview fades in under the pointer instead of travelling from a stale
+    // position (e.g. the top-left origin right after load).
+    const point = clampToCenter(e.clientX, e.clientY);
+    target.current = point;
+    pos.current = { ...point };
     setHoveredIndex(i);
     if (i === 0 && dividerRef.current) {
       dividerRef.current.style.setProperty("--divider-color", items[0].accent);
@@ -166,7 +179,7 @@ function WorkList({
                 <div
                   className={itemClass}
                   style={{ "--accent": item.accent } as React.CSSProperties}
-                  onMouseEnter={() => handleEnter(i)}
+                  onMouseEnter={(e) => handleEnter(i, e)}
                   onMouseLeave={handleLeave}
                 >
                   {inner}
@@ -176,7 +189,7 @@ function WorkList({
                   href={item.href}
                   className={itemClass}
                   style={{ "--accent": item.accent } as React.CSSProperties}
-                  onMouseEnter={() => handleEnter(i)}
+                  onMouseEnter={(e) => handleEnter(i, e)}
                   onMouseLeave={handleLeave}
                 >
                   {inner}
@@ -192,11 +205,11 @@ function WorkList({
         ref={previewRef}
         className={`work-list__preview${activeItem ? " work-list__preview--visible" : ""}`}
         style={
-          activeItem
+          displayItem
             ? {
-                backgroundColor: activeItem.accent,
-                backgroundImage: activeItem.previewSrc
-                  ? `url(${activeItem.previewSrc})`
+                backgroundColor: displayItem.accent,
+                backgroundImage: displayItem.previewSrc
+                  ? `url(${displayItem.previewSrc})`
                   : "none",
               }
             : {}

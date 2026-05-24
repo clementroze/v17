@@ -90,7 +90,7 @@ export const freelance: Entity[] = [
   {
     slug: "gcai",
     name: "General Counsel AI",
-    date: "2024 – Now",
+    date: "2024 – 26",
     role: "Freelancing",
     aboutRole: "Designer & Developer",
     accent: "#50abda",

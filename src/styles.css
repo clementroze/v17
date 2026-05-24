@@ -94,12 +94,23 @@ footer::selection {
   --font-inter: "Inter", sans-serif;
   --max-width: 1400px;
 
+  /* Letter-spacing scale, sized to the font-size it pairs with (-0.03em). */
   --tracking-tight-sm: -0.42px; /* 14px text */
   --tracking-tight-md: -0.54px; /* 18px text */
+  --tracking-tight-20: -0.6px; /* 20px text */
   --tracking-tight-lg: -0.72px; /* 24px text */
   --tracking-tight-xl: -0.96px; /* 32px text */
   --tracking-tight-2xl: -1.44px; /* 48px text */
   --tracking-tight-3xl: -1.92px; /* 64px text */
+  --tracking-loose: 0.08em; /* uppercase micro-labels */
+
+  /* Two line-heights only: tight for headings, relaxed for body copy. */
+  --leading-heading: 1.1;
+  --leading-body: 1.55;
+
+  /* One body weight; headings step up to 500. */
+  --weight-body: 400;
+  --weight-heading: 500;
 
   /* page-transition column color: overridden to var(--white) on dark pages */
   --radius-img: 4px; /* cards, images, craft cards, project cards */
@@ -211,7 +222,7 @@ footer::selection {
 
 .navbar__link {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
   padding: 16px 0;
   cursor: pointer;
@@ -403,11 +414,11 @@ footer::selection {
 
 .menu-overlay__link {
   font-size: clamp(48px, 12vw, 80px);
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: -0.03em;
   color: var(--white);
   opacity: 0.25;
-  line-height: 1.1;
+  line-height: var(--leading-heading);
   padding: 12px 0;
   transition: opacity 150ms ease;
   /* stagger in — bigger travel + longer duration so the per-link delay
@@ -503,18 +514,18 @@ footer::selection {
 
 .hero__title {
   font-size: 64px;
-  font-weight: 500;
+  font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-tight-3xl);
   white-space: nowrap;
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: inherit;
 }
 
 .hero__subtitle {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-xl);
-  line-height: normal;
+  line-height: var(--leading-heading);
   width: min(688px, 100%);
   color: inherit;
   text-wrap: balance;
@@ -533,9 +544,9 @@ footer::selection {
   padding: 8px 16px;
   border-radius: var(--radius-btn);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
-  line-height: 1.4;
+  line-height: var(--leading-body);
   white-space: nowrap;
   cursor: pointer;
   border: none;
@@ -863,10 +874,10 @@ footer::selection {
   flex: 1 0 0;
   display: flex;
   flex-direction: column;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   color: var(--white);
   white-space: nowrap;
-  line-height: normal;
+  line-height: var(--leading-heading);
 }
 
 .project__number {
@@ -925,17 +936,17 @@ footer::selection {
 
 .footer__col-title {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
-  line-height: normal;
+  line-height: var(--leading-heading);
 }
 
 .footer__col-item {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
   color: var(--white-muted);
-  line-height: normal;
+  line-height: var(--leading-heading);
   transition: collor 120ms ease-out;
   width: fit-content;
 }
@@ -944,10 +955,20 @@ footer::selection {
   color: var(--white);
 }
 
+/* Coming-soon work entry: not a link, no hover lift; the "- Coming soon"
+   suffix sits at a lower opacity than the project name. */
+.footer__col-item--disabled {
+  cursor: default;
+}
+
+.footer__col-item-soon {
+  opacity: 0.8;
+}
+
 .footer__rainbow-btn {
   font-family: inherit;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
   opacity: 0.6;
   background: none;
@@ -1061,10 +1082,10 @@ footer::selection {
 
 .footer__archive-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
   color: var(--white);
-  line-height: normal;
+  line-height: var(--leading-heading);
 }
 
 .footer__archive-link {
@@ -1076,11 +1097,11 @@ footer::selection {
 
 .footer__archive-link p {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
   color: var(--white);
   white-space: nowrap;
-  line-height: normal;
+  line-height: var(--leading-heading);
 }
 
 .footer__archive-link img {
@@ -1105,7 +1126,7 @@ footer::selection {
   border-top: 1px solid var(--white-faint);
   color: var(--white);
   font-size: 12px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
 }
 
@@ -1311,7 +1332,7 @@ html.konami canvas {
   animation: konami-border-spin 2s linear infinite;
   font-family: var(--font-inter) !important;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   z-index: 99999;
@@ -1357,7 +1378,7 @@ html.konami canvas {
 
 .konami-toast__hint {
   opacity: 0.7;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight-sm);
 }
 
 /* Drop the "Click or Esc to disable" hint on narrow phones — it pushes the
@@ -1795,9 +1816,9 @@ html.konami .projects-nav-m__pill {
 
 .about-section-row__label {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-xl);
-  line-height: 1.4;
+  line-height: var(--leading-body);
   color: var(--white);
 }
 
@@ -1839,9 +1860,9 @@ html.konami .projects-nav-m__pill {
 
 .about-info-text p {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-xl);
-  line-height: 1.4;
+  line-height: var(--leading-body);
   color: var(--white-muted);
 }
 
@@ -1934,9 +1955,9 @@ html.konami .projects-nav-m__pill {
 
 .accordion-row__company {
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
-  line-height: 1.4;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-body);
   white-space: nowrap;
 }
 
@@ -1944,9 +1965,9 @@ html.konami .projects-nav-m__pill {
   flex: 1 0 0;
   min-width: 0;
   font-size: 16px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
-  line-height: 1.4;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-body);
   color: var(--white-muted);
 }
 
@@ -1958,9 +1979,9 @@ html.konami .projects-nav-m__pill {
   justify-content: flex-end;
   gap: 6px;
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
-  line-height: 1.4;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-body);
   opacity: 0.5;
 }
 
@@ -2023,9 +2044,9 @@ html.konami .projects-nav-m__pill {
 
 .accordion-row__description {
   font-size: 16px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
-  line-height: 1.6;
+  line-height: var(--leading-body);
   color: var(--white-muted);
   padding-left: 16px;
 }
@@ -2088,9 +2109,9 @@ html.konami .projects-nav-m__pill {
 
 .work-main__label {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
 }
 
@@ -2105,9 +2126,9 @@ html.konami .projects-nav-m__pill {
   border: none;
   padding: 0;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
   cursor: pointer;
   opacity: 0.3;
@@ -2272,18 +2293,18 @@ html.konami .projects-nav-m__pill {
 .work-grid__name {
   display: block;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-xl);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
 }
 
 .work-grid__role {
   display: block;
   font-size: 24px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-lg);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
   opacity: 0.5;
 }
@@ -2351,9 +2372,9 @@ html.konami .projects-nav-m__pill {
   flex: 1 0 0;
   min-width: 0;
   font-size: 48px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-2xl);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
   transition: color 200ms ease;
 }
@@ -2366,9 +2387,9 @@ html.konami .projects-nav-m__pill {
   flex: 1 0 0;
   min-width: 0;
   font-size: 24px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-lg);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
   opacity: 0.5;
 }
@@ -2401,7 +2422,7 @@ html.konami .projects-nav-m__pill {
 
 .work-list__coming-soon {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
   color: var(--black-muted);
 }
@@ -2535,11 +2556,11 @@ html.konami .projects-nav-m__pill {
   align-items: center;
   gap: 6px;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-lg);
   color: var(--white);
   opacity: 0.5;
-  line-height: normal;
+  line-height: var(--leading-heading);
   cursor: pointer;
   text-decoration: none;
 }
@@ -2562,18 +2583,18 @@ html.konami .projects-nav-m__pill {
 
 .cs-hero__title {
   font-size: 64px;
-  font-weight: 500;
+  font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-tight-3xl);
   color: var(--white);
-  line-height: normal;
+  line-height: var(--leading-heading);
 }
 
 .cs-hero__subtitle {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-xl);
   color: var(--white-muted);
-  line-height: normal;
+  line-height: var(--leading-heading);
 }
 
 /* ── Cover image ───────────────────────────────────────────── */
@@ -2610,8 +2631,8 @@ html.konami .projects-nav-m__pill {
   gap: 24px;
   align-items: flex-start;
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-tight-20);
   width: 100%;
 }
 
@@ -2628,7 +2649,7 @@ html.konami .projects-nav-m__pill {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   border-top: 1px solid var(--black-line);
   padding-top: 24px;
 }
@@ -2652,6 +2673,7 @@ html.konami .projects-nav-m__pill {
   overflow-wrap: break-word;
   word-break: break-word;
   min-width: 0;
+  line-height: var(--leading-body);
 }
 
 .cs-role {
@@ -2664,7 +2686,7 @@ html.konami .projects-nav-m__pill {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   border-top: 1px solid var(--black-line);
   padding-top: 24px;
 }
@@ -2709,9 +2731,9 @@ html.konami .projects-nav-m__pill {
 
 .cs-hmw {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-tight-xl);
-  line-height: normal;
+  line-height: var(--leading-body);
   color: var(--black);
   text-align: center;
   max-width: 800px;
@@ -2738,17 +2760,17 @@ html.konami .projects-nav-m__pill {
 
 .cs-cols__heading {
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: var(--tracking-tight-md);
-  line-height: 1.3;
+  font-weight: var(--weight-heading);
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-heading);
   color: var(--black);
 }
 
 .cs-cols__body {
   font-size: 16px;
-  font-weight: 400;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-sm);
-  line-height: 1.6;
+  line-height: var(--leading-body);
   color: var(--black-muted);
 }
 
@@ -2760,9 +2782,9 @@ html.konami .projects-nav-m__pill {
 .cs-section__title {
   flex: 0 0 50%;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-tight-xl);
-  line-height: normal;
+  line-height: var(--leading-heading);
   color: var(--black);
 }
 
@@ -2771,37 +2793,49 @@ html.konami .projects-nav-m__pill {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+}
+
+/* Vertical rhythm via margin (not gap) so it can vary per element. Each block
+   gets 24px above the one before it (the regular rhythm) — except the element
+   directly after a ### subheading, which tightens to 16px so a heading hugs the
+   text it introduces. The heading itself keeps the full 24px above it.
+   .cs-section__body wraps each block in a <Reveal> wrapper, so the rules target
+   that wrapper (> *) rather than the heading/paragraph elements directly. */
+.cs-section__body > * + * {
+  margin-top: 24px;
+}
+.cs-section__body > *:has(.cs-heading) + * {
+  margin-top: 16px;
 }
 
 /* ── Paragraph ─────────────────────────────────────────────── */
 
 .cs-heading {
   font-size: 24px;
-  font-weight: 500;
+  font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-tight-lg);
-  line-height: 1.3;
+  line-height: var(--leading-heading);
   color: var(--black);
   width: 100%;
 }
 
 .cs-quote {
-  border-left: 3px solid var(--black);
+  border-left: 2px solid var(--black);
   padding-left: 12px;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   font-style: italic;
-  letter-spacing: -0.6px;
-  line-height: 1.5;
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-body);
   color: var(--black);
   width: 100%;
 }
 
 .cs-paragraph {
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
-  line-height: 1.6;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-body);
   color: var(--black);
   width: 100%;
 }
@@ -2818,9 +2852,9 @@ html.konami .projects-nav-m__pill {
 
 .cs-list li {
   font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.6px;
-  line-height: 1.5;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-tight-20);
+  line-height: var(--leading-body);
   color: var(--black);
 }
 
@@ -2861,6 +2895,43 @@ html.konami .projects-nav-m__pill {
     100% 1px;
 }
 
+/* Inline hex-code chip: a small color swatch + the code itself, set in a mono
+   face on a faint gray field — like syntax-highlighted code. The code text is
+   monochrome (neutral gray) regardless of the color it names; only the swatch
+   carries the hue. */
+.cs-hex {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 0.85em;
+  font-weight: var(--weight-body);
+  letter-spacing: 0;
+  color: var(--black);
+  background: rgba(0 0 0 / 5%);
+  border: 1px solid rgba(0 0 0 / 5%);
+  border-radius: 20px;
+  padding: 1px 4px;
+  padding-right: 8px;
+  /* keep the chip on the text baseline without inflating line-height */
+  vertical-align: baseline;
+  white-space: nowrap;
+  position: relative;
+  top: 3px;
+}
+
+.cs-hex__swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex: none;
+  /* inner ring so light swatches stay visible on the gray field */
+  /* box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--black) 12%, transparent); */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--black) 12%, transparent),
+    0 1px 3px color-mix(in srgb, var(--black) 12%, transparent);
+}
+
 /* ── Image groups ──────────────────────────────────────────── */
 
 .cs-figure {
@@ -2878,12 +2949,16 @@ html.konami .projects-nav-m__pill {
   letter-spacing: var(--tracking-tight-md);
 }
 
+/* margin-top pulls image rows closer to the body text / other image row above
+   them: half the .cs-body gap (128px → 64px). Only the space *above* the row
+   tightens, so the gap below the last image row before the next section keeps
+   the full 128px set by .cs-body. Halved per breakpoint alongside .cs-body. */
 .cs-images {
   display: flex;
   gap: 24px;
   width: 100%;
   align-items: flex-start;
-  margin: 0 auto;
+  margin: -64px auto 0;
 }
 
 .cs-images--1 .cs-figure {
@@ -2981,7 +3056,7 @@ html.konami .projects-nav-m__pill {
 
 .cs-nav__name {
   font-size: 36px;
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-lg);
   transition: color 200ms ease;
 }
@@ -2997,11 +3072,10 @@ html.konami .projects-nav-m__pill {
 }
 
 .cs-nav__label {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 20px;
+  font-weight: var(--weight-body);
   color: var(--black-scrim);
+  letter-spacing: var(--tracking-tight-sm);
   transition: color 160ms ease-out;
 }
 
@@ -3035,7 +3109,6 @@ html.konami .projects-nav-m__pill {
 
 .cs-nav__card--disabled {
   cursor: default;
-  opacity: 0.5;
 }
 
 /* =============================================
@@ -3158,7 +3231,7 @@ html.konami .projects-nav-m__pill {
   left: 32px;
   color: var(--white-muted);
   font-size: 13px;
-  line-height: 1.4;
+  line-height: var(--leading-body);
   pointer-events: none;
   /* Parent only owns the open/close visibility; the inner element owns the
      direction-aware swap animation. */
@@ -3171,7 +3244,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .craft-lightbox__label {
-  font-weight: 500;
+  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-md);
   font-size: 18px;
 }
@@ -3541,6 +3614,10 @@ html.konami .projects-nav-m__pill {
     gap: 96px;
     padding: 96px 0;
   }
+  /* Half the 96px gap, matching the desktop image-row tightening. */
+  .cs-images {
+    margin-top: -48px;
+  }
 
   /* About page */
   .about-sections {
@@ -3595,15 +3672,15 @@ html.konami .projects-nav-m__pill {
   .hero__title {
     font-size: clamp(36px, 9vw, 56px);
     white-space: normal;
-    letter-spacing: -1.4px;
-    line-height: 1.06;
+    letter-spacing: var(--tracking-tight-2xl);
+    line-height: var(--leading-heading);
     word-break: break-word;
   }
   .hero__subtitle {
     font-size: clamp(17px, 3.8vw, 22px);
     width: 100%;
-    letter-spacing: -0.4px;
-    line-height: 1.32;
+    letter-spacing: var(--tracking-tight-sm);
+    line-height: var(--leading-heading);
   }
 
   /* ── Project cards ── */
@@ -3627,7 +3704,7 @@ html.konami .projects-nav-m__pill {
   }
   .project__name {
     font-size: clamp(28px, 6vw, 44px);
-    letter-spacing: -1.2px;
+    letter-spacing: var(--tracking-tight-2xl);
   }
   .project__number {
     font-size: 16px;
@@ -3692,8 +3769,8 @@ html.konami .projects-nav-m__pill {
   }
   .about-section-row__label {
     font-size: 16px;
-    letter-spacing: -0.4px;
-    line-height: 1.3;
+    letter-spacing: var(--tracking-tight-sm);
+    line-height: var(--leading-body);
     opacity: 0.5;
   }
   .about-info-text {
@@ -3701,8 +3778,8 @@ html.konami .projects-nav-m__pill {
   }
   .about-info-text p {
     font-size: clamp(18px, 3.6vw, 22px);
-    letter-spacing: -0.45px;
-    line-height: 1.45;
+    letter-spacing: var(--tracking-tight-md);
+    line-height: var(--leading-body);
   }
 
   /* ── Accordion rows (mobile re-layout) ──
@@ -3730,7 +3807,7 @@ html.konami .projects-nav-m__pill {
     order: 3;
     padding-left: 16px;
     font-size: 14px;
-    line-height: 1.3;
+    line-height: var(--leading-body);
   }
   .accordion-row__period {
     flex: 0 0 auto;
@@ -3757,7 +3834,7 @@ html.konami .projects-nav-m__pill {
   }
   .accordion-row__description {
     font-size: 15px;
-    line-height: 1.55;
+    line-height: var(--leading-body);
   }
 
   /* ── Craft: keep all 3 columns, just tighter gaps ── */
@@ -3774,11 +3851,11 @@ html.konami .projects-nav-m__pill {
   }
   .cs-hero__title {
     font-size: clamp(32px, 7.5vw, 48px);
-    letter-spacing: -1.2px;
+    letter-spacing: var(--tracking-tight-2xl);
   }
   .cs-hero__subtitle {
     font-size: clamp(16px, 3.6vw, 22px);
-    letter-spacing: -0.5px;
+    letter-spacing: var(--tracking-tight-md);
   }
   .cs-hero__back {
     font-size: 15px;
@@ -3801,11 +3878,15 @@ html.konami .projects-nav-m__pill {
     gap: 64px;
     padding: 64px 0;
   }
+  /* Half the 64px gap; inherited by the ≤480 breakpoint (same .cs-body gap). */
+  .cs-images {
+    margin-top: -32px;
+  }
   .cs-meta {
     flex-direction: column;
     gap: 24px;
     font-size: 15px;
-    letter-spacing: -0.4px;
+    letter-spacing: var(--tracking-tight-sm);
   }
   .cs-meta__left {
     width: 100%;
@@ -3833,7 +3914,7 @@ html.konami .projects-nav-m__pill {
   }
   .cs-hmw {
     font-size: clamp(22px, 4.5vw, 28px);
-    line-height: 1.3;
+    line-height: var(--leading-heading);
   }
   .cs-cols {
     flex-direction: column;
@@ -3849,21 +3930,21 @@ html.konami .projects-nav-m__pill {
   }
   .cs-paragraph {
     font-size: 16px;
-    letter-spacing: -0.4px;
-    line-height: 1.55;
+    letter-spacing: var(--tracking-tight-sm);
+    line-height: var(--leading-body);
   }
   .cs-list li {
     font-size: 16px;
-    letter-spacing: -0.4px;
-    line-height: 1.5;
+    letter-spacing: var(--tracking-tight-sm);
+    line-height: var(--leading-body);
   }
   .cs-quote {
     font-size: 17px;
-    line-height: 1.4;
+    line-height: var(--leading-body);
   }
   .cs-heading {
     font-size: 20px;
-    line-height: 1.3;
+    line-height: var(--leading-heading);
   }
   .cs-images--3 {
     flex-wrap: wrap;
@@ -3945,13 +4026,13 @@ html.konami .projects-nav-m__pill {
   }
   .hero__title {
     font-size: clamp(34px, 11vw, 44px);
-    letter-spacing: -1.2px;
-    line-height: 1.04;
+    letter-spacing: var(--tracking-tight-2xl);
+    line-height: var(--leading-heading);
   }
   .hero__subtitle {
     font-size: clamp(15px, 4.4vw, 19px);
-    letter-spacing: -0.3px;
-    line-height: 1.35;
+    letter-spacing: var(--tracking-tight-sm);
+    line-height: var(--leading-heading);
   }
 
   /* ── Project cards: aspect ratio for portrait phones ── */
@@ -3965,7 +4046,7 @@ html.konami .projects-nav-m__pill {
   }
   .project__name {
     font-size: clamp(26px, 7vw, 34px);
-    letter-spacing: -0.8px;
+    letter-spacing: var(--tracking-tight-xl);
   }
   .project__number {
     font-size: 14px;
@@ -3982,15 +4063,15 @@ html.konami .projects-nav-m__pill {
   }
   .about-section-row__label {
     font-size: 13px;
-    letter-spacing: -0.3px;
+    letter-spacing: var(--tracking-tight-sm);
   }
   .about-info-text {
     gap: 16px;
   }
   .about-info-text p {
     font-size: clamp(16px, 4.4vw, 18px);
-    letter-spacing: -0.35px;
-    line-height: 1.45;
+    letter-spacing: var(--tracking-tight-sm);
+    line-height: var(--leading-body);
   }
   .accordion-row__company {
     font-size: 15px;
@@ -4171,7 +4252,7 @@ html.konami .projects-nav-m__pill {
   }
   .hero__title {
     font-size: clamp(28px, 11vw, 36px);
-    letter-spacing: -1px;
+    letter-spacing: var(--tracking-tight-xl);
   }
   .hero__subtitle {
     font-size: 14px;

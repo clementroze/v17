@@ -185,11 +185,25 @@ export default function Footer() {
         {/* Work */}
         <div ref={col1Ref} className="reveal footer__col">
           <p className="footer__col-title">Work</p>
-          {work.map((item) => (
-            <Link key={item.slug} href={item.href} className="footer__col-item">
-              {item.name}
-            </Link>
-          ))}
+          {work.map((item) =>
+            item.comingSoon ? (
+              <span
+                key={item.slug}
+                className="footer__col-item footer__col-item--disabled"
+              >
+                {item.name}
+                <span className="footer__col-item-soon"> - Coming soon</span>
+              </span>
+            ) : (
+              <Link
+                key={item.slug}
+                href={item.href}
+                className="footer__col-item"
+              >
+                {item.name}
+              </Link>
+            ),
+          )}
         </div>
 
         {/* Contact */}
@@ -258,7 +272,7 @@ export default function Footer() {
         <span className="footer__location-time">
           <span className="footer__local-row">
             <span className="footer__city-name">
-              Ithaca, NY
+              San Jose, CA
               <span className="footer__city-icon" aria-hidden="true">
                 {localDaytime ? <SunIcon /> : <MoonIcon />}
               </span>

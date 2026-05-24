@@ -42,7 +42,12 @@ export default function AccordionRow({
   // override via aboutRole). Date is shared verbatim with the case study.
   const role = entity ? aboutRole(entity) : "";
   const period = entity?.date ?? "";
-  const caseStudyHref = caseStudyHrefOverride ?? entity?.href;
+  // Fall back to the registry case-study href only when one actually exists.
+  // Entities still marked "coming soon" (hasCaseStudy: false) show no CTA, so
+  // the accordion just ends after the description. An explicit override (e.g.
+  // an external link) is always honored.
+  const caseStudyHref =
+    caseStudyHrefOverride ?? (entity?.hasCaseStudy ? entity.href : undefined);
   const [open, setOpen] = useState(defaultOpen);
 
   useEffect(() => {
