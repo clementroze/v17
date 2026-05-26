@@ -8,7 +8,7 @@ import Button from "../Button";
 type Project = {
   number: string;
   name: string;
-  imageSrc: string;
+  homeImageSrc: string; // homepage image (distinct from the case-study hero `imageSrc`)
   href: string;
   comingSoon?: boolean;
 };
@@ -163,38 +163,46 @@ function ParallaxProject({
       >
         <img
           ref={imgRef}
-          src={project.imageSrc}
+          src={project.homeImageSrc}
           alt=""
           className="effect-b__bg"
+          /* First project is above the fold on the landing page: fetch it
+             eagerly at high priority; defer the rest so they don't compete
+             with the first paint. */
+          fetchPriority={sectionIndex === 0 ? "high" : "low"}
+          loading={sectionIndex === 0 ? "eager" : "lazy"}
+          decoding="async"
         />
         <div className="project__inner">
-          <div className="effect-b__text project__text">
-            <p
-              ref={numberRef}
-              className="project__number effect-b__item effect-b__item--number"
+          <div className="project__content">
+            <div className="effect-b__text project__text">
+              <p
+                ref={numberRef}
+                className="project__number effect-b__item effect-b__item--number"
+              >
+                {project.number}
+              </p>
+              <h2
+                ref={nameRef}
+                className="project__name effect-b__item effect-b__item--name"
+              >
+                {project.name}
+              </h2>
+            </div>
+            <div
+              ref={btnRef}
+              className="effect-b__item effect-b__item--btn effect-b__btn-wrap"
             >
-              {project.number}
-            </p>
-            <h2
-              ref={nameRef}
-              className="project__name effect-b__item effect-b__item--name"
-            >
-              {project.name}
-            </h2>
-          </div>
-          <div
-            ref={btnRef}
-            className="effect-b__item effect-b__item--btn effect-b__btn-wrap"
-          >
-            <Button
-              variant="outline-white-full"
-              href={project.href}
-              iconSrc={arrowWhite}
-              iconAlt="Arrow"
-              disabled={project.comingSoon}
-            >
-              {project.comingSoon ? "Coming soon" : "View"}
-            </Button>
+              <Button
+                variant="outline-white-full"
+                href={project.href}
+                iconSrc={arrowWhite}
+                iconAlt="Arrow"
+                disabled={project.comingSoon}
+              >
+                {project.comingSoon ? "Coming soon" : "View"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

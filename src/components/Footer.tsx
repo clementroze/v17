@@ -144,9 +144,10 @@ function useCurrentTime() {
       timeZone: tz,
     });
 
+  // San Jose, California → Pacific time.
   return {
-    local: fmt("America/New_York"),
-    localDaytime: isDaytime(now, "America/New_York"),
+    local: fmt("America/Los_Angeles"),
+    localDaytime: isDaytime(now, "America/Los_Angeles"),
   };
 }
 

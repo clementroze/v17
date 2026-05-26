@@ -79,7 +79,7 @@ footer::selection {
 
 /* Keyboard-only focus ring */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
   border-radius: 4px;
   /* Force full opacity on the element itself so the ring isn't dimmed */
@@ -123,7 +123,7 @@ footer::selection {
   --black: #000;
   --black-muted: rgba(0, 0, 0, 0.6); /* secondary / body text */
   --black-faint: rgba(0, 0, 0, 0.3); /* labels, captions, tertiary */
-  --black-line: rgba(0, 0, 0, 0.12); /* hairlines, dividers, borders */
+  --black-line: rgba(0, 0, 0, 0.05); /* hairlines, dividers, borders */
   --black-scrim: rgba(0, 0, 0, 0.5); /* image / modal overlays */
 
   --white: #fff;
@@ -137,6 +137,8 @@ footer::selection {
 
   --surface: #e5e5e5; /* light gray surfaces, skeletons, hover bg */
   --surface-dark: #1a1a2e; /* dark placeholder bg (hero) */
+
+  --focus-ring: #3b82f6;
 }
 
 /* =============================================
@@ -573,114 +575,168 @@ footer::selection {
   display: block;
 }
 
-/* The whole glass turns a full 360° per loop (two drains + two half-turns). The
-   sand level in each bulb is a clip "surface" that translates along the LOCAL Y
-   axis. The clips rotate with the glass, but the surface keyframes are authored
-   per-phase so that — in SCREEN space — the upper bulb always drains DOWNWARD to
-   the neck and the lower bulb always fills UPWARD from the floor, in BOTH
-   orientations. The sand is conserved (a flip carries the full bulb to the top
-   with no reset); the only level changes that aren't gravity-true are tucked
-   inside flip 2, hidden behind the spin, and land on values visually identical
-   to 0%. ~9s total. */
+/* ── Timeline (one ~7.2s loop) ───────────────────────────────────────────────
+   The glass turns 360° over the loop (two 180° flips). Two rules keep it honest:
+
+   1. ROTATION AND SAND NEVER MOVE TOGETHER. The rotor only spins while one bulb
+      is 100% full and the other 100% empty. A full triangle rotated 180° is just
+      a full triangle of the mirror bulb, so the settled sand turns as one solid
+      mass — no draining or morphing mid-spin (the old bug).
+
+   2. SAND ALWAYS FALLS, BOTH WAYS UP. The surface clips are SCREEN-FIXED (their
+      <g> sits outside the rotor — see Hourglass.tsx), so "below the surface" is
+      the same in either orientation: the upper bulb drains down to the neck and
+      the lower fills up from the floor in both halves of the loop, no inversion.
+
+   The surface px values below are a horizontal cut line in screen space
+   (sand = triangle ∩ {y ≥ value}); triangles span y 2.3↔8 (top) and 8↔13.7
+   (bottom). Full/empty per bulb: top 2.3/8, bottom 8/13.7. During each flip the
+   FULL bulb's surface opens past the glass (≈ −5) and the EMPTY bulb's closes
+   past it (≈ 15) so the spinning full triangle isn't sliced and the empty one
+   can't leak; both openings sit on full/empty, so they're invisible.
+
+   Phase map: 0–42% still upright · 42–50% flip 1 · 50–92% still inverted ·
+   92–100% flip 2 (back to start).                                              */
+
 .hourglass__rotor {
   transform-origin: 8px 8px; /* neck = rotation centre */
-  animation: hourglass-flip 9s infinite;
+  animation: hourglass-flip 7.2s infinite;
 }
 
-/* Top bulb surface. translateY(0) = bulb fully covered (sand shown); a positive
-   slide clears it from the bar down toward the neck (drain when upright). */
 .hourglass__surface-top {
-  animation: hourglass-surface-top 9s infinite;
+  animation: hourglass-surface-top 7.2s infinite;
 }
 
-/* Bottom bulb surface. The inverse of the top, so the two bulbs are always
-   opposite — one draining as the other fills. */
 .hourglass__surface-bot {
-  animation: hourglass-surface-bot 9s infinite;
+  animation: hourglass-surface-bot 7.2s infinite;
+}
+
+/* Falling stream: a thin thread at the neck, shown only while sand is moving
+   (faded out across each flip so it doesn't smear during the spin). */
+.hourglass__stream {
+  animation: hourglass-stream 7.2s infinite;
 }
 
 @keyframes hourglass-flip {
-  /* Phase A — upright & still while sand moves. */
+  /* Still, upright. */
   0%,
-  38% {
+  42% {
     transform: rotate(0deg);
-    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
   }
-  /* Flip 1 → 180°, gentle damped settle (+15 → −6 → +2). */
-  44% {
-    transform: rotate(195deg);
-    animation-timing-function: ease-out;
-  }
+  /* Flip 1 → 180° with a small damped overshoot so it "settles". */
   47% {
-    transform: rotate(174deg);
-    animation-timing-function: ease-in-out;
+    transform: rotate(192deg);
+    animation-timing-function: ease-out;
   }
   50% {
-    transform: rotate(182deg);
-    animation-timing-function: ease-in-out;
-  }
-  /* Phase B — upside-down & still. */
-  53%,
-  88% {
     transform: rotate(180deg);
-    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
   }
-  /* Flip 2 → 360° (≡ 0°), same damped settle, into the loop seam. */
-  94% {
-    transform: rotate(375deg);
-    animation-timing-function: ease-out;
+  /* Still, inverted. */
+  92% {
+    transform: rotate(180deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
   }
+  /* Flip 2 → 360° (≡ 0°), same settle, into the loop seam. */
   97% {
-    transform: rotate(354deg);
-    animation-timing-function: ease-in-out;
+    transform: rotate(372deg);
+    animation-timing-function: ease-out;
   }
   100% {
     transform: rotate(360deg);
   }
 }
 
-/* Surface values verified by rendering at each anchor:
-   0%   upright   top 0  (full)  / bot 6.7 (empty)
-   38%  upright   top 7  (empty) / bot 0   (full)   ← phase A drained down
-   53%  flipped   top 7 / bot 0  held; the 180° flip alone makes the now-upper
-                  bulb read FULL and the lower EMPTY (no value change = no jump)
-   88%  flipped   top −3.5 (now-lower bulb filled from floor) /
-                  bot −6.7 (now-upper bulb drained to neck)   ← phase B, screen-correct
-   100% upright   back to 0 / 6.7 — visually identical to 88% once rotated, the
-                  small numeric change rides inside flip 2's spin. */
+/* Top bulb (screen-fixed surface line).
+   Phase A: full→empty, surface descends 2.3→8 (drains to neck).
+   Flip 1: this bulb is empty; close the surface past the glass (→15) so the
+           rotating full bottom triangle that sweeps through here can't appear.
+   Phase B: this triangle is now the LOWER bulb; fill it 13.7→8 (rises to neck).
+   Flip 2: it's full and rotating back up — open past the glass (→-5) so the spin
+           isn't sliced — landing on 2.3 (full) at the 0%/100% seam. */
 @keyframes hourglass-surface-top {
   0% {
-    transform: translateY(0);
+    transform: translateY(2.3px);
+    animation-timing-function: linear; /* steady flow while draining */
   }
-  38% {
-    transform: translateY(7px);
+  42% {
+    transform: translateY(8px);
+    animation-timing-function: ease-in; /* quick close into flip 1 */
   }
-  53% {
-    transform: translateY(7px);
+  44%,
+  48% {
+    transform: translateY(15px);
   }
-  88% {
-    transform: translateY(-3.5px);
+  50% {
+    transform: translateY(13.7px);
+    animation-timing-function: linear; /* steady fill in phase B */
+  }
+  92% {
+    transform: translateY(8px);
+    animation-timing-function: ease-in;
+  }
+  95%,
+  98% {
+    transform: translateY(-5px);
   }
   100% {
-    transform: translateY(0);
+    transform: translateY(2.3px);
   }
 }
 
+/* Bottom bulb — the mirror of the top, half a loop out of phase.
+   Phase A: fill 13.7→8 (rises from floor). Flip 1: it's full and rotating up —
+   open past the glass (→-5). Phase B: now the UPPER bulb — drain 2.3→8 (descends
+   to neck). Flip 2: empty — close past the glass (→15), back to 13.7 at the seam. */
 @keyframes hourglass-surface-bot {
   0% {
-    transform: translateY(6.7px);
+    transform: translateY(13.7px);
+    animation-timing-function: linear; /* steady fill while phase A drains */
   }
-  38% {
-    transform: translateY(0);
+  42% {
+    transform: translateY(8px);
+    animation-timing-function: ease-in;
   }
-  53% {
-    transform: translateY(0);
+  44%,
+  48% {
+    transform: translateY(-5px);
   }
-  88% {
-    transform: translateY(-6.7px);
+  50% {
+    transform: translateY(2.3px);
+    animation-timing-function: linear; /* steady drain in phase B */
+  }
+  92% {
+    transform: translateY(8px);
+    animation-timing-function: ease-in;
+  }
+  95%,
+  98% {
+    transform: translateY(15px);
   }
   100% {
-    transform: translateY(6.7px);
+    transform: translateY(13.7px);
+  }
+}
+
+/* Stream visible (opacity 1) during the two still/draining phases, faded to 0
+   over each flip. */
+@keyframes hourglass-stream {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  44%,
+  50% {
+    opacity: 0;
+  }
+  52%,
+  90% {
+    opacity: 1;
+  }
+  94%,
+  100% {
+    opacity: 0;
   }
 }
 
@@ -864,8 +920,23 @@ footer::selection {
 .project__inner {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  justify-content: center;
   padding-bottom: 32px;
+  /* Full-bleed: the gradient now spans the whole viewport width. */
+  width: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(0 0 0 / 80%) 0%,
+    rgba(0 0 0 / 0%) 100%
+  );
+}
+
+/* Content row: keeps the number/name/CTA in exactly the same centered 1400px
+   band they had before the gradient went full-bleed (no added gutter, matching
+   the original .project__inner sizing). */
+.project__content {
+  display: flex;
+  align-items: flex-end;
   width: var(--max-width);
   max-width: 100%;
 }
@@ -884,11 +955,14 @@ footer::selection {
   font-size: 24px;
   letter-spacing: var(--tracking-tight-lg);
   opacity: 0.1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .project__name {
   font-size: 48px;
   letter-spacing: var(--tracking-tight-2xl);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: var(--weight-heading);
 }
 
 .project__btn {
@@ -2281,8 +2355,53 @@ html.konami .projects-nav-m__pill {
   height: 332px;
   justify-content: space-between;
   overflow: visible;
-  /* padding: 4px; */
-  /* margin: -4px; */
+  /* The whole column is the link surface. Top padding clears the top border
+     drawn by ::before so the name doesn't sit on the line. */
+  position: relative;
+  padding-top: 20px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Base top border (matches cs-nav__card). */
+.work-grid__text::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: var(--black-line);
+}
+
+/* Accent overlay grows left-to-right on hover/focus (matches cs-nav__card). */
+.work-grid__text::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1.5px;
+  width: 0;
+  background: var(--accent);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.work-grid__text:hover::after,
+.work-grid__text:focus-visible::after {
+  width: 100%;
+}
+
+/* Keep the keyboard focus ring on the whole card, offset off the border. */
+.work-grid__text:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Coming-soon column is non-interactive (no link), but still gets the accent
+   border animation on hover — only the pointer cursor changes. */
+.work-grid__text--disabled {
+  cursor: default;
 }
 
 .work-grid__text-top {
@@ -2292,21 +2411,78 @@ html.konami .projects-nav-m__pill {
 
 .work-grid__name {
   display: block;
+  margin: 0;
   font-size: 32px;
-  font-weight: var(--weight-body);
+  font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-tight-xl);
   line-height: var(--leading-heading);
   color: var(--black);
+  transition: color 200ms ease;
+}
+
+.work-grid__text:hover .work-grid__name,
+.work-grid__text:focus-visible .work-grid__name {
+  color: var(--accent);
 }
 
 .work-grid__role {
   display: block;
-  font-size: 24px;
+  margin-top: 4px;
+  font-size: 20px;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking-tight-lg);
-  line-height: var(--leading-heading);
+  line-height: var(--leading-body);
   color: var(--black);
   opacity: 0.5;
+}
+
+/* CTA: the old "See more" button, now inline text + arrow that animate on
+   hover (mirrors cs-nav__meta / cs-nav__arrow). */
+.work-grid__cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.work-grid__cta-label {
+  font-size: 16px;
+  font-weight: var(--weight-body);
+  color: var(--black-scrim);
+  letter-spacing: var(--tracking-tight-sm);
+  transition: color 160ms ease-out;
+}
+
+.work-grid__text:hover .work-grid__cta-label,
+.work-grid__text:focus-visible .work-grid__cta-label {
+  color: var(--black);
+}
+
+.work-grid__cta-arrow {
+  width: 16px;
+  height: 16px;
+  /* Match the label weight: --black-scrim is 50% black, so 0.5 here reads at
+     the same opacity at rest; both go to full black on hover. */
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.work-grid__text:hover .work-grid__cta-arrow,
+.work-grid__text:focus-visible .work-grid__cta-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Coming-soon hourglass: inherits currentColor for its sand, sized + weighted
+   to match the label/arrow at rest. The card is non-interactive (disabled), so
+   there's no hover slide — the icon just keeps its own looping sand animation. */
+.work-grid__cta-hourglass {
+  width: 16px;
+  height: 16px;
+  color: var(--black-scrim);
+  flex-shrink: 0;
 }
 
 /* =============================================
@@ -2612,6 +2788,7 @@ html.konami .projects-nav-m__pill {
   background: var(--surface);
   background-size: cover;
   background-position: center;
+  border: 1px solid #dedede;
 }
 
 /* ── Body container ────────────────────────────────────────── */
@@ -2984,6 +3161,269 @@ html.konami .projects-nav-m__pill {
 .cs-images--2 .cs-images__pic,
 .cs-images--3 .cs-images__pic {
   flex: 1;
+}
+
+/* ── Custom video player ──
+   Wraps the <video> so we can overlay our own controls. The video keeps the
+   shared border/radius from `.cs-images__pic video`; the wrapper just provides
+   the positioning context and hover target for the fade-in controls. */
+.cs-video {
+  position: relative;
+  display: block;
+  line-height: 0; /* kill descender gap below the inline video */
+}
+
+.cs-video video {
+  cursor: pointer;
+}
+
+/* Keyboard-focus ring on the player itself (it's focusable for shortcuts:
+   space/k play-pause, j/l and arrows seek). */
+.cs-video:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+/* In fullscreen the wrapper fills the screen; center the video and let it
+   letterbox against black rather than stretch. */
+.cs-video--fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.cs-video--fullscreen video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: none;
+  border-radius: 0;
+}
+
+/* Video label, shown only in fullscreen (rendered conditionally in JS). Pinned
+   top-left over a top-down gradient, with a text-shadow so it stays legible on
+   light frames. */
+.cs-video__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 32px;
+  text-align: left;
+  font-size: 16px;
+  letter-spacing: var(--tracking-tight-md);
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Controls bar: pinned to the video's lower edge, hidden until hover/focus.
+   `pointer-events: none` while hidden so it can't intercept clicks on the
+   video itself; re-enabled when shown. */
+.cs-video__controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 0 0 var(--radius-img) var(--radius-img);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+  line-height: normal;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  pointer-events: none;
+}
+
+.cs-video:hover .cs-video__controls,
+.cs-video:focus-within .cs-video__controls {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cs-video__play {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.cs-video__play:hover {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.cs-video__play:active {
+  transform: scale(0.94);
+}
+
+.cs-video__play:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.cs-video__play svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  display: block;
+}
+
+/* Scrubber: a real range input, restyled. The filled portion is painted with a
+   gradient driven by the --cs-video-progress custom property set in JS.
+   The visible track is the 4px content box; ~14px of transparent vertical
+   padding (≈ half the hovered 32px thumb) enlarges the pointer/touch hit area
+   above and below without growing the visible bar. `background-clip:
+   content-box` keeps the gradient inside that thin strip. */
+/* Wrapper holds the range input and the absolutely-positioned ghost marker. It
+   carries the flex sizing the scrubber used to have, so the bar still grows to
+   fill the controls row between the time readout and the fullscreen button. */
+.cs-video__scrub {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  cursor: crosshair;
+}
+
+.cs-video__scrubber {
+  width: 100%;
+  display: block;
+  min-width: 0;
+  /* content-box so `height` is the real 4px visible track and the 14px
+     top/bottom padding (the hit-target padding) stacks on top of it. Under the
+     global border-box, padding would eat into the 4px and collapse the
+     content box — and `background-clip: content-box` would then paint nothing,
+     hiding the track entirely. */
+  box-sizing: content-box;
+  height: 4px;
+  padding: 14px 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(
+    to right,
+    #fff 0%,
+    #fff var(--cs-video-progress, 0%),
+    rgba(255, 255, 255, 0.3) var(--cs-video-progress, 0%),
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  background-clip: content-box;
+  border-radius: 12px;
+  cursor: crosshair;
+  /* Track follows the controls bar's visibility (see below) rather than its
+     own local hover, so it fades in/out together with the rest of the chrome.
+     The ghost thumb is still gated on hovering the scrub area in JS. */
+  opacity: 0;
+  transition:
+    height 120ms ease,
+    opacity 160ms ease;
+}
+
+.cs-video:hover .cs-video__scrubber,
+.cs-video:focus-within .cs-video__scrubber,
+.cs-video__scrubber:focus-visible {
+  opacity: 1;
+}
+
+/* Thicken the track slightly while scrubbing for a tactile feel. */
+.cs-video__scrubber:active {
+  height: 6px;
+}
+
+/* The native range thumb is the playhead — we don't want it. Hide it (kept
+   zero-size/transparent so the input still functions for clicks/keyboard) and
+   let .cs-video__ghost be the only visible thumb, following the cursor. */
+.cs-video__scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+  border: none;
+  cursor: crosshair;
+}
+
+.cs-video__scrubber::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  background: transparent;
+  border: none;
+  cursor: crosshair;
+}
+
+/* WebKit also styles the track separately; pin the crosshair there too so it
+   wins regardless of which part of the control the pointer is over. */
+.cs-video__scrubber::-webkit-slider-runnable-track {
+  cursor: crosshair;
+  border-radius: 12px;
+}
+
+.cs-video__scrubber::-moz-range-track {
+  cursor: crosshair;
+  border-radius: 12px;
+}
+
+.cs-video__scrubber:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+
+/* Ghost thumb: the sole, mouse-following thumb. It only renders while hovering
+   the track (JS), so its base size IS the "hover" size — bigger than the old
+   resting thumb. Centered on its `left` (set inline from the pointer fraction)
+   and non-interactive so it never blocks the range input underneath. */
+.cs-video__ghost {
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition:
+    width 120ms ease,
+    height 120ms ease;
+}
+
+/* While actively scrubbing (mouse down on the track), shrink the thumb a touch.
+   Driven off the scrubber's :active since the ghost itself can't be active
+   (pointer-events: none). */
+.cs-video__scrubber:active + .cs-video__ghost {
+  width: 4px;
+  height: 32px;
+}
+
+.cs-video__time {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight-sm);
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 0 20px #000;
 }
 
 /* ── Prev / Next nav ── */
@@ -3691,10 +4131,12 @@ html.konami .projects-nav-m__pill {
     height: 100vh;
   }
   .project__inner {
+    padding-bottom: 24px;
+  }
+  .project__content {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
-    padding-bottom: 24px;
     padding-left: 4px;
     padding-right: 4px;
   }
@@ -4041,6 +4483,8 @@ html.konami .projects-nav-m__pill {
   }
   .project__inner {
     padding-bottom: 24px;
+  }
+  .project__content {
     padding-left: 4px;
     padding-right: 4px;
   }
@@ -4272,8 +4716,20 @@ html.konami .projects-nav-m__pill {
 @media (prefers-reduced-motion: reduce) {
   .hourglass__rotor,
   .hourglass__surface-top,
-  .hourglass__surface-bot {
+  .hourglass__surface-bot,
+  .hourglass__stream {
     animation: none;
+  }
+  /* Hold a static, mid-drain pose (top half-full draining to the neck, bottom
+     half-filled from the floor) so the icon still reads as an hourglass. */
+  .hourglass__surface-top {
+    transform: translateY(5px);
+  }
+  .hourglass__surface-bot {
+    transform: translateY(11px);
+  }
+  .hourglass__stream {
+    opacity: 1;
   }
 }
 

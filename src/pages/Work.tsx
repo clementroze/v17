@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, Fragment } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
-import Button from "../components/Button";
+import Hourglass from "../components/Hourglass";
 import arrowBlack from "../assets/arrow-black.svg";
 import { Reveal } from "../lib/reveal";
 import { Link } from "../lib/router";
@@ -32,22 +32,46 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
     </div>
   ));
 
-  const textCol = (
-    <div className="work-grid__text">
+  // The text column is the whole clickable surface (or a non-interactive div
+  // when the case study isn't live yet). The name/subtitle stay as a heading +
+  // paragraph; the old CTA button becomes an inline label + arrow that animate
+  // on hover. An aria-label on the link names the destination so screen-reader
+  // users get the project name, not just "See more".
+  const inner = (
+    <>
       <div className="work-grid__text-top">
-        <span className="work-grid__name">{item.name}</span>
-        <span className="work-grid__role">{item.role}</span>
+        <h2 className="work-grid__name">{item.name}</h2>
+        <p className="work-grid__role">{item.subtitle}</p>
       </div>
-      <Button
-        variant="outline-black"
-        href={item.href}
-        iconSrc={arrowBlack}
-        iconAlt="Arrow"
-        disabled={item.comingSoon}
-      >
-        {item.comingSoon ? "Coming soon" : "See more"}
-      </Button>
+      <span className="work-grid__cta">
+        <span className="work-grid__cta-label">
+          {item.comingSoon ? "Coming soon" : "See more"}
+        </span>
+        {item.comingSoon ? (
+          <Hourglass className="work-grid__cta-hourglass" />
+        ) : (
+          <img src={arrowBlack} alt="" className="work-grid__cta-arrow" />
+        )}
+      </span>
+    </>
+  );
+
+  const textCol = item.comingSoon ? (
+    <div
+      className="work-grid__text work-grid__text--disabled"
+      style={{ "--accent": item.accent } as React.CSSProperties}
+    >
+      {inner}
     </div>
+  ) : (
+    <Link
+      href={item.href}
+      className="work-grid__text"
+      aria-label={`See more: ${item.name}`}
+      style={{ "--accent": item.accent } as React.CSSProperties}
+    >
+      {inner}
+    </Link>
   );
 
   // Where the text column sits among the images. Prefer the per-item

@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from "react"; // useC
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Button from "../components/Button";
+import CaseStudyVideo from "../components/CaseStudyVideo";
 import ProjectsNav from "../components/ProjectsNav";
 import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import { Link, useRouter } from "../lib/router";
@@ -222,7 +223,10 @@ function renderBlock(
                   <div className="cs-images__pic">
                     {src &&
                       (isVideo ? (
-                        <video src={src} autoPlay loop muted playsInline />
+                        <CaseStudyVideo
+                          src={src}
+                          label={block.captions?.[i] ?? block.alts?.[i]}
+                        />
                       ) : (
                         <img src={src} alt={block.alts?.[i] ?? ""} />
                       ))}
@@ -506,8 +510,9 @@ export default function CaseStudy({ slug }: { slug: string }) {
     workItem?.textAccentColor?.light ?? workItem?.accent;
   // "Year" comes from the global registry (shared with About), not frontmatter.
   const entityDate = bySlug(slug)?.date ?? "";
-  const heroBg = workItem?.imageSrc || "";
-  // Cover image follows the slug convention, served from /public.
+  // Hero background + cover image both follow the slug convention, served from
+  // /public (see public/images/<slug>/).
+  const heroBg = `/images/${slug}/cs-hero.png`;
   const coverBg = `/images/${slug}/cover.png`;
 
   const currentIdx = work.findIndex((w) => w.slug === slug);

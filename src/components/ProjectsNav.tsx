@@ -46,6 +46,18 @@ export default function ProjectsNav({
   }, [visible]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [pressed, setPressed] = useState(false);
+
+  // Clear hover/press state whenever the nav isn't fully shown. Without this,
+  // scrolling the nav out of range (e.g. trackpad scroll) while the cursor sits
+  // over the track never fires `mouseleave` — the element just fades out under a
+  // stationary cursor — so `hoveredIndex` stays set and the track's gray hover
+  // pill lingers after the dots are gone. Resetting on exit/hide kills it.
+  useEffect(() => {
+    if (phase !== "entering") {
+      setHoveredIndex(null);
+      setPressed(false);
+    }
+  }, [phase]);
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const trackRef = useRef<HTMLDivElement>(null);
   const wrapRefs = useRef<(HTMLButtonElement | null)[]>([]);

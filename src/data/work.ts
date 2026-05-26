@@ -1,17 +1,35 @@
-import ibmHero from "../assets/ibm/hero.png";
-import googleHero from "../assets/google/hero.png";
-import frogHero from "../assets/frog/hero.png";
-import microsoftHero from "../assets/microsoft/hero.png";
-import gcaiHero from "../assets/gcai/hero.png";
-import replitHero from "../assets/replit/hero.png";
 import { bySlug } from "./data";
+
+// Per-project images follow a public/ slug convention, served straight from
+// /public (no bundler import needed — drop a file in public/images/<slug>/):
+//   case-study hero → /images/<slug>/cs-hero.png   (resolved in CaseStudy.tsx)
+//   homepage hero   → /images/<slug>/home-hero.png (derived as `homeImageSrc` below)
+
+// Case-study markdown, loaded raw at build time (same glob CaseStudy.tsx uses).
+// We only read the frontmatter `subtitle:` line from each — see `mdSubtitle`.
+const mdFiles = import.meta.glob("../work/*.md", {
+  as: "raw",
+  eager: true,
+}) as Record<string, string>;
+
+// Pull the `subtitle:` value from a slug's .md frontmatter, or null if there's
+// no .md file (e.g. ibm, still "coming soon") or no subtitle line.
+function mdSubtitle(slug: string): string | null {
+  const raw = mdFiles[`../work/${slug}.md`];
+  if (!raw) return null;
+  const fm = raw.match(/^---\n([\s\S]*?)\n---/);
+  if (!fm) return null;
+  const line = fm[1].match(/^subtitle:\s*(.+)$/m);
+  return line ? line[1].trim() : null;
+}
 
 /**
  * Work-page layout + per-surface copy for a portfolio project. Identity
  * (name, role, accent, textAccentColor, href) comes from the registry in
  * data.ts via `slug`; the fields here are Work/Home-specific. `subtitle` is the
- * short tagline shown on the Work list/grid (intentionally different from the
- * case-study .md subtitle).
+ * short tagline shown on the Work list/grid — it is NOT authored here but
+ * pulled from the case-study .md frontmatter (derived in the map below), so the
+ * two stay in sync. Entries without a .md fall back to "Coming soon.".
  *
  * `number` (the "01/" label) and `comingSoon` are NOT authored here — they're
  * derived: `number` from list position, `comingSoon` from the registry's
@@ -19,8 +37,6 @@ import { bySlug } from "./data";
  */
 type WorkSource = {
   slug: string;
-  subtitle: string;
-  imageSrc: string; // hero image for homepage EffectB and case study hero
   previewSrc?: string; // floating preview image in work list
   images: number[]; // column heights for Work page grid
   imageUrls: string[]; // Work page grid images, served from public/images/{slug}/grid-N.png (parallel to images)
@@ -40,6 +56,8 @@ type WorkSource = {
  * not authored here.
  */
 export type WorkItem = WorkSource & {
+  subtitle: string;
+  homeImageSrc: string; // resolved (placeholder when not authored)
   name: string;
   role: string;
   accent: string;
@@ -52,8 +70,6 @@ export type WorkItem = WorkSource & {
 const sources: WorkSource[] = [
   {
     slug: "ibm",
-    subtitle: "Coming soon.",
-    imageSrc: ibmHero,
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
     imageUrls: [
@@ -64,8 +80,6 @@ const sources: WorkSource[] = [
   },
   {
     slug: "google",
-    subtitle: "Engaging college-age users with Google products",
-    imageSrc: googleHero,
     previewSrc: "/images/google/preview.png",
     images: [332, 332, 332],
     imageUrls: [
@@ -76,10 +90,8 @@ const sources: WorkSource[] = [
   },
   {
     slug: "frog",
-    subtitle: "Product strategy & interaction design",
-    imageSrc: frogHero,
     previewSrc: "/images/frog/preview.png",
-    images: [530, 530, 530],
+    images: [332, 332, 332],
     imageUrls: [
       "/images/frog/grid-1.png",
       "/images/frog/grid-2.png",
@@ -88,10 +100,8 @@ const sources: WorkSource[] = [
   },
   {
     slug: "microsoft",
-    subtitle: "Copilot-powered B2B sales tools",
-    imageSrc: microsoftHero,
     previewSrc: "/images/microsoft/preview.png",
-    images: [420, 332, 420],
+    images: [332, 332, 332],
     imageUrls: [
       "/images/microsoft/grid-1.png",
       "/images/microsoft/grid-2.png",
@@ -100,10 +110,8 @@ const sources: WorkSource[] = [
   },
   {
     slug: "gcai",
-    subtitle: "End-to-end AI-powered legal research platform",
-    imageSrc: gcaiHero,
     previewSrc: "/images/gcai/preview.png",
-    images: [241, 241, 241],
+    images: [332, 332, 332],
     imageUrls: [
       "/images/gcai/grid-1.png",
       "/images/gcai/grid-2.png",
@@ -113,8 +121,6 @@ const sources: WorkSource[] = [
   },
   {
     slug: "replit",
-    subtitle: "XXX",
-    imageSrc: replitHero,
     previewSrc: "/images/replit/preview.png",
     images: [332, 332, 332],
     imageUrls: [
@@ -132,9 +138,15 @@ const sources: WorkSource[] = [
 // so drift is caught immediately.
 const work: WorkItem[] = sources.map((s, i) => {
   const entity = bySlug(s.slug);
-  if (!entity) throw new Error(`work.ts: no registry entity for slug "${s.slug}"`);
+  if (!entity)
+    throw new Error(`work.ts: no registry entity for slug "${s.slug}"`);
   return {
     ...s,
+    // Tagline pulled from the case-study .md frontmatter; entries without a
+    // .md yet (ibm) fall back to "Coming soon.".
+    subtitle: mdSubtitle(s.slug) ?? "Coming soon.",
+    // Homepage hero, by slug convention (see comment at top of file).
+    homeImageSrc: `/images/${s.slug}/home-hero.png`,
     name: entity.name,
     role: entity.role,
     accent: entity.accent,

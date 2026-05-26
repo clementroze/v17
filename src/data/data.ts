@@ -93,7 +93,7 @@ export const freelance: Entity[] = [
     date: "2024 – 26",
     role: "Freelancing",
     aboutRole: "Designer & Developer",
-    accent: "#50abda",
+    accent: "#003047",
     href: "/work/gcai",
     hasCaseStudy: true,
   },

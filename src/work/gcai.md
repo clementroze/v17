@@ -121,7 +121,15 @@ The pills stay visually minimal when collapsed, which keeps the interface calm d
 
 ![loading](/images/gcai/loading.png) A loading state that keeps users informed
 
+Below is a video showing the prototype in action:
+
 ![thinking states](/images/gcai/thinking-states.mov) Prototype of the thinking states
+
+## Adding files, context, and more
+
+The chat composer was getting crowded. To fix this, I redesigned how users add items — files, company profiles, skills, and more — replacing deeply nested dropdowns with a slide-out panel. Selecting a category opens a beige detail panel on the side, so users can browse and pick without losing their place.
+
+![add menu](/images/gcai/add-menu.mov) Prototype of the add menu
 
 ## Learnings & reflections
 

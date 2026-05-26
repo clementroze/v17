@@ -101,7 +101,7 @@ The last step was to put everything into a Copilot extension in the browser. Her
 
 ![/images/microsoft/loading.png | /images/microsoft/alt.png] Loading screen | Alternative products found by Copilot, with a table showing the comparison of the original/new values.
 
-## Closing thoughts
+## Learnings & reflections
 
 This was my first time as a Project Manager for Design Consulting at Cornell: it was both a challenging and rewarding experience. I had the opportunity to work on a complex product space while also growing as a leader.
 
