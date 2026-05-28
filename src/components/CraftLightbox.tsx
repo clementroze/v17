@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import type { CraftItem } from '../data/craft';
+import CaseStudyVideo from './CaseStudyVideo';
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -684,15 +685,7 @@ export default function CraftLightbox({
       >
         {item.src ? (
           /\.(mp4|mov|webm|ogg)$/i.test(item.src) ? (
-            <video
-              src={item.src}
-              className="craft-lightbox__img"
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls
-            />
+            <CaseStudyVideo src={item.src} label={item.label} />
           ) : (
             <img src={item.src} alt={item.alt ?? item.label} className="craft-lightbox__img" />
           )
