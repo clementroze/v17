@@ -2313,7 +2313,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .accordion-row__arrow,
-.accordion-row__chevron {
+.accordion-row__toggle {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
@@ -2322,17 +2322,31 @@ html.konami .projects-nav-m__pill {
   justify-content: center;
 }
 
-.accordion-row__arrow img,
-.accordion-row__chevron img {
+.accordion-row__arrow img {
   width: 18px;
   height: 18px;
 }
 
-.accordion-row__chevron {
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+.accordion-row__toggle svg {
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-.accordion-row__chevron--open {
+.accordion-row__toggle-bar {
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  transform-origin: 12px 12px;
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.accordion-row__toggle--open svg {
+  transform: rotate(180deg);
+}
+
+.accordion-row__toggle--open .accordion-row__toggle-bar--v {
   transform: rotate(90deg);
 }
 

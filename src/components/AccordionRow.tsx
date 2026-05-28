@@ -86,9 +86,19 @@ export default function AccordionRow({
           <span>{period}</span>
           {hasContent ? (
             <span
-              className={`accordion-row__chevron${open ? " accordion-row__chevron--open" : ""}`}
+              className={`accordion-row__toggle${open ? " accordion-row__toggle--open" : ""}`}
+              aria-hidden="true"
             >
-              <img src={arrowWhite} alt="" />
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <line
+                  className="accordion-row__toggle-bar accordion-row__toggle-bar--h"
+                  x1="5" y1="12" x2="19" y2="12"
+                />
+                <line
+                  className="accordion-row__toggle-bar accordion-row__toggle-bar--v"
+                  x1="12" y1="5" x2="12" y2="19"
+                />
+              </svg>
             </span>
           ) : (
             <span className="accordion-row__arrow">
