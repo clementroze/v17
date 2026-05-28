@@ -22,6 +22,7 @@ function CraftCard({
   aspect: number;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
+  const isVideo = item.src ? /\.(mp4|mov|webm|ogg)$/i.test(item.src) : false;
   return (
     <Reveal delay={delay}>
       <button
@@ -35,17 +36,35 @@ function CraftCard({
         aria-label={`Open ${item.label}`}
       >
         {item.src && (
-          <img
-            src={item.src}
-            alt={item.alt ?? ''}
-            className="craft-card__img"
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              if (img.naturalWidth && img.naturalHeight) {
-                onAspectResolved(item.id, img.naturalWidth / img.naturalHeight);
-              }
-            }}
-          />
+          isVideo ? (
+            <video
+              src={item.src}
+              className="craft-card__img"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              onLoadedMetadata={(e) => {
+                const v = e.currentTarget;
+                if (v.videoWidth && v.videoHeight) {
+                  onAspectResolved(item.id, v.videoWidth / v.videoHeight);
+                }
+              }}
+            />
+          ) : (
+            <img
+              src={item.src}
+              alt={item.alt ?? ''}
+              className="craft-card__img"
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                if (img.naturalWidth && img.naturalHeight) {
+                  onAspectResolved(item.id, img.naturalWidth / img.naturalHeight);
+                }
+              }}
+            />
+          )
         )}
       </button>
     </Reveal>
@@ -76,7 +95,7 @@ function CraftCol({
           delay={baseDelay + i * 60}
           onOpen={onOpen}
           onAspectResolved={onAspectResolved}
-          aspect={aspectMap[item.id] ?? item.aspect}
+          aspect={aspectMap[item.id] ?? item.aspect ?? 1}
         />
       ))}
     </div>

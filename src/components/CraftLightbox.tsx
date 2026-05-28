@@ -683,7 +683,19 @@ export default function CraftLightbox({
         }}
       >
         {item.src ? (
-          <img src={item.src} alt={item.alt ?? item.label} className="craft-lightbox__img" />
+          /\.(mp4|mov|webm|ogg)$/i.test(item.src) ? (
+            <video
+              src={item.src}
+              className="craft-lightbox__img"
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls
+            />
+          ) : (
+            <img src={item.src} alt={item.alt ?? item.label} className="craft-lightbox__img" />
+          )
         ) : (
           <div className="craft-lightbox__placeholder" />
         )}
