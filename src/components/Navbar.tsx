@@ -8,6 +8,11 @@ type NavbarProps = {
   // left the hero and are now over the first project. Stays white for every
   // section below it; only the hero (above this element) is black.
   watchPastRef?: React.RefObject<Element>;
+  // Per-section tone (homepage): the navbar contrasts against whichever section
+  // sits under the navbar band. Light section (or the white welcome hero above
+  // them all) → black text; dark section → white text. Takes over the color
+  // logic when provided. `isLight: true` means the section background is light.
+  sections?: { ref: React.RefObject<Element>; isLight: boolean }[];
   forceWhite?: boolean;
   activeLink?: 'about' | 'work' | 'craft';
 };
@@ -18,7 +23,7 @@ const LINKS = [
   { label: 'Craft', href: '/craft', key: 'craft' },
 ] as const;
 
-export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, forceWhite = false, activeLink }: NavbarProps) {
+export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, sections, forceWhite = false, activeLink }: NavbarProps) {
   const { navigate, wipe } = useRouter();
   const [open,    setOpen]    = useState(false);
   const [closing, setClosing] = useState(false);
@@ -34,6 +39,7 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, force
 
   useEffect(() => {
     if (forceWhite) { setWhite(true); return; }
+    if (sections) return; // per-section tone logic (below) owns the color
 
     const observers: IntersectionObserver[] = [];
 
@@ -63,13 +69,13 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, force
     }
 
     return () => observers.forEach(o => o.disconnect());
-  }, [watchHideRef, watchShowRef, forceWhite]);
+  }, [watchHideRef, watchShowRef, forceWhite, sections]);
 
   // ── color: "past the hero" — white once the watched element's top reaches
   // the navbar band. Black is reserved for the hero (everything above it). ──────
 
   useEffect(() => {
-    if (forceWhite || !watchPastRef) return;
+    if (forceWhite || sections || !watchPastRef) return;
 
     const NAV_BAND = 96;
     const update = () => {
@@ -88,6 +94,39 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, force
       window.removeEventListener('resize', update);
     };
   }, [watchPastRef, forceWhite]);
+
+  // ── color: per-section tone (homepage). Sample which section sits under the
+  // navbar band and contrast against it: light section → black text, dark
+  // section → white text. Above the first section (white welcome hero) → black. ─
+  useEffect(() => {
+    if (forceWhite || !sections) return;
+
+    const NAV_BAND = 96;
+    const update = () => {
+      // Walk sections top-to-bottom; the one whose span crosses the navbar band
+      // is the section under the navbar. Default (none yet, still on the white
+      // hero) → not white (black text).
+      let isLightUnderNav = true; // welcome hero is light/white
+      for (const { ref, isLight } of sections) {
+        const el = ref.current;
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.top <= NAV_BAND && r.bottom > NAV_BAND) {
+          isLightUnderNav = isLight;
+          break;
+        }
+      }
+      setWhite(!isLightUnderNav);
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [sections, forceWhite]);
 
   // ── mobile menu ──────────────────────────────────────────────────────────────
 

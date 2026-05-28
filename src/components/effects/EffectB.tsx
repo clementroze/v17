@@ -3,13 +3,18 @@
  */
 import { useEffect, useRef, useState } from "react";
 import arrowWhite from "../../assets/arrow.svg";
-import Button from "../Button";
+import arrowBlack from "../../assets/arrow-black.svg";
+import Hourglass from "../Hourglass";
+import { Link } from "../../lib/router";
 
 type Project = {
   number: string;
   name: string;
   homeImageSrc: string; // homepage image (distinct from the case-study hero `imageSrc`)
   href: string;
+  accent: string;
+  /** True when the hero image is light-toned → use dark border/CTA for contrast. */
+  heroIsLight?: boolean;
   comingSoon?: boolean;
 };
 
@@ -174,36 +179,67 @@ function ParallaxProject({
           decoding="async"
         />
         <div className="project__inner">
-          <div className="project__content">
-            <div className="effect-b__text project__text">
-              <p
-                ref={numberRef}
-                className="project__number effect-b__item effect-b__item--number"
+          {(() => {
+            // The whole content row is the link surface (border + name + CTA),
+            // mirroring work-grid__text / cs-nav__card. Coming-soon renders a
+            // non-interactive div instead. Tone class flips the border/CTA ink
+            // to contrast with light vs dark hero images.
+            const contentClass = `project__content${
+              project.heroIsLight ? " project__content--light" : ""
+            }`;
+            const inner = (
+              <>
+                <div className="effect-b__text project__text">
+                  <p
+                    ref={numberRef}
+                    className="project__number effect-b__item effect-b__item--number"
+                  >
+                    {project.number}
+                  </p>
+                  <h2
+                    ref={nameRef}
+                    className="project__name effect-b__item effect-b__item--name"
+                  >
+                    {project.name}
+                  </h2>
+                </div>
+                <div
+                  ref={btnRef}
+                  className="effect-b__item effect-b__item--btn project__cta"
+                >
+                  <span className="project__cta-label">
+                    {project.comingSoon ? "Coming soon" : "View"}
+                  </span>
+                  {project.comingSoon ? (
+                    <Hourglass className="project__cta-hourglass" />
+                  ) : (
+                    <img
+                      src={project.heroIsLight ? arrowBlack : arrowWhite}
+                      alt=""
+                      className="project__cta-arrow"
+                    />
+                  )}
+                </div>
+              </>
+            );
+            return project.comingSoon ? (
+              <div
+                className={`${contentClass} project__content--disabled`}
+                style={{ "--accent": project.accent } as React.CSSProperties}
               >
-                {project.number}
-              </p>
-              <h2
-                ref={nameRef}
-                className="project__name effect-b__item effect-b__item--name"
-              >
-                {project.name}
-              </h2>
-            </div>
-            <div
-              ref={btnRef}
-              className="effect-b__item effect-b__item--btn effect-b__btn-wrap"
-            >
-              <Button
-                variant="outline-white-full"
+                {inner}
+              </div>
+            ) : (
+              <Link
                 href={project.href}
-                iconSrc={arrowWhite}
-                iconAlt="Arrow"
-                disabled={project.comingSoon}
+                className={contentClass}
+                aria-label={`View ${project.name}`}
+                style={{ "--accent": project.accent } as React.CSSProperties}
               >
-                {project.comingSoon ? "Coming soon" : "View"}
-              </Button>
-            </div>
-          </div>
+                {inner}
+              </Link>
+            );
+          })()}
         </div>
       </div>
     </div>

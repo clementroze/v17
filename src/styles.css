@@ -94,15 +94,9 @@ footer::selection {
   --font-inter: "Inter", sans-serif;
   --max-width: 1400px;
 
-  /* Letter-spacing scale, sized to the font-size it pairs with (-0.03em). */
-  --tracking-tight-sm: -0.42px; /* 14px text */
-  --tracking-tight-md: -0.54px; /* 18px text */
-  --tracking-tight-20: -0.6px; /* 20px text */
-  --tracking-tight-lg: -0.72px; /* 24px text */
-  --tracking-tight-xl: -0.96px; /* 32px text */
-  --tracking-tight-2xl: -1.44px; /* 48px text */
-  --tracking-tight-3xl: -1.92px; /* 64px text */
-  --tracking-loose: 0.08em; /* uppercase micro-labels */
+  /* Two tracking tokens only. */
+  --tracking: -0.03em; /* body text, UI labels */
+  --tracking-heading: -0.03em; /* display headings — kept separate to tune independently */
 
   /* Two line-heights only: tight for headings, relaxed for body copy. */
   --leading-heading: 1.1;
@@ -225,7 +219,7 @@ footer::selection {
 .navbar__link {
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   padding: 16px 0;
   cursor: pointer;
   white-space: nowrap;
@@ -417,7 +411,7 @@ footer::selection {
 .menu-overlay__link {
   font-size: clamp(48px, 12vw, 80px);
   font-weight: var(--weight-body);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-heading);
   color: var(--white);
   opacity: 0.25;
   line-height: var(--leading-heading);
@@ -517,7 +511,7 @@ footer::selection {
 .hero__title {
   font-size: 64px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-3xl);
+  letter-spacing: var(--tracking-heading);
   white-space: nowrap;
   line-height: var(--leading-heading);
   color: inherit;
@@ -526,7 +520,7 @@ footer::selection {
 .hero__subtitle {
   font-size: 32px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   width: min(688px, 100%);
   color: inherit;
@@ -547,7 +541,7 @@ footer::selection {
   border-radius: var(--radius-btn);
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   white-space: nowrap;
   cursor: pointer;
@@ -931,14 +925,67 @@ footer::selection {
   );
 }
 
-/* Content row: keeps the number/name/CTA in exactly the same centered 1400px
-   band they had before the gradient went full-bleed (no added gutter, matching
-   the original .project__inner sizing). */
+/* Content row = the link surface. Keeps the number/name/CTA in the centered
+   1400px band; the top border + accent slide are content-width (this element),
+   not full-bleed like the gradient on .project__inner. Mirrors work-grid__text
+   / cs-nav__card. */
 .project__content {
+  position: relative;
   display: flex;
   align-items: flex-end;
   width: var(--max-width);
   max-width: 100%;
+  /* Clear the top border drawn by ::before. */
+  padding-top: 20px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Base top border — transparent-white over dark images, transparent-black over
+   light ones (the --light modifier). */
+.project__content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.project__content--light::before {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Accent overlay grows left-to-right on hover/focus. */
+.project__content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1.5px;
+  width: 0;
+  background: var(--accent);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.project__content:hover::after,
+.project__content:focus-visible::after {
+  width: 100%;
+}
+
+.project__content:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Coming-soon: non-interactive, no accent reveal. */
+.project__content--disabled {
+  cursor: default;
+}
+.project__content--disabled::after {
+  display: none;
 }
 
 .project__text {
@@ -953,24 +1000,80 @@ footer::selection {
 
 .project__number {
   font-size: 24px;
-  letter-spacing: var(--tracking-tight-lg);
+  letter-spacing: var(--tracking-heading);
   opacity: 0.1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .project__name {
   font-size: 48px;
-  letter-spacing: var(--tracking-tight-2xl);
+  letter-spacing: var(--tracking-heading);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   font-weight: var(--weight-heading);
+  transition: color 200ms ease;
 }
 
-.project__btn {
-  width: 332px;
+.project__content:hover .project__name,
+.project__content:focus-visible .project__name {
+  color: var(--accent);
 }
 
-.project__inner .btn {
-  width: 332px;
+/* CTA: replaces the old "View" button — inline label + arrow that animate on
+   hover (mirrors work-grid__cta / cs-nav__meta). Tone follows the image. */
+.project__cta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  /* Pin to the band's right edge so it sits where the button used to. */
+  margin-left: auto;
+}
+
+.project__cta-label {
+  font-size: 18px;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking);
+  color: var(--white);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  opacity: 0.7;
+  transition: opacity 160ms ease-out;
+}
+
+.project__content--light .project__cta-label {
+  color: var(--black);
+  text-shadow: none;
+}
+
+.project__content:hover .project__cta-label,
+.project__content:focus-visible .project__cta-label {
+  opacity: 1;
+}
+
+.project__cta-arrow {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.project__content:hover .project__cta-arrow,
+.project__content:focus-visible .project__cta-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Coming-soon hourglass: tone-matched, no hover slide. */
+.project__cta-hourglass {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--white);
+}
+.project__content--light .project__cta-hourglass {
+  color: var(--black);
 }
 
 /* =============================================
@@ -1011,14 +1114,14 @@ footer::selection {
 .footer__col-title {
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
 }
 
 .footer__col-item {
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   color: var(--white-muted);
   line-height: var(--leading-heading);
   transition: collor 120ms ease-out;
@@ -1043,7 +1146,7 @@ footer::selection {
   font-family: inherit;
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   opacity: 0.6;
   background: none;
   border: none;
@@ -1088,7 +1191,6 @@ footer::selection {
   display: flex;
   align-items: center;
   border-radius: var(--radius-img);
-  border: 1px solid var(--white-faint);
   background: var(--white-faint);
   overflow: hidden;
   cursor: pointer;
@@ -1157,7 +1259,7 @@ footer::selection {
 .footer__archive-title {
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   color: var(--white);
   line-height: var(--leading-heading);
 }
@@ -1172,7 +1274,7 @@ footer::selection {
 .footer__archive-link p {
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   color: var(--white);
   white-space: nowrap;
   line-height: var(--leading-heading);
@@ -1201,7 +1303,7 @@ footer::selection {
   color: var(--white);
   font-size: 12px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
 }
 
 .footer__bottom p {
@@ -1452,7 +1554,7 @@ html.konami canvas {
 
 .konami-toast__hint {
   opacity: 0.7;
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
 }
 
 /* Drop the "Click or Esc to disable" hint on narrow phones — it pushes the
@@ -1891,7 +1993,7 @@ html.konami .projects-nav-m__pill {
 .about-section-row__label {
   font-size: 32px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--white);
 }
@@ -1935,7 +2037,7 @@ html.konami .projects-nav-m__pill {
 .about-info-text p {
   font-size: 32px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--white-muted);
 }
@@ -1949,6 +2051,153 @@ html.konami .projects-nav-m__pill {
   flex-direction: column;
   width: 100%;
   margin-top: -25px;
+}
+
+/* ── Resume + contact cards ──────────────────────────────────────────────── */
+
+/* Row: resume card on the left, contact-card column on the right.
+   align-items:stretch so the contact column matches the FULL resume link
+   height (card + below-card label). That makes the bottom contact card's
+   label line up with the resume label, since both columns end together. */
+.about-more-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+/* Reveal wrappers are the direct flex children — let the contact column
+   reveal stretch to the resume reveal's height and pass that height down. */
+.about-more-row > .reveal {
+  display: flex;
+}
+.about-more-row > .reveal:last-child {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* The whole link: gray card (clipped) stacked over the label. */
+.about-resume-link {
+  display: inline-flex;
+  flex-direction: column;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Right column: two contact links splitting the full resume link height. */
+.about-contact-col {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Each contact: gray card box with a label below it (same pattern as the
+   resume card — label lives outside the card). Two links split the column
+   evenly; the card grows to fill, so the bottom link's label aligns with
+   the resume label. */
+.about-contact-link {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.about-contact-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white-faint);
+  border-radius: var(--img-radius);
+  transition:
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.about-contact-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.about-contact-link:hover .about-contact-card {
+  background: #262626;
+  transform: translateY(-2px);
+}
+
+.about-contact-label {
+  color: var(--white-muted);
+  margin-top: 12px;
+  letter-spacing: var(--tracking);
+  transition: color 200ms ease;
+}
+
+.about-contact-link:hover .about-contact-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Label sits BELOW the card, outside the clip so it's never cut. */
+.about-resume-label {
+  color: var(--white-muted);
+  margin-top: 12px;
+  letter-spacing: var(--tracking);
+  transition: color 200ms ease;
+}
+
+.about-resume-link:hover .about-resume-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Outer wrapper hugs the card exactly — its bottom edge sits at the card's
+   bottom edge. clip-path cuts ONLY the bottom: top/left/right insets are
+   negative (no clip → the thumbnail pops out freely above and to the
+   sides), the bottom inset is 0 so anything below the card floor is hidden.
+   The `round` re-applies the card's bottom corner radius to the cut edge. */
+.about-resume-clip {
+  display: inline-block;
+  clip-path: inset(-9999px -9999px 0 -9999px round 2px);
+}
+
+/* Card: a fixed-height dark gray box. overflow:visible lets the thumbnail
+   rise above it — the bottom is handled by the .about-resume-clip parent. */
+.about-resume-card {
+  display: block;
+  background: var(--white-faint);
+  border-radius: var(--img-radius);
+  padding: 28px 28px 0;
+  overflow: visible;
+  width: 100%;
+  max-width: 440px;
+  height: 400px;
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+}
+
+/* Thumbnail sits in the card; its lower portion extends past the card's
+   bottom edge (clipped by .about-resume-clip). On hover it rises and tilts;
+   the bottom-edge clip stays put so it looks like it slides out of a sleeve. */
+.about-resume-thumbnail-wrap {
+  transform: translateY(0);
+  transform-origin: bottom center;
+  transition:
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  border-radius: var(--img-radius);
+}
+
+.about-resume-link:hover .about-resume-thumbnail-wrap {
+  transform: translateY(-8%);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.45);
+}
+
+.about-resume-thumbnail {
+  display: block;
+  width: 100%;
+  border-radius: var(--img-radius);
 }
 
 .accordion-row {
@@ -2030,7 +2279,7 @@ html.konami .projects-nav-m__pill {
 .accordion-row__company {
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   white-space: nowrap;
 }
@@ -2040,7 +2289,7 @@ html.konami .projects-nav-m__pill {
   min-width: 0;
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--white-muted);
 }
@@ -2054,7 +2303,7 @@ html.konami .projects-nav-m__pill {
   gap: 6px;
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   opacity: 0.5;
 }
@@ -2119,7 +2368,7 @@ html.konami .projects-nav-m__pill {
 .accordion-row__description {
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--white-muted);
   padding-left: 16px;
@@ -2184,7 +2433,7 @@ html.konami .projects-nav-m__pill {
 .work-main__label {
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
   color: var(--black);
 }
@@ -2201,7 +2450,7 @@ html.konami .projects-nav-m__pill {
   padding: 0;
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
   color: var(--black);
   cursor: pointer;
@@ -2414,7 +2663,7 @@ html.konami .projects-nav-m__pill {
   margin: 0;
   font-size: 32px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
   transition: color 200ms ease;
@@ -2430,7 +2679,7 @@ html.konami .projects-nav-m__pill {
   margin-top: 4px;
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-lg);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--black);
   opacity: 0.5;
@@ -2448,7 +2697,7 @@ html.konami .projects-nav-m__pill {
   font-size: 16px;
   font-weight: var(--weight-body);
   color: var(--black-scrim);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   transition: color 160ms ease-out;
 }
 
@@ -2549,7 +2798,7 @@ html.konami .projects-nav-m__pill {
   min-width: 0;
   font-size: 48px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-2xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
   transition: color 200ms ease;
@@ -2564,7 +2813,7 @@ html.konami .projects-nav-m__pill {
   min-width: 0;
   font-size: 24px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-lg);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
   opacity: 0.5;
@@ -2599,7 +2848,7 @@ html.konami .projects-nav-m__pill {
 .work-list__coming-soon {
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   color: var(--black-muted);
 }
 
@@ -2733,7 +2982,7 @@ html.konami .projects-nav-m__pill {
   gap: 6px;
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-lg);
+  letter-spacing: var(--tracking-heading);
   color: var(--white);
   opacity: 0.5;
   line-height: var(--leading-heading);
@@ -2760,7 +3009,7 @@ html.konami .projects-nav-m__pill {
 .cs-hero__title {
   font-size: 64px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-3xl);
+  letter-spacing: var(--tracking-heading);
   color: var(--white);
   line-height: var(--leading-heading);
 }
@@ -2768,7 +3017,7 @@ html.konami .projects-nav-m__pill {
 .cs-hero__subtitle {
   font-size: 32px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   color: var(--white-muted);
   line-height: var(--leading-heading);
 }
@@ -2809,7 +3058,7 @@ html.konami .projects-nav-m__pill {
   align-items: flex-start;
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   width: 100%;
 }
 
@@ -2909,7 +3158,7 @@ html.konami .projects-nav-m__pill {
 .cs-hmw {
   font-size: 32px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--black);
   text-align: center;
@@ -2938,7 +3187,7 @@ html.konami .projects-nav-m__pill {
 .cs-cols__heading {
   font-size: 20px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
   color: var(--black);
 }
@@ -2946,7 +3195,7 @@ html.konami .projects-nav-m__pill {
 .cs-cols__body {
   font-size: 16px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black-muted);
 }
@@ -2960,7 +3209,7 @@ html.konami .projects-nav-m__pill {
   flex: 0 0 50%;
   font-size: 32px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-xl);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
 }
@@ -2990,7 +3239,7 @@ html.konami .projects-nav-m__pill {
 .cs-heading {
   font-size: 24px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-tight-lg);
+  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
   width: 100%;
@@ -3002,7 +3251,7 @@ html.konami .projects-nav-m__pill {
   font-size: 20px;
   font-weight: var(--weight-body);
   font-style: italic;
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black);
   width: 100%;
@@ -3011,7 +3260,7 @@ html.konami .projects-nav-m__pill {
 .cs-paragraph {
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black);
   width: 100%;
@@ -3030,7 +3279,7 @@ html.konami .projects-nav-m__pill {
 .cs-list li {
   font-size: 20px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-20);
+  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black);
 }
@@ -3123,7 +3372,7 @@ html.konami .projects-nav-m__pill {
 .cs-figcaption {
   font-size: 16px;
   opacity: 0.5;
-  letter-spacing: var(--tracking-tight-md);
+  letter-spacing: var(--tracking);
 }
 
 /* margin-top pulls image rows closer to the body text / other image row above
@@ -3212,7 +3461,7 @@ html.konami .projects-nav-m__pill {
   padding: 28px 32px;
   text-align: left;
   font-size: 16px;
-  letter-spacing: var(--tracking-tight-md);
+  letter-spacing: var(--tracking);
   color: #fff;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
@@ -3420,7 +3669,7 @@ html.konami .projects-nav-m__pill {
   flex: 0 0 auto;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   color: #fff;
   white-space: nowrap;
   text-shadow: 0 0 20px #000;
@@ -3497,7 +3746,7 @@ html.konami .projects-nav-m__pill {
 .cs-nav__name {
   font-size: 36px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-lg);
+  letter-spacing: var(--tracking-heading);
   transition: color 200ms ease;
 }
 
@@ -3515,7 +3764,7 @@ html.konami .projects-nav-m__pill {
   font-size: 20px;
   font-weight: var(--weight-body);
   color: var(--black-scrim);
-  letter-spacing: var(--tracking-tight-sm);
+  letter-spacing: var(--tracking);
   transition: color 160ms ease-out;
 }
 
@@ -3685,14 +3934,14 @@ html.konami .projects-nav-m__pill {
 
 .craft-lightbox__label {
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking-tight-md);
+  letter-spacing: var(--tracking);
   font-size: 18px;
 }
 
 .craft-lightbox__date {
   color: var(--white-muted);
   font-size: 12px;
-  letter-spacing: var(--tracking-tight-md);
+  letter-spacing: var(--tracking);
 }
 
 /* ── Meta swap animation (on prev/next) ──
@@ -4112,14 +4361,14 @@ html.konami .projects-nav-m__pill {
   .hero__title {
     font-size: clamp(36px, 9vw, 56px);
     white-space: normal;
-    letter-spacing: var(--tracking-tight-2xl);
+    letter-spacing: var(--tracking-heading);
     line-height: var(--leading-heading);
     word-break: break-word;
   }
   .hero__subtitle {
     font-size: clamp(17px, 3.8vw, 22px);
     width: 100%;
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-heading);
   }
 
@@ -4146,15 +4395,14 @@ html.konami .projects-nav-m__pill {
   }
   .project__name {
     font-size: clamp(28px, 6vw, 44px);
-    letter-spacing: var(--tracking-tight-2xl);
+    letter-spacing: var(--tracking-heading);
   }
   .project__number {
     font-size: 16px;
   }
-  .project__btn,
-  .project__inner .btn {
-    width: 100%;
-    max-width: 332px;
+  /* CTA sits below the name on mobile (column layout above); align it left. */
+  .project__cta {
+    margin-left: 0;
   }
 
   /* ── Work grid ── */
@@ -4206,12 +4454,25 @@ html.konami .projects-nav-m__pill {
     gap: 16px;
     padding-top: 16px;
   }
+  /* Resume + contact cards stack vertically on mobile. */
+  .about-more-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .about-contact-col {
+    height: auto;
+    width: 100%;
+    min-width: 0;
+  }
+  .about-contact-card {
+    min-height: 120px;
+  }
   .about-section-row > .reveal:first-child {
     flex: none;
   }
   .about-section-row__label {
     font-size: 16px;
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
     opacity: 0.5;
   }
@@ -4220,7 +4481,7 @@ html.konami .projects-nav-m__pill {
   }
   .about-info-text p {
     font-size: clamp(18px, 3.6vw, 22px);
-    letter-spacing: var(--tracking-tight-md);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
 
@@ -4293,11 +4554,11 @@ html.konami .projects-nav-m__pill {
   }
   .cs-hero__title {
     font-size: clamp(32px, 7.5vw, 48px);
-    letter-spacing: var(--tracking-tight-2xl);
+    letter-spacing: var(--tracking-heading);
   }
   .cs-hero__subtitle {
     font-size: clamp(16px, 3.6vw, 22px);
-    letter-spacing: var(--tracking-tight-md);
+    letter-spacing: var(--tracking);
   }
   .cs-hero__back {
     font-size: 15px;
@@ -4328,7 +4589,7 @@ html.konami .projects-nav-m__pill {
     flex-direction: column;
     gap: 24px;
     font-size: 15px;
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
   }
   .cs-meta__left {
     width: 100%;
@@ -4372,12 +4633,12 @@ html.konami .projects-nav-m__pill {
   }
   .cs-paragraph {
     font-size: 16px;
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .cs-list li {
     font-size: 16px;
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .cs-quote {
@@ -4468,12 +4729,12 @@ html.konami .projects-nav-m__pill {
   }
   .hero__title {
     font-size: clamp(34px, 11vw, 44px);
-    letter-spacing: var(--tracking-tight-2xl);
+    letter-spacing: var(--tracking-heading);
     line-height: var(--leading-heading);
   }
   .hero__subtitle {
     font-size: clamp(15px, 4.4vw, 19px);
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-heading);
   }
 
@@ -4490,7 +4751,7 @@ html.konami .projects-nav-m__pill {
   }
   .project__name {
     font-size: clamp(26px, 7vw, 34px);
-    letter-spacing: var(--tracking-tight-xl);
+    letter-spacing: var(--tracking-heading);
   }
   .project__number {
     font-size: 14px;
@@ -4507,14 +4768,14 @@ html.konami .projects-nav-m__pill {
   }
   .about-section-row__label {
     font-size: 13px;
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
   }
   .about-info-text {
     gap: 16px;
   }
   .about-info-text p {
     font-size: clamp(16px, 4.4vw, 18px);
-    letter-spacing: var(--tracking-tight-sm);
+    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .accordion-row__company {
@@ -4696,7 +4957,7 @@ html.konami .projects-nav-m__pill {
   }
   .hero__title {
     font-size: clamp(28px, 11vw, 36px);
-    letter-spacing: var(--tracking-tight-xl);
+    letter-spacing: var(--tracking-heading);
   }
   .hero__subtitle {
     font-size: 14px;

@@ -6,7 +6,16 @@ import Hero from "../components/Hero";
 import AccordionRow from "../components/AccordionRow";
 import { Reveal } from "../lib/reveal";
 import profilePhoto from "../assets/pfp.png";
-import { workExperience, freelancing, collaborations, activities, infoParagraphs } from "../data/about";
+import resumeThumbnail from "../assets/resume-thumbnail.png";
+import linkedinIcon from "../assets/linkedin-icon.svg";
+import emailIcon from "../assets/email-icon.svg";
+import {
+  workExperience,
+  freelancing,
+  collaborations,
+  activities,
+  infoParagraphs,
+} from "../data/about";
 
 // ─── section label reveal ─────────────────────────────────────────────────────
 
@@ -25,25 +34,25 @@ export default function About() {
   const [openSlug, setOpenSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    const slug = sessionStorage.getItem('about_open');
-    const scrollY = sessionStorage.getItem('about_scroll');
+    const slug = sessionStorage.getItem("about_open");
+    const scrollY = sessionStorage.getItem("about_scroll");
     if (slug) {
-      sessionStorage.removeItem('about_open');
-      sessionStorage.removeItem('about_scroll');
+      sessionStorage.removeItem("about_open");
+      sessionStorage.removeItem("about_scroll");
       setOpenSlug(slug);
       if (scrollY) {
         const target = parseInt(scrollY, 10);
         const onTransitionEnd = (e: TransitionEvent) => {
-          if ((e.target as HTMLElement).closest('.accordion-row__body')) {
-            document.removeEventListener('transitionend', onTransitionEnd);
-            window.scrollTo({ top: target, behavior: 'instant' });
+          if ((e.target as HTMLElement).closest(".accordion-row__body")) {
+            document.removeEventListener("transitionend", onTransitionEnd);
+            window.scrollTo({ top: target, behavior: "instant" });
           }
         };
-        document.addEventListener('transitionend', onTransitionEnd);
+        document.addEventListener("transitionend", onTransitionEnd);
         // fallback in case transition never fires
         setTimeout(() => {
-          document.removeEventListener('transitionend', onTransitionEnd);
-          window.scrollTo({ top: target, behavior: 'instant' });
+          document.removeEventListener("transitionend", onTransitionEnd);
+          window.scrollTo({ top: target, behavior: "instant" });
         }, 600);
       }
     }
@@ -97,7 +106,10 @@ export default function About() {
                 <div className="about-accordion-list">
                   {workExperience.map((item, i) => (
                     <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
+                      <AccordionRow
+                        {...item}
+                        defaultOpen={openSlug === item.slug}
+                      />
                     </Reveal>
                   ))}
                 </div>
@@ -111,7 +123,10 @@ export default function About() {
                 <div className="about-accordion-list">
                   {freelancing.map((item, i) => (
                     <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
+                      <AccordionRow
+                        {...item}
+                        defaultOpen={openSlug === item.slug}
+                      />
                     </Reveal>
                   ))}
                 </div>
@@ -125,7 +140,10 @@ export default function About() {
                 <div className="about-accordion-list">
                   {collaborations.map((item, i) => (
                     <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
+                      <AccordionRow
+                        {...item}
+                        defaultOpen={openSlug === item.slug}
+                      />
                     </Reveal>
                   ))}
                 </div>
@@ -139,9 +157,79 @@ export default function About() {
                 <div className="about-accordion-list">
                   {activities.map((item, i) => (
                     <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlug === item.slug} />
+                      <AccordionRow
+                        {...item}
+                        defaultOpen={openSlug === item.slug}
+                      />
                     </Reveal>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Resume */}
+            <div className="about-section-row">
+              <SectionLabel>Contact</SectionLabel>
+              <div className="about-section-row__content">
+                <div className="about-more-row">
+                  <Reveal>
+                    <a
+                      href="/Clement-Roze-Resume.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="about-resume-link"
+                      aria-label="View full résumé (opens in new tab)"
+                    >
+                      <div className="about-resume-clip">
+                        <div className="about-resume-card">
+                          <div className="about-resume-thumbnail-wrap">
+                            <img
+                              src={resumeThumbnail}
+                              alt="Résumé preview"
+                              className="about-resume-thumbnail"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p className="about-resume-label">View my full résumé</p>
+                    </a>
+                  </Reveal>
+
+                  <Reveal delay={80}>
+                    <div className="about-contact-col">
+                      <a
+                        href="https://www.linkedin.com/in/clementroze"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="about-contact-link"
+                      >
+                        <div className="about-contact-card">
+                          <img
+                            src={linkedinIcon}
+                            alt=""
+                            className="about-contact-icon"
+                          />
+                        </div>
+                        <p className="about-contact-label">
+                          Message me on LinkedIn
+                        </p>
+                      </a>
+                      <a
+                        href="mailto:clement.roze@gmail.com"
+                        className="about-contact-link"
+                        target="_blank"
+                      >
+                        <div className="about-contact-card">
+                          <img
+                            src={emailIcon}
+                            alt=""
+                            className="about-contact-icon"
+                          />
+                        </div>
+                        <p className="about-contact-label">Email me</p>
+                      </a>
+                    </div>
+                  </Reveal>
                 </div>
               </div>
             </div>

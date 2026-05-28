@@ -4,6 +4,13 @@ type Props = {
   count: number;
   sectionRefs: React.RefObject<HTMLDivElement>[];
   variant?: "light" | "dark";
+  /**
+   * Per-section override: `true` where the section's background is light-toned.
+   * The nav adopts a contrasting variant for whichever section is at viewport
+   * center (light bg → dark pills, dark bg → white pills), flipping at the
+   * midpoint. When omitted, the static `variant` prop is used throughout.
+   */
+  tones?: boolean[];
   alwaysVisible?: boolean;
   snapOnRelease?: boolean;
   labels?: string[];
@@ -23,6 +30,7 @@ export default function ProjectsNav({
   count,
   sectionRefs,
   variant = "light",
+  tones,
   alwaysVisible = false,
   snapOnRelease = true,
   labels,
@@ -46,6 +54,10 @@ export default function ProjectsNav({
   }, [visible]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [pressed, setPressed] = useState(false);
+  // Index of the section currently at viewport center — drives the contrasting
+  // variant when `tones` is provided. Updated from updatePills (which already
+  // computes the scroll fraction), rounded so it flips at the section midpoint.
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // Clear hover/press state whenever the nav isn't fully shown. Without this,
   // scrolling the nav out of range (e.g. trackpad scroll) while the cursor sits
@@ -91,6 +103,9 @@ export default function ProjectsNav({
         }
       }
       frac = Math.max(0, Math.min(count - 1, frac));
+      // Round to the nearest section so the contrasting variant flips at the
+      // midpoint between two sections. Cheap setState — React no-ops when equal.
+      setActiveIndex(Math.round(frac));
       dotRefs.current.forEach((el, i) => {
         if (!el) return;
         const dist = Math.abs(frac - i);
@@ -435,8 +450,18 @@ export default function ProjectsNav({
         ? " projects-nav--exiting"
         : "";
 
+  // Per-section tone wins when provided: a light section background needs dark
+  // pills (the "dark" variant) to contrast, and vice versa. Falls back to the
+  // static `variant` prop when no tones are given (e.g. case-study page).
+  const activeVariant = tones
+    ? tones[activeIndex]
+      ? "dark"
+      : "light"
+    : variant;
   const variantClass =
-    variant === "dark" ? " projects-nav--dark" : " projects-nav--light";
+    activeVariant === "dark"
+      ? " projects-nav--dark"
+      : " projects-nav--light";
 
   return (
     <aside

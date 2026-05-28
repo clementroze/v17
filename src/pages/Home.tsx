@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Footer from '../components/Footer';
@@ -17,6 +17,18 @@ export default function Home() {
   const handleSectionRef = useCallback((index: number, el: HTMLDivElement | null) => {
     (sectionRefs.current[index] as React.MutableRefObject<HTMLDivElement | null>).current = el;
   }, []);
+
+  // Per-section tone for the navbar: each project's section ref + whether its
+  // hero is light. Stable identity (refs + work are fixed) so the Navbar effect
+  // doesn't re-subscribe on every render.
+  const navSections = useMemo(
+    () =>
+      work.map((w, i) => ({
+        ref: sectionRefs.current[i] as React.RefObject<Element>,
+        isLight: Boolean(w.heroIsLight),
+      })),
+    [],
+  );
 
   useEffect(() => {
     const projectTops = (): number[] =>
@@ -270,7 +282,7 @@ export default function Home() {
 
   return (
     <div className="page">
-      <Navbar watchPastRef={sectionRefs.current[0]} />
+      <Navbar sections={navSections} />
       <div ref={heroRef} className="home__hero-snap">
         <Hero
           title="Welcome."
@@ -278,7 +290,11 @@ export default function Home() {
         />
       </div>
       <EffectB projects={work} onSectionRef={handleSectionRef} />
-      <ProjectsNav count={work.length} sectionRefs={sectionRefs.current} />
+      <ProjectsNav
+        count={work.length}
+        sectionRefs={sectionRefs.current}
+        tones={work.map((w) => Boolean(w.heroIsLight))}
+      />
       <ProjectsNavMobile count={work.length} sectionRefs={sectionRefs.current} variant="light" />
       <div ref={footerRef} style={{ width: '100%' }}><Footer /></div>
     </div>

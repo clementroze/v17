@@ -37,6 +37,12 @@ function mdSubtitle(slug: string): string | null {
  */
 type WorkSource = {
   slug: string;
+  /**
+   * True when the homepage hero image is light-toned. The homepage section nav
+   * uses it to pick a contrasting pill colour over each section: light image →
+   * dark pills, dark image → white pills. Defaults to false (dark image).
+   */
+  heroIsLight?: boolean;
   previewSrc?: string; // floating preview image in work list
   images: number[]; // column heights for Work page grid
   imageUrls: string[]; // Work page grid images, served from public/images/{slug}/grid-N.png (parallel to images)
@@ -70,6 +76,7 @@ export type WorkItem = WorkSource & {
 const sources: WorkSource[] = [
   {
     slug: "ibm",
+    heroIsLight: true,
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
     imageUrls: [
@@ -80,6 +87,7 @@ const sources: WorkSource[] = [
   },
   {
     slug: "google",
+    heroIsLight: true,
     previewSrc: "/images/google/preview.png",
     images: [332, 332, 332],
     imageUrls: [
