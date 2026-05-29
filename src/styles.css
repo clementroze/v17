@@ -4165,6 +4165,24 @@ html.konami .projects-nav-m__pill {
   background: linear-gradient(135deg, var(--white-faint), var(--white-faint));
 }
 
+/* Custom video player inside the lightbox: size it to fit the viewport like the
+   image (85vh tall, width follows aspect), so the video isn't cropped by the
+   card's overflow:hidden. */
+.craft-lightbox__card .cs-video {
+  height: 85vh;
+  max-height: 85vh;
+  max-width: calc(100vw - 128px);
+}
+
+.craft-lightbox__card .cs-video video {
+  display: block;
+  height: 85vh;
+  max-height: 85vh;
+  max-width: calc(100vw - 128px);
+  width: auto;
+  object-fit: contain;
+}
+
 /* ── Image swap animation (on prev/next) ──
    Same blur+opacity+slide language as the meta swap, applied to the image
    inside the lightbox card. The card itself keeps its inline transform
