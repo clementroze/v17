@@ -183,6 +183,7 @@ export default function Craft() {
         <CraftLightbox
           items={CRAFT_ITEMS}
           index={activeIndex}
+          aspectMap={aspectMap}
           getOriginEl={() => originElRef.current}
           onIndexChange={(i) => setActiveIndex(i)}
           onClose={() => {

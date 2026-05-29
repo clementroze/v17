@@ -9,6 +9,11 @@ export type CraftItem = {
   aspect?: number;
   label: string;
   date: string;
+  /** Optional external link shown next to the label in the lightbox as a
+   *  small "{linkLabel} →" affordance. The arrow nudges right on hover. */
+  link?: string;
+  /** Label shown next to the title for the link. Defaults to "Visit". */
+  linkLabel?: string;
 };
 
 // All craft assets live in `public/craft/`. Drop a file (image or video) named
@@ -25,59 +30,160 @@ const c = (filename: string) => `/craft/${filename}`;
 //
 // `id` is generated automatically from the position, so you never have to set
 // or keep it unique yourself.
-const ITEMS: Omit<CraftItem, 'id'>[] = [
-  { src: c("ebb-insights.png"), label: "Onboarding flow", date: "2024" },
-  { src: c("ebb-river.mov"), label: "Design system", date: "2024" },
-  { src: c("ebb-home.png"), label: "Workspace", date: "2024" },
-  { src: c("ebb-login.mov"), label: "Wireframes", date: "2024" },
-  { src: c("iwater-pair.png"), label: "Sketching", date: "2023" },
-  { src: c("ebb-settings.png"), label: "Editor UI", date: "2024" },
-  { src: c("iwater-sizes.png"), label: "Dashboard", date: "2024" },
-  { src: c("iwater-touch.png"), label: "iOS screens", date: "2024" },
-  { src: c("iwater-landing.png"), label: "Code view", date: "2023" },
-  { src: c("iwater-cups.png"), label: "Travel app", date: "2023" },
-  { src: c("deadline-promo.png"), label: "Card grid", date: "2024" },
-  { src: c("iwater-w1.png"), label: "Devtools", date: "2024" },
-  { src: c("deadline-grid.png"), label: "Web layout", date: "2024" },
-  { src: c("deadline-stats.png"), label: "Components", date: "2023" },
-  { src: c("deadline-picker.png"), label: "Devtools", date: "2024" },
-  { src: c("deadline-won.png"), label: "Web layout", date: "2024" },
+const ITEMS: Omit<CraftItem, "id">[] = [
+  { src: c("ebb-insights.png"), label: "Onboarding flow", date: "2026" },
+  { src: c("ebb-river.mov"), label: "Design system", date: "2026" },
+  { src: c("ebb-home.png"), label: "Workspace", date: "2026" },
+  { src: c("ebb-login.mov"), label: "Wireframes", date: "2026" },
+  { src: c("ebb-settings.png"), label: "Editor UI", date: "2026" },
+
+  {
+    src: c("iwater-pair.png"),
+    label: "Sketching",
+    date: "2022",
+    link: "https://iwater.clementroze.com",
+    linkLabel: "Visit iWater",
+  },
+  {
+    src: c("iwater-sizes.png"),
+    label: "Dashboard",
+    date: "2022",
+    link: "https://iwater.clementroze.com",
+    linkLabel: "Visit iWater",
+  },
+  {
+    src: c("iwater-touch.png"),
+    label: "iOS screens",
+    date: "2022",
+    link: "https://iwater.clementroze.com",
+    linkLabel: "Visit iWater",
+  },
+  {
+    src: c("iwater-landing.png"),
+    label: "Code view",
+    date: "2022",
+    link: "https://iwater.clementroze.com",
+    linkLabel: "Visit iWater",
+  },
+  {
+    src: c("iwater-cups.png"),
+    label: "Travel app",
+    date: "2022",
+    link: "https://iwater.clementroze.com",
+    linkLabel: "Visit iWater",
+  },
+  {
+    src: c("iwater-w1.png"),
+    label: "Devtools",
+    date: "2022",
+    link: "https://iwater.clementroze.com",
+    linkLabel: "Visit iWater",
+  },
+
+  {
+    src: c("deadline-promo.png"),
+    label: "Card grid",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-grid.png"),
+    label: "Web layout",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-stats.png"),
+    label: "Components",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-picker.png"),
+    label: "Devtools",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-won.png"),
+    label: "Web layout",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-quests.png"),
+    label: "Devtools",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-editor.png"),
+    label: "Web layout",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+
+  {
+    src: c("erased.png"),
+    label: "Erased",
+    date: "2026",
+    link: "https://erased.clementroze.com",
+    linkLabel: "Visit website",
+  },
+
+  {
+    src: c("archive.png"),
+    label: "Website Archive",
+    date: "2026",
+    link: "https://archive.clementroze.com",
+    linkLabel: "Visit website",
+  },
+
   { src: c("hyperform-design.png"), label: "Components", date: "2023" },
-  { src: c("deadline-quests.png"), label: "Devtools", date: "2024" },
-  { src: c("deadline-editor.png"), label: "Web layout", date: "2024" },
-  { src: c("souvenir-buttons.png"), label: "Components", date: "2023" },
-  { src: c("hyperform-login.png"), label: "Devtools", date: "2024" },
-  { src: c("hyperform-listing.png"), label: "Web layout", date: "2024" },
-  { src: c("souvenir-nav.png"), label: "Components", date: "2023" },
-  { src: c("souvenir-trio.png"), label: "Devtools", date: "2024" },
-  { src: c("souvenir-duo.png"), label: "Components", date: "2023" },
-  { src: c("dti-cta.png"), label: "Components", date: "2023" },
-  { src: c("souvenir-login.png"), label: "Devtools", date: "2024" },
-  { src: c("souvenir-cam.png"), label: "Components", date: "2023" },
-  { src: c("roze-faq.png"), label: "Components", date: "2023" },
-  { src: c("souvenir-list.png"), label: "Devtools", date: "2024" },
-  { src: c("dti-team.png"), label: "Components", date: "2023" },
-  { src: c("roze-checkout.png"), label: "Components", date: "2023" },
-  { src: c("dti-role.png"), label: "Devtools", date: "2024" },
-  { src: c("dti-404.png"), label: "Components", date: "2023" },
-  { src: c("replit-ide.png"), label: "Components", date: "2023" },
+  { src: c("hyperform-login.png"), label: "Devtools", date: "2023" },
+  { src: c("hyperform-listing.png"), label: "Web layout", date: "2023" },
+
+  { src: c("souvenir-nav.png"), label: "Components", date: "2025" },
+  { src: c("souvenir-trio.png"), label: "Devtools", date: "2025" },
+  { src: c("souvenir-duo.png"), label: "Components", date: "2025" },
+  { src: c("souvenir-buttons.png"), label: "Components", date: "2025" },
+  { src: c("souvenir-login.png"), label: "Devtools", date: "2025" },
+  { src: c("souvenir-cam.png"), label: "Components", date: "2025" },
+  { src: c("souvenir-list.png"), label: "Devtools", date: "2025" },
+
+  { src: c("dti-cta.png"), label: "Components", date: "2025" },
+  { src: c("dti-team.png"), label: "Components", date: "2025" },
+  { src: c("dti-role.png"), label: "Devtools", date: "2025" },
+  { src: c("dti-404.png"), label: "Components", date: "2025" },
+
   { src: c("roze-team.png"), label: "Devtools", date: "2024" },
-  { src: c("roze-slide1.png"), label: "Components", date: "2023" },
-  { src: c("replit-simple.png"), label: "Components", date: "2023" },
+  { src: c("roze-slide1.png"), label: "Components", date: "2024" },
+  { src: c("roze-faq.png"), label: "Components", date: "2024" },
+  { src: c("roze-checkout.png"), label: "Components", date: "2024" },
+  { src: c("roze-slide2.png"), label: "Components", date: "2024" },
+  { src: c("roze-slide3.png"), label: "Components", date: "2024" },
+  { src: c("roze-slide4.png"), label: "Components", date: "2024" },
+
+  { src: c("replit-ide.png"), label: "Components", date: "2024" },
+  { src: c("replit-simple.png"), label: "Components", date: "2024" },
   { src: c("replit-blog.png"), label: "Devtools", date: "2024" },
-  { src: c("roze-slide2.png"), label: "Components", date: "2023" },
-  { src: c("ebr.png"), label: "Components", date: "2023" },
-  { src: c("wvbr-home.png"), label: "Devtools", date: "2024" },
-  { src: c("roze-slide3.png"), label: "Components", date: "2023" },
-  { src: c("wvbr-shows.png"), label: "Components", date: "2023" },
-  { src: c("wvbr-support.png"), label: "Devtools", date: "2024" },
-  { src: c("roze-slide4.png"), label: "Components", date: "2023" },
-  { src: c("monarcha.png"), label: "Components", date: "2023" },
-  { src: c("replit-community.png"), label: "Components", date: "2023" },
-  { src: c("replit-stay.png"), label: "Components", date: "2023" },
-  { src: c("wvbr-shows.png"), label: "Components", date: "2023" },
-  { src: c("wvbr-shows.png"), label: "Components", date: "2023" },
-  { src: c("wvbr-about.png"), label: "Components", date: "2023" },
+  { src: c("replit-community.png"), label: "Components", date: "2024" },
+  { src: c("replit-stay.png"), label: "Components", date: "2024" },
+
+  { src: c("ebr.png"), label: "Components", date: "2026" },
+  { src: c("wvbr-home.png"), label: "Devtools", date: "2025" },
+  { src: c("wvbr-shows.png"), label: "Components", date: "2025" },
+  { src: c("wvbr-support.png"), label: "Devtools", date: "2025" },
+  { src: c("wvbr-about.png"), label: "Components", date: "2025" },
+
+  { src: c("monarcha.png"), label: "Components", date: "2025" },
 ];
 
 // Ordered list used everywhere (grid distribution, mobile stacking, lightbox).

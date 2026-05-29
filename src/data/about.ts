@@ -10,8 +10,7 @@ import { AccordionRowProps } from "../components/AccordionRow";
 export const workExperience: AccordionRowProps[] = [
   {
     slug: "ibm",
-    description:
-      "Incoming Design Intern at IBM's Silicon Valley Lab in San Jose.",
+    description: "Design Intern at IBM's Silicon Valley Lab in San Jose.",
     hasBorderTop: false,
   },
   {
@@ -40,7 +39,7 @@ export const freelancing: AccordionRowProps[] = [
 
       "I joined as the first designer to lead the design and development of the user interface, working closely with the founders to shape multiple iterations of the product.",
 
-      "As the sole designer I also helped out on various tasks, like polishing the landing page and creating conference asses to designing lawyer-themed Slack emojis and custom GC AI mugs!",
+      "As the sole designer I also helped out on various tasks, like polishing the landing page and creating conference assets to designing lawyer-themed Slack emojis and custom GC AI mugs!",
     ],
   },
   {
@@ -53,7 +52,7 @@ export const freelancing: AccordionRowProps[] = [
     description: [
       "Deadline, developed by RECOIL Studios, is a fast-paced, semi-realistic shooter on Roblox featuring one of the platform’s most advanced gun customization systems.",
       "After discovering the game as a player, I noticed the interface felt inconsistent and difficult to navigate. I reached out to the developers with suggestions for improving the UI, which eventually led to a part-time role redesigning every major screen in the game — from the main menu to the in-depth gun editor.",
-      "This was my first experience designing for games, and it pushed me to think beyond traditional UI design. I worked on systems and interactions tied to gameplay, including spawn-in flows, attachment texture Scustomization, and end-of-match animations.",
+      "This was my first experience designing for games, and it pushed me to think beyond traditional UI design. I worked on systems and interactions tied to gameplay, including spawn-in flows, attachment texture customization, and end-of-match animations.",
     ],
     caseStudyHref: "https://www.roblox.com/games/12144402492/Deadline",
     caseStudyLabel: "Play on Roblox",
@@ -133,9 +132,9 @@ export const activities: AccordionRowProps[] = [
         " to better showcase our team and projects. It was rebuilt from the ground up with accessibility, open-source design, and delightful interactions in mind.",
       ],
       [
-        "With ",
+        "And with ",
         { label: "Redi", href: "https://redi.love" },
-        ", we created Cornell's first viral dating app!",
+        ", we created Cornell's first viral dating app! I helped design and build the app in React Native.",
       ],
     ],
     caseStudyHref: "https://cornelldti.org",

@@ -211,7 +211,7 @@ export default function Footer() {
         <div ref={col2Ref} className="reveal footer__col">
           <p className="footer__col-title">Contact</p>
           <a
-            href="mailto:clementproze@gmail.com"
+            href="mailto:cpr58@cornell.edu"
             target="_blank"
             rel="noopener noreferrer"
             className="footer__col-item"

@@ -11,6 +11,19 @@ import work, { WorkItem } from "../data/work";
 
 const WORK_ITEMS = work;
 
+// Hardcoded craft thumbnails for the "See more work" row on the grid view.
+// Picked from /public/craft to feel like a sampler — must exist in that dir.
+const SEE_MORE_GRID_IMAGES = [
+  "/craft/ebb-insights.png",
+  "/craft/iwater-pair.png",
+  "/craft/souvenir-buttons.png",
+];
+
+// Floating preview for the "See more work" list row. Drop a square-ish image
+// at /public/images/see-more-preview.png (any aspect works, the preview slot
+// crops to fill).
+const SEE_MORE_LIST_PREVIEW = "/images/see-more-preview.png";
+
 // ─── grid item ────────────────────────────────────────────────────────────────
 
 // Width of a single grid column at the max layout (1400px container, 4 equal
@@ -96,7 +109,59 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
   );
 }
 
+// Standalone row at the bottom of the grid that points to /craft. Mirrors
+// GridItem layout (3 pics + 1 text col) so it visually rhymes with the
+// project rows; copy + accent are unique to mark it as a different kind of
+// link (a category, not a project).
+function SeeMoreGridRow({ index }: { index: number }) {
+  const picCols = SEE_MORE_GRID_IMAGES.map((src, i) => (
+    <div
+      key={i}
+      className="work-grid__pic"
+      style={{ aspectRatio: `${GRID_COL_WIDTH} / 332` }}
+    >
+      <img src={src} alt="" />
+    </div>
+  ));
+
+  const textCol = (
+    <Link
+      href="/craft"
+      className="work-grid__text"
+      aria-label="See more of my craft and explorations"
+      style={{ "--accent": "#000000" } as React.CSSProperties}
+    >
+      <div className="work-grid__text-top">
+        <h2 className="work-grid__name">More</h2>
+        <p className="work-grid__role">A wider sample of UI and side work.</p>
+      </div>
+      <span className="work-grid__cta">
+        <span className="work-grid__cta-label">See more</span>
+        <img src={arrowBlack} alt="" className="work-grid__cta-arrow" />
+      </span>
+    </Link>
+  );
+
+  return (
+    <Reveal delay={index * 60}>
+      <div className="work-grid__row">
+        {picCols.map((cell, i) => (
+          <Fragment key={i}>{cell}</Fragment>
+        ))}
+        {textCol}
+      </div>
+    </Reveal>
+  );
+}
+
 // ─── list view with floating preview ─────────────────────────────────────────
+
+// Minimal shape the floating preview needs — works for both real WorkItems
+// and the synthetic "see more" row.
+type PreviewSource = {
+  accent: string;
+  previewSrc?: string;
+};
 
 function WorkList({
   items,
@@ -105,18 +170,27 @@ function WorkList({
   items: WorkItem[];
   dividerRef: React.RefObject<HTMLDivElement>;
 }) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  // `hoveredIndex` is the index into `items`, or "see-more" for the trailing
+  // craft row, or null when nothing is hovered.
+  const [hoveredIndex, setHoveredIndex] = useState<number | "see-more" | null>(
+    null,
+  );
   const previewRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: 0, y: 0 });
   const target = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number>(0);
-  const activeItem = hoveredIndex !== null ? items[hoveredIndex] : null;
+  const activeItem: PreviewSource | null =
+    hoveredIndex === null
+      ? null
+      : hoveredIndex === "see-more"
+        ? { accent: "#000000", previewSrc: SEE_MORE_LIST_PREVIEW }
+        : items[hoveredIndex];
   // The item whose background is painted. It lags `activeItem` on the way out:
   // when the cursor leaves, `activeItem` goes null (opacity fades to 0) but the
   // background stays so the preview fades out showing its image, not an empty
   // box. Only cleared once hidden — switching between items updates it at once.
-  const [displayItem, setDisplayItem] = useState<WorkItem | null>(null);
+  const [displayItem, setDisplayItem] = useState<PreviewSource | null>(null);
   useEffect(() => {
     if (activeItem) setDisplayItem(activeItem);
   }, [activeItem]);
@@ -151,7 +225,7 @@ function WorkList({
     target.current = clampToCenter(e.clientX, e.clientY);
   };
 
-  const handleEnter = (i: number, e: React.MouseEvent) => {
+  const handleEnter = (i: number | "see-more", e: React.MouseEvent) => {
     // Seed the target from the entry event and snap the spring to it, so the
     // preview fades in under the pointer instead of travelling from a stale
     // position (e.g. the top-left origin right after load).
@@ -222,6 +296,25 @@ function WorkList({
             </Reveal>
           );
         })}
+
+        {/* "See more" link to /craft — uses the same hover/preview machinery
+            as the regular project rows, but with neutral accent and a
+            placeholder preview image (see SEE_MORE_LIST_PREVIEW). */}
+        <Reveal delay={items.length * 50}>
+          <Link
+            href="/craft"
+            className="work-list__item"
+            style={{ "--accent": "#000000" } as React.CSSProperties}
+            onMouseEnter={(e) => handleEnter("see-more", e)}
+            onMouseLeave={handleLeave}
+          >
+            <span className="work-list__name">More</span>
+            <span className="work-list__role">Sketches & side work</span>
+            <div className="work-list__right">
+              <img src={arrowBlack} alt="" className="work-list__arrow" />
+            </div>
+          </Link>
+        </Reveal>
       </div>
 
       {/* Floating preview — fixed to viewport, follows cursor with spring */}
@@ -403,6 +496,7 @@ export default function Work() {
                 {WORK_ITEMS.map((item, i) => (
                   <GridItem key={item.name} item={item} index={i} />
                 ))}
+                <SeeMoreGridRow index={WORK_ITEMS.length} />
               </div>
             )}
 

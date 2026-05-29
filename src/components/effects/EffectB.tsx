@@ -2,6 +2,8 @@
  * Effect B — Apple-style expand-to-fullbleed (first card only) + parallax + blur-fade text
  */
 import { useEffect, useRef, useState } from "react";
+import arrowWhite from "../../assets/arrow.svg";
+import arrowBlack from "../../assets/arrow-black.svg";
 import { Link } from "../../lib/router";
 
 type Project = {
@@ -39,8 +41,8 @@ function ParallaxProject({
   const sectionRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const numberRef = useRef<HTMLParagraphElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
+  const ctaRef = useRef<HTMLSpanElement>(null);
   const [revealed, setRevealed] = useState(false);
 
   // Reveal entrance — only for the first (expand) section. Uses
@@ -67,11 +69,11 @@ function ParallaxProject({
     const section = sectionRef.current;
     const inner = innerRef.current;
     const img = imgRef.current;
-    const number = numberRef.current;
     const name = nameRef.current;
-    if (!section || !inner || !img || !number || !name) return;
+    const cta = ctaRef.current; // null on coming-soon entries (no CTA rendered)
+    if (!section || !inner || !img || !name) return;
 
-    const els = [number, name];
+    const els: HTMLElement[] = cta ? [name, cta] : [name];
 
     // ── Parallax + expand ─────────────────────────────────────────────────────
     const onScroll = () => {
@@ -96,7 +98,7 @@ function ParallaxProject({
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let isVisible = false;
 
-    const STAGGER = [0, 120]; // ms delay per element (number, name)
+    const STAGGER = [0, 120]; // ms delay per element (name, cta)
 
     const show = () => {
       if (isVisible) return;
@@ -193,12 +195,6 @@ function ParallaxProject({
                 : project.textAccentColor?.dark) ?? project.accent;
             const inner = (
               <>
-                <p
-                  ref={numberRef}
-                  className="project__number effect-b__item effect-b__item--number"
-                >
-                  {project.number}
-                </p>
                 <h2
                   ref={nameRef}
                   className="project__name effect-b__item effect-b__item--name"
@@ -208,6 +204,19 @@ function ParallaxProject({
                     <span className="project__name-suffix"> — Coming soon</span>
                   ) : null}
                 </h2>
+                {project.comingSoon ? null : (
+                  <span
+                    ref={ctaRef}
+                    className="project__cta effect-b__item effect-b__item--cta"
+                  >
+                    <span className="project__cta-label">See more</span>
+                    <img
+                      src={project.heroIsLight ? arrowBlack : arrowWhite}
+                      alt=""
+                      className="project__cta-arrow"
+                    />
+                  </span>
+                )}
               </>
             );
             const style = {

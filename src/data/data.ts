@@ -125,7 +125,7 @@ export const freelance: Entity[] = [
     slug: "hyperform",
     name: "Hyperform",
     date: "2022 - 24",
-    role: "Multidiscplinary Designer",
+    role: "Multidisciplinary Designer",
     accent: "#62FA20",
     hasCaseStudy: false,
   },

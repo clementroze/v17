@@ -7,15 +7,62 @@ const FOCUSABLE =
 
 const MORPH_IN_MS = 520;
 const MORPH_OUT_MS = 380;
-const SCROLL_DISMISS_PX = 80;
+// How much accumulated same-direction wheel intent it takes to dismiss the
+// lightbox. Tuned high so casual scrolling within a tall screenshot doesn't
+// accidentally close — the user has to deliberately push through.
+const SCROLL_DISMISS_PX = 420;
+// Edge-overflow grace: when the user pans a zoomed image past the top/bottom
+// bound, this much "wasted" wheel must accumulate before we start counting
+// toward dismiss. Lets you reach the end of a screenshot and pause without
+// triggering close on the next nudge.
+const EDGE_GRACE_PX = 120;
 
-const ZOOM_STEPS = [1, 1.5, 2.25, 3];
-const ZOOM_MIN = ZOOM_STEPS[0];
-const ZOOM_MAX = ZOOM_STEPS[ZOOM_STEPS.length - 1];
+// Base zoom button steps. Tall images get extra steps appended so the +/-
+// buttons can step above the natural maximum (3×) when the per-item initial
+// zoom (computed from aspect) is itself > 3.
+const ZOOM_STEPS_BASE = [1, 1.5, 2.25, 3];
+const ZOOM_MIN = 1;
+// Only auto-zoom when the image is meaningfully taller than wide — short or
+// square images keep zoom = 1 so the contain-fit shows them in full.
+const TALL_ASPECT_THRESHOLD = 1.4; // natH / natW (= 1/aspect, since aspect = w/h)
+
+/**
+ * Decide how to frame a tall image on open. Takes the image's aspect (w/h)
+ * and returns the initial zoom + vertical pan needed to align the TOP of
+ * the image with the top of the card, with the image scaled up so it fills
+ * the viewport width (so a tall screenshot reads like "viewing the page"
+ * rather than the whole image squashed into 85vh).
+ *
+ * Returns zoom = 1 for non-tall images, leaving them in default contain-fit.
+ */
+function computeInitialFraming(aspect: number): { zoom: number; panY: number } {
+  if (!aspect || 1 / aspect < TALL_ASPECT_THRESHOLD) {
+    return { zoom: 1, panY: 0 };
+  }
+  const vh = window.innerHeight;
+  const vw = window.innerWidth;
+  const renderedH = 0.85 * vh; // matches .craft-lightbox__img { height: 85vh }
+  const renderedW = aspect * renderedH;
+  // Target ~70% of the available viewport width (which itself has a 64px
+  // gutter on each side). Tuned by eye — filling the full width felt too
+  // aggressive; 70% leaves comfortable air around a screenshot while still
+  // showing it at a readable size.
+  const targetW = (vw - 128) * 0.7;
+  const zoom = Math.max(1, targetW / renderedW);
+  if (zoom <= 1.05) return { zoom: 1, panY: 0 };
+  // transform-origin is center center, so scaling pushes the top edge up by
+  // (z-1)*H/2; translate down by that amount to snap the top back into view.
+  const panY = ((zoom - 1) * renderedH) / 2;
+  return { zoom, panY };
+}
 
 type Props = {
   items: CraftItem[];
   index: number;
+  /** Aspect ratios (w/h) keyed by item id, populated as grid images load.
+   *  Used to compute initial zoom synchronously on open so tall screenshots
+   *  don't flash at 1× before jumping to their framed zoom. */
+  aspectMap?: Record<string, number>;
   // Returns the source card element so we can re-measure its current viewport
   // position (which moves as the user scrolls the page underneath the overlay).
   getOriginEl: () => HTMLElement | null;
@@ -35,20 +82,52 @@ function measure(el: HTMLElement): Rect {
 export default function CraftLightbox({
   items,
   index,
+  aspectMap,
   getOriginEl,
   onClose,
   onIndexChange,
 }: Props) {
+  // Compute initial framing synchronously from the current item's already-
+  // measured aspect (if the grid resolved one). Falls back to zoom=1, and the
+  // image's onLoad below will catch it up once the bitmap decodes. Doing this
+  // in lazy initializers means the very first render of the lightbox already
+  // has the correct zoom/pan — no visible flash from 1× to N×.
+  const initialFraming = (() => {
+    const id = items[index]?.id;
+    const measured = id ? aspectMap?.[id] : undefined;
+    const a = measured ?? items[index]?.aspect ?? 0;
+    return computeInitialFraming(a);
+  })();
   const [phase, setPhase] = useState<Phase>(() => (getOriginEl() ? 'origin' : 'idle'));
   const [mounted, setMounted] = useState(false);
   const [dir, setDir] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   // Backdrop progress driven by scroll dismissal — 1 = fully open, 0 = fully gone.
   const [scrollProgress, setScrollProgress] = useState(1);
-  // User-controlled zoom multiplier applied to the centered card.
-  const [zoom, setZoom] = useState(1);
-  // Pan offset (px) applied alongside zoom when zoomed in.
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  // Signed "tug" offset (px) applied to the card while the user is pushing
+  // toward dismiss. Positive = image drifts down (user is scrolling down past
+  // the bottom edge); negative = drifts up. Resets to 0 when the dismiss
+  // accumulator resets, so the card snaps back if the user pauses or reverses.
+  const [dismissDrift, setDismissDrift] = useState(0);
+  // User-controlled zoom multiplier applied to the centered card. Seeded from
+  // initialFraming so tall images open already at their framed zoom — no
+  // flash from 1× during the morph-in.
+  const [zoom, setZoom] = useState(initialFraming.zoom);
+  // Per-item initial zoom — bumped above 1 for tall screenshots so the user
+  // sees the image filling the viewport width instead of squashed into 85vh.
+  // Resets and re-derives when the item changes.
+  const [initialZoom, setInitialZoom] = useState(initialFraming.zoom);
+  // Effective max zoom — the user can always step up to at least 2× the
+  // initial zoom even when the initial is already > 3.
+  const [zoomMax, setZoomMax] = useState(
+    Math.max(
+      ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1],
+      initialFraming.zoom * 2,
+    ),
+  );
+  // Pan offset (px) applied alongside zoom when zoomed in. Seeded so the TOP
+  // of the image aligns with the top of the card on tall images.
+  const [pan, setPan] = useState({ x: 0, y: initialFraming.panY });
   // Live drag state — refs to avoid re-renders on every mousemove.
   const dragRef = useRef<{
     active: boolean;
@@ -242,11 +321,37 @@ export default function CraftLightbox({
       const next = (index + delta + items.length) % items.length;
       setDir(delta > 0 ? 1 : -1);
       setAnimKey((k) => k + 1);
+      // Reset per-item state; initialZoom will be re-derived from the new
+      // image's natural size in onImgLoad.
       setZoom(1);
+      setInitialZoom(1);
+      setZoomMax(ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1]);
       setPan({ x: 0, y: 0 });
       onIndexChange(next);
     },
     [index, items.length, onIndexChange]
+  );
+
+  // Fallback path: when the parent didn't yet have an aspect for this item
+  // (rare — the grid measures aspects on first paint), derive it from the
+  // image's natural size and apply the same framing. We skip this when the
+  // synchronous init already set a zoom > 1 so we don't fight a user mid-
+  // pan/zoom by re-applying the initial frame.
+  const onImgLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      if (initialZoom > 1) return;
+      const img = e.currentTarget;
+      const natW = img.naturalWidth;
+      const natH = img.naturalHeight;
+      if (!natW || !natH) return;
+      const { zoom: z, panY } = computeInitialFraming(natW / natH);
+      if (z <= 1) return;
+      setInitialZoom(z);
+      setZoomMax(Math.max(ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1], z * 2));
+      setZoom(z);
+      setPan({ x: 0, y: panY });
+    },
+    [initialZoom],
   );
 
   // Clamp pan so the image edges don't drift too far outside the viewport.
@@ -265,24 +370,32 @@ export default function CraftLightbox({
     };
   }, []);
 
+  // The effective ladder of zoom stops. Includes the base 1/1.5/2.25/3 steps
+  // plus the per-item `initialZoom` (when it's bigger than 1), plus an extra
+  // step at 1.5× initial so a tall screenshot can still be zoomed-in further
+  // from its already-zoomed starting point.
+  const zoomSteps = (() => {
+    const set = new Set<number>(ZOOM_STEPS_BASE);
+    if (initialZoom > 1) {
+      set.add(initialZoom);
+      set.add(initialZoom * 1.5);
+    }
+    return [...set].sort((a, b) => a - b);
+  })();
+
   const zoomIn = useCallback(() => {
-    setZoom((z) => {
-      const next = ZOOM_STEPS.find((s) => s > z + 0.01) ?? ZOOM_MAX;
-      // Re-clamp pan against the new (larger) bounds — usually a no-op.
-      setPan((p) => clampPan(p.x, p.y, next));
-      return next;
-    });
-  }, [clampPan]);
+    const next = zoomSteps.find((s) => s > zoom + 0.01) ?? zoomMax;
+    setZoom(next);
+    setPan((p) => clampPan(p.x, p.y, next));
+  }, [zoom, zoomMax, zoomSteps, clampPan]);
 
   const zoomOut = useCallback(() => {
-    setZoom((z) => {
-      const reversed = [...ZOOM_STEPS].reverse();
-      const next = reversed.find((s) => s < z - 0.01) ?? ZOOM_MIN;
-      if (next <= 1) setPan({ x: 0, y: 0 });
-      else setPan((p) => clampPan(p.x, p.y, next));
-      return next;
-    });
-  }, [clampPan]);
+    const reversed = [...zoomSteps].reverse();
+    const next = reversed.find((s) => s < zoom - 0.01) ?? ZOOM_MIN;
+    setZoom(next);
+    if (next <= 1) setPan({ x: 0, y: 0 });
+    else setPan((p) => clampPan(p.x, p.y, next));
+  }, [zoom, zoomSteps, clampPan]);
 
   // ── Drag-to-pan ────────────────────────────────────────────────────────────
   // Zoom is controlled exclusively by the top-right zoom buttons (and +/-
@@ -351,75 +464,200 @@ export default function CraftLightbox({
     };
   }, []);
 
-  // ── Horizontal trackpad scroll → navigate prev/next ──────────────────────
-  // Two-finger swipe horizontally moves between images. Requires a meaningful
-  // amount of accumulated motion before triggering — small swipes don't count.
-  // The accumulator also decays when the user stops, so a brief swipe doesn't
-  // sit at the threshold waiting for the next nudge.
+  // Latest pan/zoom for the wheel handler. We keep these in refs so the
+  // single window-level wheel listener can read the current values without
+  // having to re-bind (and lose its captured accumulators) every time pan
+  // or zoom updates.
+  const panRef = useRef(pan);
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  // ── Unified wheel handling ───────────────────────────────────────────────
+  // Three jobs from one listener:
+  //   - Horizontal swipe → prev/next.
+  //   - Vertical wheel, zoomed in → pan the image. Edge overflow accumulates
+  //     toward dismiss only after a grace period so reaching the bottom of a
+  //     tall screenshot doesn't auto-dismiss on the very next nudge.
+  //   - Vertical wheel, not zoomed → dismiss accumulator directly.
+  //
+  // Friction model: the dismiss accumulator is SIGNED (running sum of dy in
+  // the most recent direction). Reversing direction zeroes it. So the user
+  // has to push a sustained 420px in one direction to close — short
+  // back-and-forth scrolling never adds up. preventDefault on every event so
+  // the page underneath never scrolls.
   useEffect(() => {
     let accumX = 0;
+    let dismissAccum = 0;
+    let dismissDir = 0; // -1 / 0 / 1 — last counted direction
+    let edgeOverflow = 0; // |signed overflow| since hitting an edge
     let lastNavAt = 0;
     let lastEventAt = 0;
-    const THRESHOLD = 140; // px of accumulated deltaX — feels like a real swipe
+    const NAV_THRESHOLD = 140;
     const COOLDOWN_MS = 500;
-    const DECAY_MS = 120; // accum resets if no wheel events in this long
+    // Wider decay window — a half-second pause still counts as "same gesture".
+    const DECAY_MS = 500;
+    // ── Elastic release ────────────────────────────────────────────────────
+    // As soon as wheel events stop, ease the dismiss accumulator (and the
+    // visible drift + scrim) back to 0 so the card never gets "stuck"
+    // partway between framed and dismiss. Frame-by-frame so it feels alive
+    // — purely CSS transitions wouldn't decay the underlying dismissAccum,
+    // so reaching the threshold from intermediate states would still work
+    // with the same total push.
+    let releaseRaf = 0;
+    let releaseTimer = 0;
+    const RELEASE_DELAY_MS = 80; // brief settle after last event
+    const RELEASE_DECAY_PER_MS = 4; // px/ms — controls bounce-back speed
+    const MAX_DRIFT_PX = 64;
+    let lastFrameAt = 0;
+
+    // Single function that writes BOTH the scrim and the card drift from the
+    // same eased dismiss progress. Using one curve for both keeps them
+    // visually locked together — when the user pulls, the scrim fades and
+    // the image drifts at the same rate, not on different curves.
+    const applyDismiss = (accum: number, dir: number) => {
+      const progress = Math.min(1, accum / SCROLL_DISMISS_PX);
+      // ease-out quadratic: starts fast, slows as it nears full dismiss.
+      const eased = 1 - Math.pow(1 - progress, 2);
+      setScrollProgress(accum === 0 ? 1 : 1 - eased);
+      setDismissDrift(accum === 0 ? 0 : -dir * eased * MAX_DRIFT_PX);
+    };
+
+    const tick = (now: number) => {
+      const dt = lastFrameAt === 0 ? 16 : now - lastFrameAt;
+      lastFrameAt = now;
+      const step = RELEASE_DECAY_PER_MS * dt;
+      if (dismissAccum > step) {
+        dismissAccum -= step;
+      } else {
+        dismissAccum = 0;
+        dismissDir = 0;
+      }
+      applyDismiss(dismissAccum, dismissDir);
+      if (dismissAccum > 0) {
+        releaseRaf = requestAnimationFrame(tick);
+      } else {
+        releaseRaf = 0;
+      }
+    };
+    const scheduleRelease = () => {
+      cancelAnimationFrame(releaseRaf);
+      releaseRaf = 0;
+      // Use a tiny setTimeout so a burst of wheel events doesn't start
+      // decaying mid-gesture. Each wheel cancels the pending start.
+      window.clearTimeout(releaseTimer);
+      releaseTimer = window.setTimeout(() => {
+        lastFrameAt = 0;
+        releaseRaf = requestAnimationFrame(tick);
+      }, RELEASE_DELAY_MS);
+    };
+    const cancelRelease = () => {
+      window.clearTimeout(releaseTimer);
+      cancelAnimationFrame(releaseRaf);
+      releaseRaf = 0;
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (closingRef.current) return;
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) {
+      // Mac trackpad pinch-to-zoom comes through as wheel with ctrlKey —
+      // ignore so the OS gesture isn't fought over.
+      if (e.ctrlKey) return;
+      e.preventDefault();
+      cancelRelease();
+
+      const now = performance.now();
+      if (now - lastEventAt > DECAY_MS) {
         accumX = 0;
+        dismissAccum = 0;
+        dismissDir = 0;
+        edgeOverflow = 0;
+        applyDismiss(0, 0);
+      }
+      lastEventAt = now;
+
+      // Horizontal swipe wins when clearly horizontal.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        accumX += e.deltaX;
+        if (now - lastNavAt < COOLDOWN_MS) return;
+        if (accumX > NAV_THRESHOLD) {
+          pulseNavButton(nextBtnRef.current);
+          go(1);
+          accumX = 0;
+          lastNavAt = now;
+        } else if (accumX < -NAV_THRESHOLD) {
+          pulseNavButton(prevBtnRef.current);
+          go(-1);
+          accumX = 0;
+          lastNavAt = now;
+        }
         return;
       }
-      // preventDefault stops the page from horizontally scrolling under the
-      // lightbox (and contributes to suppressing browser back-swipe).
-      e.preventDefault();
-      const now = performance.now();
-      // Decay: if there's been a pause, the previous swipe has "settled" —
-      // start fresh instead of letting tiny residual deltas push past the
-      // threshold.
-      if (now - lastEventAt > DECAY_MS) accumX = 0;
-      lastEventAt = now;
-      accumX += e.deltaX;
-      if (now - lastNavAt < COOLDOWN_MS) return;
-      if (accumX > THRESHOLD) {
-        pulseNavButton(nextBtnRef.current);
-        go(1);
-        accumX = 0;
-        lastNavAt = now;
-      } else if (accumX < -THRESHOLD) {
-        pulseNavButton(prevBtnRef.current);
-        go(-1);
-        accumX = 0;
-        lastNavAt = now;
+
+      // Vertical wheel.
+      const dy = e.deltaY;
+      const z = zoomRef.current;
+      let dismissContribution = dy; // default: all of dy when not zoomed
+
+      if (z > 1) {
+        // Natural-scroll direction: wheel down reveals lower parts of image.
+        const p = panRef.current;
+        const proposed = { x: p.x, y: p.y - dy };
+        const clamped = clampPan(proposed.x, proposed.y, z);
+        // Signed amount the clamp ate — sign of (proposed - clamped) equals
+        // sign of (dy) when we're pushed past the edge in dy's direction.
+        const overflow = proposed.y - clamped.y;
+        setPan(clamped);
+
+        if (Math.abs(overflow) < 0.5) {
+          // Inside the bounds — pure pan, nothing toward dismiss. Reset the
+          // edge grace so the next time we hit an edge it has to overflow
+          // EDGE_GRACE_PX again before counting.
+          edgeOverflow = 0;
+          dismissContribution = 0;
+        } else {
+          // We're past the edge. Pad EDGE_GRACE_PX of "free" overflow before
+          // any wheel intent counts toward dismiss.
+          edgeOverflow += Math.abs(overflow);
+          if (edgeOverflow <= EDGE_GRACE_PX) {
+            dismissContribution = 0;
+          } else {
+            // Only the portion beyond the grace counts, with the sign of dy
+            // (so reverse direction still cancels).
+            const beyond = edgeOverflow - EDGE_GRACE_PX;
+            dismissContribution = Math.sign(dy) * Math.min(Math.abs(dy), beyond);
+          }
+        }
       }
+
+      // Update the signed dismiss accumulator. Direction reversal zeroes it
+      // — short back-and-forth scrolling never adds up to dismiss. Scrim
+      // and drift are both written from the same eased progress so they
+      // stay visually locked together (see applyDismiss).
+      if (dismissContribution !== 0) {
+        const dir = Math.sign(dismissContribution);
+        if (dir !== dismissDir) {
+          dismissAccum = 0;
+          dismissDir = dir;
+        }
+        dismissAccum += Math.abs(dismissContribution);
+        applyDismiss(dismissAccum, dismissDir);
+        if (dismissAccum > SCROLL_DISMISS_PX) close();
+      }
+      // Always schedule release after each event — if more wheel events
+      // come in, scheduleRelease cancels itself. The moment the user lets
+      // go, the rAF kicks in and eases everything back to 0.
+      scheduleRelease();
     };
     window.addEventListener('wheel', onWheel, { passive: false });
-    return () => window.removeEventListener('wheel', onWheel);
-  }, [go, pulseNavButton]);
-
-  // ── Scroll-to-dismiss ─────────────────────────────────────────────────────
-  // Page scrolls freely. Once user has scrolled SCROLL_DISMISS_PX from the
-  // initial offset, we trigger close — and because the source card moves with
-  // the page, the morph-back lands wherever it now sits in the viewport.
-  useEffect(() => {
-    // Skip scroll-dismiss when zoomed — user is inspecting the image.
-    if (zoom > 1) {
-      setScrollProgress(1);
-      return;
-    }
-    const initialOffset = window.scrollY;
-    let raf = 0;
-    const tick = () => {
-      raf = requestAnimationFrame(tick);
-      if (closingRef.current) return;
-      const delta = Math.abs(window.scrollY - initialOffset);
-      // Map [0..SCROLL_DISMISS_PX] → [1..0] for backdrop fade
-      const p = Math.max(0, 1 - delta / SCROLL_DISMISS_PX);
-      setScrollProgress(p);
-      if (delta > SCROLL_DISMISS_PX) close();
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      cancelRelease();
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [close, zoom]);
+  }, [close, clampPan, go, pulseNavButton]);
 
   // Keyboard
   useEffect(() => {
@@ -491,6 +729,21 @@ export default function CraftLightbox({
   const item = items[index];
 
   const cardStyle: React.CSSProperties = (() => {
+    // Single coordinate system — top-left origin — for every phase. Pan/zoom
+    // are still authored with "around the center" semantics for clarity, but
+    // converted to a top-left translate here. Keeping ONE origin across all
+    // phases prevents the abrupt shift that used to happen when phase flipped
+    // from 'center' (top-left) to 'idle' (center-center) — that transition
+    // swap would visually snap a zoomed-in tall image to a new position.
+    const card = cardRef.current;
+    const w = card?.offsetWidth ?? 0;
+    const h = card?.offsetHeight ?? 0;
+    const framedTransform = (px: number, py: number, z: number): string => {
+      const tx = px - ((z - 1) * w) / 2;
+      const ty = py - ((z - 1) * h) / 2;
+      return `translate(${tx}px, ${ty}px) scale(${z})`;
+    };
+
     if (phase === 'origin' && originTransform) {
       return {
         transformOrigin: 'top left',
@@ -500,31 +753,45 @@ export default function CraftLightbox({
       };
     }
     if (phase === 'center') {
+      // Animate from origin (top-left anchored thumb position) to the final
+      // framed transform (pan/zoom expressed in top-left coordinates).
       return {
         transformOrigin: 'top left',
-        transform: 'translate(0px, 0px) scale(1)',
+        transform: framedTransform(pan.x, pan.y, zoom),
         transition: `transform ${MORPH_IN_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
         willChange: 'transform',
       };
     }
     if (phase === 'idle') {
-      // Zoom + pan around the card's center.
+      // Same expression as 'center' — no origin or basis change between the
+      // two phases, just whether there's a transition wrapping the change.
+      // Dismiss drift is added to pan.y so the card tugs in the direction
+      // of the gesture as the user pushes past an edge toward dismiss.
+      // Wheel events update pan continuously, so suppress the slow ease
+      // during active drift/drag — otherwise the card lags behind the wheel.
+      // The natural snap-back to dismissDrift = 0 still gets a transition
+      // because the lighter 'transform 200ms ...' kicks in once drift is 0.
+      const live = isDragging || dismissDrift !== 0;
       return {
-        transformOrigin: 'center center',
-        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-        transition: isDragging
-          ? 'none'
+        transformOrigin: 'top left',
+        transform: framedTransform(pan.x, pan.y + dismissDrift, zoom),
+        transition: live
+          ? 'transform 80ms linear'
           : 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
       };
     }
     if (phase === 'closing' && closingStartTransform) {
       // Locked to the starting transform so React doesn't fight with the
       // rAF that's mutating style.transform every frame. The imperative
-      // writes win because they happen between React commits.
+      // writes win because they happen between React commits. Box-shadow
+      // gets its own transition so it fades out alongside the morph back to
+      // the source — otherwise the shadow follows the card the whole way
+      // and snaps off when the lightbox unmounts.
       return {
         transformOrigin: 'top left',
         transform: closingStartTransform,
-        transition: 'none',
+        transition: `box-shadow ${MORPH_OUT_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+        boxShadow: 'none',
         willChange: 'transform',
       };
     }
@@ -563,7 +830,43 @@ export default function CraftLightbox({
             dir > 0 ? 'next' : dir < 0 ? 'prev' : 'enter'
           }`}
         >
-          <div className="craft-lightbox__label">{item.label}</div>
+          <div className="craft-lightbox__label-row">
+            <div className="craft-lightbox__label">{item.label}</div>
+            {item.link ? (
+              <span className="craft-lightbox__link-sep" aria-hidden="true">
+                •
+              </span>
+            ) : null}
+            {item.link ? (
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="craft-lightbox__link"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="craft-lightbox__link-label">
+                  {item.linkLabel ?? 'Visit'}
+                </span>
+                <svg
+                  className="craft-lightbox__link-arrow"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.5 6H9.5M9.5 6L6 2.5M9.5 6L6 9.5"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            ) : null}
+          </div>
           <div className="craft-lightbox__date">{item.date}</div>
         </div>
       </div>
@@ -589,7 +892,7 @@ export default function CraftLightbox({
           type="button"
           className="craft-lightbox__icon-btn"
           aria-label="Zoom in"
-          disabled={zoom >= ZOOM_MAX - 0.01}
+          disabled={zoom >= zoomMax - 0.01}
           onClick={(e) => {
             e.stopPropagation();
             zoomIn();
@@ -668,7 +971,12 @@ export default function CraftLightbox({
           /\.(mp4|mov|webm|ogg)$/i.test(item.src) ? (
             <CaseStudyVideo src={item.src} label={item.label} />
           ) : (
-            <img src={item.src} alt={item.alt ?? item.label} className="craft-lightbox__img" />
+            <img
+              src={item.src}
+              alt={item.alt ?? item.label}
+              className="craft-lightbox__img"
+              onLoad={onImgLoad}
+            />
           )
         ) : (
           <div className="craft-lightbox__placeholder" />

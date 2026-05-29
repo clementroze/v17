@@ -1003,29 +1003,10 @@ footer::selection {
   display: none;
 }
 
-/* The small index number — pinned to the line, sized like cs-nav__label.
-   Higher opacity than before (was 0.1, basically invisible) so it actually
-   reads as a section index. */
-.project__number {
-  flex: 0 0 auto;
-  font-size: 18px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
-  color: var(--white);
-  opacity: 0.7;
-  line-height: var(--leading-heading);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.project__content--light .project__number {
-  color: var(--black);
-  text-shadow: none;
-}
-
 .project__name {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 56px;
+  font-size: 32px;
   letter-spacing: var(--tracking-heading);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   font-weight: var(--weight-heading);
@@ -1048,6 +1029,53 @@ footer::selection {
 .project__name-suffix {
   font-weight: var(--weight-body);
   opacity: 0.55;
+}
+
+/* "See more →" CTA pinned right of the project row. Same hover language as
+   .work-grid__cta and .cs-nav__meta — label brightens, arrow nudges right.
+   Tone follows the hero: white over dark images, black over light ones. */
+.project__cta {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  font-size: 16px;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking);
+  color: var(--white);
+  opacity: 0.7;
+  line-height: var(--leading-heading);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: opacity 160ms ease-out;
+}
+
+.project__content--light .project__cta {
+  color: var(--black);
+  text-shadow: none;
+}
+
+.project__cta-label {
+  display: inline-block;
+}
+
+.project__cta-arrow {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.project__content:hover .project__cta,
+.project__content:focus-visible .project__cta {
+  opacity: 1;
+}
+
+.project__content:hover .project__cta-arrow,
+.project__content:focus-visible .project__cta-arrow {
+  transform: translateX(4px);
 }
 
 /* =============================================
@@ -2009,7 +2037,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .about-info-text p {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
@@ -2333,11 +2361,22 @@ html.konami .projects-nav-m__pill {
   transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Open/close anim uses two layered tweens:
+   - grid-template-rows handles the height collapse (no max-height guess
+     needed, content drives its own size).
+   - opacity + translateY on the inner gives the text a soft rise/fade so
+     short single-line descriptions don't snap in.
+   On OPEN, the inner is slightly delayed so it fades in AFTER the row has
+   started expanding. On CLOSE, it leaves first so the content disappears
+   before the row collapses around it. */
 .accordion-row__body {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    grid-template-rows 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+    padding-bottom 0.48s cubic-bezier(0.22, 1, 0.36, 1);
   width: 100%;
+  padding-bottom: 0;
 }
 
 .accordion-row__body--open {
@@ -2351,6 +2390,23 @@ html.konami .projects-nav-m__pill {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  opacity: 0;
+  transform: translateY(-6px);
+  /* Close: leave fast, no delay — content fades out while the row collapses
+     around it. */
+  transition:
+    opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1) 0s,
+    transform 0.24s cubic-bezier(0.4, 0, 0.2, 1) 0s;
+}
+
+.accordion-row__body--open .accordion-row__body-inner {
+  opacity: 1;
+  transform: translateY(0);
+  /* Open: small lead-in so the row visibly starts expanding before the
+     content materializes. Slower than close so the entrance feels weighted. */
+  transition:
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.12s,
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
 }
 
 .accordion-row__description {
@@ -3025,7 +3081,7 @@ html.konami .projects-nav-m__pill {
   background: var(--surface);
   background-size: cover;
   background-position: center;
-  border: 1px solid #dedede;
+  border: 1px solid var(--black-line);
 }
 
 /* ── Body container ────────────────────────────────────────── */
@@ -3828,6 +3884,7 @@ html.konami .projects-nav-m__pill {
     transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.3s ease;
   will-change: transform;
+  border: 1px solid rgba(0 0 0 / 2%);
 }
 
 .craft-card:hover {
@@ -3920,10 +3977,58 @@ html.konami .projects-nav-m__pill {
   opacity: 1;
 }
 
+.craft-lightbox__label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.craft-lightbox__link-sep {
+  font-size: 18px;
+  color: var(--white-muted);
+  line-height: 1;
+}
+
 .craft-lightbox__label {
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking);
   font-size: 18px;
+}
+
+/* Optional external link sitting next to the label. Pointer events on the
+   meta block itself are off (so it doesn't capture clicks meant for the
+   backdrop) — re-enable them here so the link is actually clickable. */
+.craft-lightbox__link {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  letter-spacing: var(--tracking);
+  color: var(--white-muted);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: color 160ms ease-out;
+}
+
+.craft-lightbox__link:hover,
+.craft-lightbox__link:focus-visible {
+  color: var(--white);
+}
+
+.craft-lightbox__link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.craft-lightbox__link-arrow {
+  flex-shrink: 0;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.craft-lightbox__link:hover .craft-lightbox__link-arrow,
+.craft-lightbox__link:focus-visible .craft-lightbox__link-arrow {
+  transform: translateX(4px);
 }
 
 .craft-lightbox__date {
@@ -4394,8 +4499,13 @@ html.konami .projects-nav-m__pill {
     font-size: clamp(28px, 6vw, 44px);
     letter-spacing: var(--tracking-heading);
   }
-  .project__number {
-    font-size: 14px;
+  .project__cta {
+    font-size: 15px;
+    gap: 6px;
+  }
+  .project__cta-arrow {
+    width: 15px;
+    height: 15px;
   }
 
   /* ── Work grid ── */
@@ -4748,8 +4858,13 @@ html.konami .projects-nav-m__pill {
     font-size: clamp(26px, 7vw, 34px);
     letter-spacing: var(--tracking-heading);
   }
-  .project__number {
-    font-size: 12px;
+  .project__cta {
+    font-size: 13px;
+    gap: 4px;
+  }
+  .project__cta-arrow {
+    width: 13px;
+    height: 13px;
   }
 
   /* ── About ── */

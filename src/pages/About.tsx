@@ -215,7 +215,7 @@ export default function About() {
                         </p>
                       </a>
                       <a
-                        href="mailto:clement.roze@gmail.com"
+                        href="mailto:cpr58@cornell.edu"
                         className="about-contact-link"
                         target="_blank"
                       >
