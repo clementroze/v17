@@ -2,9 +2,6 @@
  * Effect B — Apple-style expand-to-fullbleed (first card only) + parallax + blur-fade text
  */
 import { useEffect, useRef, useState } from "react";
-import arrowWhite from "../../assets/arrow.svg";
-import arrowBlack from "../../assets/arrow-black.svg";
-import Hourglass from "../Hourglass";
 import { Link } from "../../lib/router";
 
 type Project = {
@@ -13,6 +10,9 @@ type Project = {
   homeImageSrc: string; // homepage image (distinct from the case-study hero `imageSrc`)
   href: string;
   accent: string;
+  /** Per-theme readable variant of `accent` for use as text on the hero. Falls
+   *  back to `accent` when not provided. Light heroes use the `.light` value. */
+  textAccentColor?: { light: string; dark: string };
   /** True when the hero image is light-toned → use dark border/CTA for contrast. */
   heroIsLight?: boolean;
   comingSoon?: boolean;
@@ -41,7 +41,6 @@ function ParallaxProject({
   const imgRef = useRef<HTMLImageElement>(null);
   const numberRef = useRef<HTMLParagraphElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
-  const btnRef = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(false);
 
   // Reveal entrance — only for the first (expand) section. Uses
@@ -70,10 +69,9 @@ function ParallaxProject({
     const img = imgRef.current;
     const number = numberRef.current;
     const name = nameRef.current;
-    const btn = btnRef.current;
-    if (!section || !inner || !img || !number || !name || !btn) return;
+    if (!section || !inner || !img || !number || !name) return;
 
-    const els = [number, name, btn];
+    const els = [number, name];
 
     // ── Parallax + expand ─────────────────────────────────────────────────────
     const onScroll = () => {
@@ -98,7 +96,7 @@ function ParallaxProject({
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let isVisible = false;
 
-    const STAGGER = [0, 80, 180]; // ms delay per element
+    const STAGGER = [0, 120]; // ms delay per element (number, name)
 
     const show = () => {
       if (isVisible) return;
@@ -180,52 +178,46 @@ function ParallaxProject({
         />
         <div className="project__inner">
           {(() => {
-            // The whole content row is the link surface (border + name + CTA),
-            // mirroring work-grid__text / cs-nav__card. Coming-soon renders a
-            // non-interactive div instead. Tone class flips the border/CTA ink
-            // to contrast with light vs dark hero images.
+            // The whole row IS the link — line sweep + name color change ARE
+            // the affordance. No explicit CTA (cs-nav__card pattern). Tone
+            // class flips border/text ink to contrast with light vs dark heroes.
             const contentClass = `project__content${
               project.heroIsLight ? " project__content--light" : ""
             }`;
+            // Hover color: per-theme readable accent (falls back to brand
+            // accent). Light heroes use the .light variant so e.g. Google's
+            // brand yellow doesn't become invisible on a yellow image.
+            const readableAccent =
+              (project.heroIsLight
+                ? project.textAccentColor?.light
+                : project.textAccentColor?.dark) ?? project.accent;
             const inner = (
               <>
-                <div className="effect-b__text project__text">
-                  <p
-                    ref={numberRef}
-                    className="project__number effect-b__item effect-b__item--number"
-                  >
-                    {project.number}
-                  </p>
-                  <h2
-                    ref={nameRef}
-                    className="project__name effect-b__item effect-b__item--name"
-                  >
-                    {project.name}
-                  </h2>
-                </div>
-                <div
-                  ref={btnRef}
-                  className="effect-b__item effect-b__item--btn project__cta"
+                <p
+                  ref={numberRef}
+                  className="project__number effect-b__item effect-b__item--number"
                 >
-                  <span className="project__cta-label">
-                    {project.comingSoon ? "Coming soon" : "View"}
-                  </span>
+                  {project.number}
+                </p>
+                <h2
+                  ref={nameRef}
+                  className="project__name effect-b__item effect-b__item--name"
+                >
+                  {project.name}
                   {project.comingSoon ? (
-                    <Hourglass className="project__cta-hourglass" />
-                  ) : (
-                    <img
-                      src={project.heroIsLight ? arrowBlack : arrowWhite}
-                      alt=""
-                      className="project__cta-arrow"
-                    />
-                  )}
-                </div>
+                    <span className="project__name-suffix"> — Coming soon</span>
+                  ) : null}
+                </h2>
               </>
             );
+            const style = {
+              "--accent": project.accent,
+              "--accent-readable": readableAccent,
+            } as React.CSSProperties;
             return project.comingSoon ? (
               <div
                 className={`${contentClass} project__content--disabled`}
-                style={{ "--accent": project.accent } as React.CSSProperties}
+                style={style}
               >
                 {inner}
               </div>
@@ -234,7 +226,7 @@ function ParallaxProject({
                 href={project.href}
                 className={contentClass}
                 aria-label={`View ${project.name}`}
-                style={{ "--accent": project.accent } as React.CSSProperties}
+                style={style}
               >
                 {inner}
               </Link>

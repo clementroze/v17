@@ -521,7 +521,7 @@ footer::selection {
   font-size: 32px;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
-  line-height: var(--leading-heading);
+  line-height: var(--leading-body);
   width: min(688px, 100%);
   color: inherit;
   text-wrap: balance;
@@ -911,38 +911,52 @@ footer::selection {
   pointer-events: none;
 }
 
+/* Bottom scrim — taller and stronger than before so the line + name sit on
+   real ink, not in the fade tail. The dark stop reaches further up the band
+   (50% instead of disappearing immediately) which fixes the readability
+   problem on busy/mid-tone heroes. Tone flips for light heroes via the
+   --light variant on .project__content. */
 .project__inner {
   position: relative;
   display: flex;
   justify-content: center;
+  padding-top: 96px;
   padding-bottom: 32px;
-  /* Full-bleed: the gradient now spans the whole viewport width. */
   width: 100%;
   background: linear-gradient(
     to top,
-    rgba(0 0 0 / 80%) 0%,
-    rgba(0 0 0 / 0%) 100%
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.35) 50%,
+    rgba(0, 0, 0, 0) 100%
   );
 }
 
-/* Content row = the link surface. Keeps the number/name/CTA in the centered
-   1400px band; the top border + accent slide are content-width (this element),
-   not full-bleed like the gradient on .project__inner. Mirrors work-grid__text
-   / cs-nav__card. */
+/* Light-hero variant: invert the scrim so dark text/line read against it. */
+.project__inner:has(.project__content--light) {
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* The whole row is the link. Number + name sit inline (cs-nav__card pattern):
+   no separate CTA — the line sweep + name color change ARE the affordance. */
 .project__content {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
+  gap: 16px;
   width: var(--max-width);
   max-width: 100%;
-  /* Clear the top border drawn by ::before. */
   padding-top: 20px;
   text-decoration: none;
   color: inherit;
 }
 
-/* Base top border — transparent-white over dark images, transparent-black over
-   light ones (the --light modifier). */
+/* Base top border — brighter than before (0.6 instead of 0.35) so it reads
+   without depending on a hover. Tone flips for light heroes. */
 .project__content::before {
   content: "";
   position: absolute;
@@ -950,14 +964,15 @@ footer::selection {
   left: 0;
   right: 0;
   height: 1.5px;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .project__content--light::before {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.5);
 }
 
-/* Accent overlay grows left-to-right on hover/focus. */
+/* Accent overlay sweeps left-to-right on hover/focus. Uses --accent-readable
+   (a per-project text-safe variant) so light-hero accents don't disappear. */
 .project__content::after {
   content: "";
   position: absolute;
@@ -965,7 +980,7 @@ footer::selection {
   left: 0;
   height: 1.5px;
   width: 0;
-  background: var(--accent);
+  background: var(--accent-readable, var(--accent));
   transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -988,92 +1003,51 @@ footer::selection {
   display: none;
 }
 
-.project__text {
-  flex: 1 0 0;
-  display: flex;
-  flex-direction: column;
-  font-weight: var(--weight-body);
-  color: var(--white);
-  white-space: nowrap;
-  line-height: var(--leading-heading);
-}
-
+/* The small index number — pinned to the line, sized like cs-nav__label.
+   Higher opacity than before (was 0.1, basically invisible) so it actually
+   reads as a section index. */
 .project__number {
-  font-size: 24px;
-  letter-spacing: var(--tracking-heading);
-  opacity: 0.1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.project__name {
-  font-size: 48px;
-  letter-spacing: var(--tracking-heading);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  font-weight: var(--weight-heading);
-  transition: color 200ms ease;
-}
-
-.project__content:hover .project__name,
-.project__content:focus-visible .project__name {
-  color: var(--accent);
-}
-
-/* CTA: replaces the old "View" button — inline label + arrow that animate on
-   hover (mirrors work-grid__cta / cs-nav__meta). Tone follows the image. */
-.project__cta {
   flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  /* Pin to the band's right edge so it sits where the button used to. */
-  margin-left: auto;
-}
-
-.project__cta-label {
   font-size: 18px;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking);
   color: var(--white);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   opacity: 0.7;
-  transition: opacity 160ms ease-out;
+  line-height: var(--leading-heading);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.project__content--light .project__cta-label {
+.project__content--light .project__number {
   color: var(--black);
   text-shadow: none;
 }
 
-.project__content:hover .project__cta-label,
-.project__content:focus-visible .project__cta-label {
-  opacity: 1;
-}
-
-.project__cta-arrow {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-  flex-shrink: 0;
-  transition:
-    opacity 160ms ease-out,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.project__content:hover .project__cta-arrow,
-.project__content:focus-visible .project__cta-arrow {
-  opacity: 1;
-  transform: translateX(4px);
-}
-
-/* Coming-soon hourglass: tone-matched, no hover slide. */
-.project__cta-hourglass {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+.project__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 56px;
+  letter-spacing: var(--tracking-heading);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  font-weight: var(--weight-heading);
   color: var(--white);
+  line-height: var(--leading-heading);
+  transition: color 200ms ease;
 }
-.project__content--light .project__cta-hourglass {
+
+.project__content--light .project__name {
   color: var(--black);
+  text-shadow: none;
+}
+
+.project__content:hover .project__name,
+.project__content:focus-visible .project__name {
+  color: var(--accent-readable, var(--accent));
+}
+
+/* "— Coming soon" suffix on the name itself (replaces the removed CTA). */
+.project__name-suffix {
+  font-weight: var(--weight-body);
+  opacity: 0.55;
 }
 
 /* =============================================
@@ -4408,29 +4382,20 @@ html.konami .projects-nav-m__pill {
     height: 100vh;
   }
   .project__inner {
+    padding-top: 64px;
     padding-bottom: 24px;
   }
   .project__content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
     padding-left: 4px;
     padding-right: 4px;
-  }
-  .project__text {
-    white-space: normal;
-    width: 100%;
   }
   .project__name {
     font-size: clamp(28px, 6vw, 44px);
     letter-spacing: var(--tracking-heading);
   }
   .project__number {
-    font-size: 16px;
-  }
-  /* CTA sits below the name on mobile (column layout above); align it left. */
-  .project__cta {
-    margin-left: 0;
+    font-size: 14px;
   }
 
   /* ── Work grid ── */
@@ -4771,9 +4736,11 @@ html.konami .projects-nav-m__pill {
     height: 100vh;
   }
   .project__inner {
+    padding-top: 48px;
     padding-bottom: 24px;
   }
   .project__content {
+    gap: 10px;
     padding-left: 4px;
     padding-right: 4px;
   }
@@ -4782,7 +4749,7 @@ html.konami .projects-nav-m__pill {
     letter-spacing: var(--tracking-heading);
   }
   .project__number {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   /* ── About ── */

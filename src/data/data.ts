@@ -146,6 +146,8 @@ export const collaborations: Entity[] = [
     date: "Fall 2025",
     role: "Student project",
     accent: "#F3B80B",
+    // Brand yellow is unreadable on light surfaces; deepen for text use.
+    textAccentColor: { light: "#A07800", dark: "#F3B80B" },
     href: "/work/google",
     hasCaseStudy: true,
   },
