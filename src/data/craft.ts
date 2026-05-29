@@ -42,6 +42,12 @@ export const COL_A: CraftItem[] = [
   },
   { id: "a9", src: c("souvenir-duo.png"), label: "Components", date: "2023" },
   { id: "a10", src: c("souvenir-cam.png"), label: "Components", date: "2023" },
+  { id: "a11", src: c("dti-team.png"), label: "Components", date: "2023" },
+  { id: "a12", src: c("dti-404.png"), label: "Components", date: "2023" },
+  { id: "a13", src: c("roze-slide1.png"), label: "Components", date: "2023" },
+  { id: "a14", src: c("roze-slide2.png"), label: "Components", date: "2023" },
+  { id: "a15", src: c("roze-slide3.png"), label: "Components", date: "2023" },
+  { id: "a16", src: c("roze-slide4.png"), label: "Components", date: "2023" },
 ];
 
 export const COL_B: CraftItem[] = [
@@ -69,6 +75,10 @@ export const COL_B: CraftItem[] = [
   },
   { id: "b8", src: c("souvenir-nav.png"), label: "Components", date: "2023" },
   { id: "b9", src: c("souvenir-duo.png"), label: "Components", date: "2023" },
+
+  { id: "b10", src: c("dti-cta.png"), label: "Components", date: "2023" },
+  { id: "b11", src: c("roze-faq.png"), label: "Components", date: "2023" },
+  { id: "b12", src: c("roze-checkout.png"), label: "Components", date: "2023" },
 ];
 
 export const COL_C: CraftItem[] = [
@@ -82,6 +92,8 @@ export const COL_C: CraftItem[] = [
   { id: "c8", src: c("souvenir-trio.png"), label: "Devtools", date: "2024" },
   { id: "c9", src: c("souvenir-login.png"), label: "Devtools", date: "2024" },
   { id: "c10", src: c("souvenir-list.png"), label: "Devtools", date: "2024" },
+  { id: "c11", src: c("dti-role.png"), label: "Devtools", date: "2024" },
+  { id: "c12", src: c("roze-team.png"), label: "Devtools", date: "2024" },
 ];
 
 // Flattened, ordered list used by the lightbox for navigation
