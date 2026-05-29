@@ -44,17 +44,32 @@ export const COL_B: CraftItem[] = [
     date: "2024",
   },
   { id: "b2", src: c("iwater-pair.png"), label: "Sketching", date: "2023" },
-  { id: "b3", src: c("ios-screens.png"), label: "iOS screens", date: "2024" },
-  { id: "b4", src: c("card-grid.png"), label: "Card grid", date: "2024" },
-  { id: "b5", src: c("components.png"), label: "Components", date: "2023" },
+  { id: "b3", src: c("iwater-touch.png"), label: "iOS screens", date: "2024" },
+  { id: "b4", src: c("deadline-promo.png"), label: "Card grid", date: "2024" },
+  { id: "b5", src: c("deadline-stats.png"), label: "Components", date: "2023" },
 ];
 
 export const COL_C: CraftItem[] = [
   { id: "c1", src: c("ebb-home.png"), label: "Workspace", date: "2024" },
   { id: "c2", src: c("ebb-settings.png"), label: "Editor UI", date: "2024" },
   { id: "c3", src: c("iwater-landing.png"), label: "Code view", date: "2023" },
-  { id: "c4", src: c("devtools.png"), label: "Devtools", date: "2024" },
+  { id: "c4", src: c("iwater-w1.png"), label: "Devtools", date: "2024" },
+  { id: "c5", src: c("deadline-picker.png"), label: "Devtools", date: "2024" },
+  { id: "c6", src: c("deadline-quests.png"), label: "Devtools", date: "2024" },
 ];
 
-// Flattened, ordered list used by the lightbox for navigation
-export const CRAFT_ITEMS: CraftItem[] = [...COL_A, ...COL_B, ...COL_C];
+// Flattened, ordered list used by the lightbox for navigation.
+// Interleaved row-by-row (a1, b1, c1, a2, b2, c2, …) so prev/next moves
+// horizontally across the columns instead of straight down each column.
+const interleaveColumns = (...cols: CraftItem[][]): CraftItem[] => {
+  const maxLen = Math.max(...cols.map((col) => col.length));
+  const out: CraftItem[] = [];
+  for (let row = 0; row < maxLen; row++) {
+    for (const col of cols) {
+      if (col[row]) out.push(col[row]);
+    }
+  }
+  return out;
+};
+
+export const CRAFT_ITEMS: CraftItem[] = interleaveColumns(COL_A, COL_B, COL_C);
