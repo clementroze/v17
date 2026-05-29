@@ -284,30 +284,18 @@ export default function CraftLightbox({
     });
   }, [clampPan]);
 
-  // Click-to-zoom on the IMAGE toggles between 1× and the first zoom step.
-  // Repeated zoom-in/out only lives on the top-right buttons.
-  const toggleImageZoom = useCallback(() => {
-    setZoom((z) => {
-      if (z > 1) {
-        setPan({ x: 0, y: 0 });
-        return 1;
-      }
-      const next = ZOOM_STEPS[1];
-      setPan((p) => clampPan(p.x, p.y, next));
-      return next;
-    });
-  }, [clampPan]);
-
-  // ── Click-to-zoom + Drag-to-pan ────────────────────────────────────────────
-  // ALL pointer logic is handled here so there's no race between React's
-  // synthesized onClick and our pointerup handler. Listeners are bound
-  // synchronously on pointerdown — onClick is not used for the image at all.
+  // ── Drag-to-pan ────────────────────────────────────────────────────────────
+  // Zoom is controlled exclusively by the top-right zoom buttons (and +/-
+  // keys). Clicking the image no longer zooms. Pointer interaction on the card
+  // is solely for drag-to-pan once the image is already zoomed in.
   const onCardPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.button !== 0 && e.pointerType === 'mouse') return;
-      e.preventDefault();
+      // Always keep a click on the card from bubbling to the backdrop (which
+      // would close the lightbox), but only start a pan gesture when zoomed.
       e.stopPropagation();
-      const startedZoomed = zoom > 1;
+      if (zoom <= 1) return;
+      e.preventDefault();
       dragRef.current = {
         active: true,
         startX: e.clientX,
@@ -316,7 +304,7 @@ export default function CraftLightbox({
         panStartY: pan.y,
         moved: false,
       };
-      if (startedZoomed) setIsDragging(true);
+      setIsDragging(true);
 
       const onMove = (ev: PointerEvent) => {
         const d = dragRef.current;
@@ -324,25 +312,20 @@ export default function CraftLightbox({
         const dx = ev.clientX - d.startX;
         const dy = ev.clientY - d.startY;
         if (!d.moved && Math.hypot(dx, dy) > 3) d.moved = true;
-        if (startedZoomed) {
-          setPan(clampPan(d.panStartX + dx, d.panStartY + dy, zoom));
-        }
+        setPan(clampPan(d.panStartX + dx, d.panStartY + dy, zoom));
       };
       const onUp = () => {
-        const wasMoved = dragRef.current.moved;
         dragRef.current.active = false;
-        if (startedZoomed) setIsDragging(false);
+        setIsDragging(false);
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
         window.removeEventListener('pointercancel', onUp);
-        // If the pointer hardly moved, treat as a click → toggle zoom.
-        if (!wasMoved) toggleImageZoom();
       };
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
       window.addEventListener('pointercancel', onUp);
     },
-    [zoom, pan.x, pan.y, clampPan, toggleImageZoom]
+    [zoom, pan.x, pan.y, clampPan]
   );
 
   // Briefly flash the hover/pressed state on a nav button (for arrow-key feedback)
@@ -670,16 +653,14 @@ export default function CraftLightbox({
           isDragging
             ? 'craft-lightbox__card--grabbing'
             : zoom > 1
-            ? 'craft-lightbox__card--zoom-out'
-            : 'craft-lightbox__card--zoom-in'
+            ? 'craft-lightbox__card--pannable'
+            : ''
         }`}
         style={cardStyle}
         onPointerDown={onCardPointerDown}
         onClick={(e) => {
-          // Zoom toggle is handled in onCardPointerDown / pointerup so the
-          // browser-synthesized click can't double-toggle after a re-render.
-          // We only stop propagation here so a click on the card doesn't
-          // bubble to the backdrop and close the lightbox.
+          // Stop a click on the card from bubbling to the backdrop, which would
+          // close the lightbox. Zoom is controlled only by the top-right buttons.
           e.stopPropagation();
         }}
       >

@@ -4126,13 +4126,9 @@ html.konami .projects-nav-m__pill {
   line-height: 0;
 }
 
-/* Click-to-zoom / drag-to-pan cursors on the image */
-.craft-lightbox__card--zoom-in {
-  cursor: zoom-in;
-}
-
-.craft-lightbox__card--zoom-out {
-  cursor: zoom-out;
+/* Drag-to-pan cursor on the image (only while zoomed in via the buttons) */
+.craft-lightbox__card--pannable {
+  cursor: grab;
 }
 
 .craft-lightbox__card--grabbing {
