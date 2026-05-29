@@ -1,10 +1,33 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Hero from '../components/Hero';
 import { Reveal } from '../lib/reveal';
 import CraftLightbox from '../components/CraftLightbox';
-import { COL_A, COL_B, COL_C, CRAFT_ITEMS, type CraftItem } from '../data/craft';
+import { CRAFT_ITEMS, distributeIntoColumns, type CraftItem } from '../data/craft';
+
+// Responsive column count. The single ordered CRAFT_ITEMS list is dealt out
+// across this many columns (round-robin), so the layout — and the order — adapts
+// to screen size while staying in sync with the lightbox. One column on mobile
+// means the grid reads in the exact CRAFT_ITEMS order.
+function getColumnCount(width: number): number {
+  if (width <= 480) return 1;
+  if (width <= 900) return 2;
+  return 3;
+}
+
+function useColumnCount(): number {
+  const [count, setCount] = useState(() =>
+    getColumnCount(typeof window === 'undefined' ? 1200 : window.innerWidth),
+  );
+  useEffect(() => {
+    const onResize = () => setCount(getColumnCount(window.innerWidth));
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return count;
+}
 
 // ── card ──────────────────────────────────────────────────────────────────────
 
@@ -112,6 +135,9 @@ export default function Craft() {
   // → no shape change between grid and lightbox.
   const [aspectMap, setAspectMap] = useState<Record<string, number>>({});
 
+  const columnCount = useColumnCount();
+  const columns = distributeIntoColumns(CRAFT_ITEMS, columnCount);
+
   const handleAspectResolved = (id: string, aspect: number) => {
     setAspectMap((m) => (m[id] === aspect ? m : { ...m, [id]: aspect }));
   };
@@ -133,31 +159,20 @@ export default function Craft() {
         subtitle="A collection of side projects, explorations, and small details."
       />
 
-      {/* Masonry grid */}
+      {/* Masonry grid — columns derived from the single ordered CRAFT_ITEMS list */}
       <div className="container-wrapper">
         <div className="container">
           <div className="craft-grid">
-            <CraftCol
-              items={COL_A}
-              baseDelay={0}
-              onOpen={openById}
-              onAspectResolved={handleAspectResolved}
-              aspectMap={aspectMap}
-            />
-            <CraftCol
-              items={COL_B}
-              baseDelay={80}
-              onOpen={openById}
-              onAspectResolved={handleAspectResolved}
-              aspectMap={aspectMap}
-            />
-            <CraftCol
-              items={COL_C}
-              baseDelay={160}
-              onOpen={openById}
-              onAspectResolved={handleAspectResolved}
-              aspectMap={aspectMap}
-            />
+            {columns.map((items, col) => (
+              <CraftCol
+                key={col}
+                items={items}
+                baseDelay={col * 80}
+                onOpen={openById}
+                onAspectResolved={handleAspectResolved}
+                aspectMap={aspectMap}
+              />
+            ))}
           </div>
         </div>
       </div>
