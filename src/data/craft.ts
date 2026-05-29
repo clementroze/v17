@@ -34,6 +34,14 @@ export const COL_A: CraftItem[] = [
     label: "Web layout",
     date: "2024",
   },
+  {
+    id: "a8",
+    src: c("hyperform-listing.png"),
+    label: "Web layout",
+    date: "2024",
+  },
+  { id: "a9", src: c("souvenir-duo.png"), label: "Components", date: "2023" },
+  { id: "a10", src: c("souvenir-cam.png"), label: "Components", date: "2023" },
 ];
 
 export const COL_B: CraftItem[] = [
@@ -47,6 +55,20 @@ export const COL_B: CraftItem[] = [
   { id: "b3", src: c("iwater-touch.png"), label: "iOS screens", date: "2024" },
   { id: "b4", src: c("deadline-promo.png"), label: "Card grid", date: "2024" },
   { id: "b5", src: c("deadline-stats.png"), label: "Components", date: "2023" },
+  {
+    id: "b6",
+    src: c("hyperform-design.png"),
+    label: "Components",
+    date: "2023",
+  },
+  {
+    id: "b7",
+    src: c("souvenir-buttons.png"),
+    label: "Components",
+    date: "2023",
+  },
+  { id: "b8", src: c("souvenir-nav.png"), label: "Components", date: "2023" },
+  { id: "b9", src: c("souvenir-duo.png"), label: "Components", date: "2023" },
 ];
 
 export const COL_C: CraftItem[] = [
@@ -56,20 +78,11 @@ export const COL_C: CraftItem[] = [
   { id: "c4", src: c("iwater-w1.png"), label: "Devtools", date: "2024" },
   { id: "c5", src: c("deadline-picker.png"), label: "Devtools", date: "2024" },
   { id: "c6", src: c("deadline-quests.png"), label: "Devtools", date: "2024" },
+  { id: "c7", src: c("hyperform-login.png"), label: "Devtools", date: "2024" },
+  { id: "c8", src: c("souvenir-trio.png"), label: "Devtools", date: "2024" },
+  { id: "c9", src: c("souvenir-login.png"), label: "Devtools", date: "2024" },
+  { id: "c10", src: c("souvenir-list.png"), label: "Devtools", date: "2024" },
 ];
 
-// Flattened, ordered list used by the lightbox for navigation.
-// Interleaved row-by-row (a1, b1, c1, a2, b2, c2, …) so prev/next moves
-// horizontally across the columns instead of straight down each column.
-const interleaveColumns = (...cols: CraftItem[][]): CraftItem[] => {
-  const maxLen = Math.max(...cols.map((col) => col.length));
-  const out: CraftItem[] = [];
-  for (let row = 0; row < maxLen; row++) {
-    for (const col of cols) {
-      if (col[row]) out.push(col[row]);
-    }
-  }
-  return out;
-};
-
-export const CRAFT_ITEMS: CraftItem[] = interleaveColumns(COL_A, COL_B, COL_C);
+// Flattened, ordered list used by the lightbox for navigation
+export const CRAFT_ITEMS: CraftItem[] = [...COL_A, ...COL_B, ...COL_C];
