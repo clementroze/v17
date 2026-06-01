@@ -8,11 +8,17 @@ type RouterCtx = {
   path: string;
   previousPath: string | null;
   navigate: (href: string) => void;
-  // Run the column wipe as a standalone effect (cover → reveal) with no page
-  // change. Used by the mobile menu so opening/closing plays the staggered
-  // reveal. Returns the total duration in ms so the caller can sequence.
-  wipe: (color?: string) => number;
+  // Run the column wipe as a standalone effect with no page change. Used by the
+  // mobile menu. `mode` controls how many sweeps play:
+  //   'full'   — cover → reveal (two sweeps)
+  //   'cover'  — columns sweep up to cover, then the overlay tears down (one sweep)
+  //   'reveal' — overlay starts covering, columns sweep off (one sweep)
+  // The mobile menu uses 'reveal' on open and 'cover' on close so each tap shows
+  // exactly one sweep. Returns the total duration in ms so the caller can sequence.
+  wipe: (color?: string, mode?: WipeMode) => number;
 };
+
+type WipeMode = 'full' | 'cover' | 'reveal';
 
 const Ctx = createContext<RouterCtx>({
   path: '/',
@@ -20,6 +26,8 @@ const Ctx = createContext<RouterCtx>({
   navigate: () => {},
   wipe: () => 0,
 });
+
+export type { WipeMode };
 
 export function useRouter() {
   return useContext(Ctx);
@@ -108,7 +116,11 @@ export function RouterProvider({ children }: { children: React.ReactNode }) {
         window.history.pushState(null, '', next);
         setPreviousPath(path);
         setPath(next);
-        if (next !== '/about') window.scrollTo(0, 0);
+        // Always land at the top on navigation. Pages that need to restore a
+        // prior scroll position on return (About, Work) do so themselves in a
+        // mount effect, reading a position they stashed in sessionStorage when
+        // the user left for a case study. That overrides this scroll-to-top.
+        window.scrollTo(0, 0);
         setPhase('revealing');
 
         timerRef.current = setTimeout(() => {
@@ -118,14 +130,29 @@ export function RouterProvider({ children }: { children: React.ReactNode }) {
     }, DOT_LEAD_MS);
   }, [path]);
 
-  // Standalone wipe with no page swap: cover → reveal → idle. The mobile menu
-  // uses this so opening and closing both play the full staggered column
-  // reveal. Default color contrasts the current page (same logic as navigation).
-  const wipe = useCallback((color?: string) => {
+  // Standalone wipe with no page swap. `mode` selects how many sweeps play (see
+  // the type docs above). Default color contrasts the current page (same logic
+  // as navigation). Returns the total duration in ms so the caller can sequence.
+  const wipe = useCallback((color?: string, mode: WipeMode = 'full') => {
     if (timerRef.current) clearTimeout(timerRef.current);
     setCols(colCount());
     setColColor(color ?? wipeColor(path));
+
+    if (mode === 'reveal') {
+      // Overlay starts fully covering, then a single reveal sweep clears it.
+      setPhase('revealing');
+      timerRef.current = setTimeout(() => setPhase('idle'), REVEAL_MS);
+      return REVEAL_MS;
+    }
+
     setPhase('covering');
+    if (mode === 'cover') {
+      // A single cover sweep, then the overlay tears down (no reveal sweep).
+      timerRef.current = setTimeout(() => setPhase('idle'), COVER_MS);
+      return COVER_MS;
+    }
+
+    // full: cover → reveal → idle.
     timerRef.current = setTimeout(() => {
       setPhase('revealing');
       timerRef.current = setTimeout(() => setPhase('idle'), REVEAL_MS);

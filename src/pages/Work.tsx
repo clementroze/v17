@@ -34,6 +34,13 @@ const SEE_MORE_LIST_PREVIEW = "/images/see-more-preview.png";
 // pins the shape, not a fixed size.
 const GRID_COL_WIDTH = 332;
 
+// Stash the current scroll position before leaving for a case study, so that
+// returning to /work (via the case study's "Back" link) restores it. Read back
+// in the Work page's mount effect. Mirrors the About page's restoration.
+function saveWorkScroll() {
+  sessionStorage.setItem("work_scroll", String(window.scrollY));
+}
+
 function GridItem({ item, index }: { item: WorkItem; index: number }) {
   const picCols = item.images.map((h, i) => (
     <div
@@ -82,6 +89,7 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
       className="work-grid__text"
       aria-label={`See more: ${item.name}`}
       style={{ "--accent": item.accent } as React.CSSProperties}
+      onClick={saveWorkScroll}
     >
       {inner}
     </Link>
@@ -289,6 +297,7 @@ function WorkList({
                   style={{ "--accent": item.accent } as React.CSSProperties}
                   onMouseEnter={(e) => handleEnter(i, e)}
                   onMouseLeave={handleLeave}
+                  onClick={saveWorkScroll}
                 >
                   {inner}
                 </Link>
@@ -349,6 +358,21 @@ export default function Work() {
   const dividerRef = useRef<HTMLDivElement>(null);
   const gridBtnRef = useRef<HTMLButtonElement>(null);
   const listBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Restore scroll position when returning from a case study (the case study's
+  // "Back" link routes here). The position was stashed by saveWorkScroll() when
+  // the user left. Only fires once per arrival; absent on a fresh visit, so we
+  // land at the top normally. Deferred to the next frame so the page has laid
+  // out at full height before we scroll.
+  useEffect(() => {
+    const y = sessionStorage.getItem("work_scroll");
+    if (y === null) return;
+    sessionStorage.removeItem("work_scroll");
+    const target = parseInt(y, 10);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: target, behavior: "instant" });
+    });
+  }, []);
 
   const setViewPersisted = (v: "grid" | "list", moveFocus = false) => {
     setView(v);

@@ -173,7 +173,7 @@ export const activities: AccordionRowProps[] = [
 ];
 
 export const infoParagraphs = [
-  "Born in New York, raised in London, and shaped by French and Singaporean roots, I've always lived at the crossroads. That lens of contrast and connection deeply informs how I design: layered, contextual, and grounded in multiple perspectives.",
+  "Born in New York, raised in London, and shaped by French and Singaporean roots, I've always lived at the crossroads. That lens of contrast and connection deeply informs how I design: layered and grounded in multiple perspectives.",
   "I believe great design should be both accessible and beautiful. Whether I'm fine-tuning a Figma component, obsessing over a CSS pseudo-element, or diving into ARIA specs, I care about the little things that make interfaces feel just right.",
-  "When I'm not up at 4 a.m. nudging pixels into place, you might find me playing piano or ping pong (though not at the same time). I'm also an avid reader – from daily news to science fiction, I love staying curious about the world!",
+  "When I'm not up at 3 a.m. nudging pixels into place, I'm usually on a side quest – a new sport every semester, taking part in a random research study, or hours deep into some obscure internet lore.",
 ];

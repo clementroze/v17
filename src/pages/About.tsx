@@ -89,7 +89,7 @@ export default function About() {
 
             {/* Information */}
             <div className="about-section-row">
-              <SectionLabel>Information</SectionLabel>
+              <SectionLabel>Bio</SectionLabel>
               <div className="about-section-row__content about-info-text">
                 {infoParagraphs.map((text, i) => (
                   <Reveal key={i} delay={i * 70}>

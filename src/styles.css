@@ -381,8 +381,8 @@ footer::selection {
   display: flex;
   flex-direction: column;
   /* No slide of its own — the staggered column wipe (page-transition) acts as
-     the curtain: it covers, the menu mounts behind it, then it reveals the
-     menu. The menu just appears in place. */
+     the curtain on both open and close: it covers, the menu mounts/unmounts
+     behind it, then it reveals. The menu just appears/disappears in place. */
 }
 
 .menu-overlay__inner {
@@ -922,6 +922,8 @@ footer::selection {
   justify-content: center;
   padding-top: 96px;
   padding-bottom: 32px;
+  padding-left: 24px;
+  padding-right: 24px;
   width: 100%;
   background: linear-gradient(
     to top,
@@ -2251,7 +2253,7 @@ html.konami .projects-nav-m__pill {
   width: 100%;
   background: none;
   border: none;
-  padding: 24px 0 0;
+  padding: 32px 0 0;
   color: var(--white);
   text-align: left;
   gap: 0;
@@ -2386,7 +2388,7 @@ html.konami .projects-nav-m__pill {
 
 .accordion-row__body-inner {
   overflow: hidden;
-  padding-top: 24px;
+  padding-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -4759,17 +4761,15 @@ html.konami .projects-nav-m__pill {
     flex: 0 0 100%;
   }
   .cs-nav {
-    flex-direction: column;
-    gap: 0;
+    /* flex-direction: column; */
+    gap: 24px;
     margin-top: 32px;
     padding-bottom: 56px;
   }
   .cs-nav__card {
     padding: 20px 0;
   }
-  .cs-nav__card--next {
-    align-items: flex-start;
-  }
+
   .cs-nav__name {
     font-size: clamp(22px, 5.5vw, 28px);
   }
@@ -4797,12 +4797,14 @@ html.konami .projects-nav-m__pill {
   /* When the footer columns wrap, the archive drops onto its own row — keep it a
      full-width ROW (thumb beside text), not a stacked column. */
   .footer__archive {
-    flex: 0 0 100%;
-    flex-direction: row;
+    /* flex: 0 0 100%; */
+    flex: revert;
+    flex-direction: column;
+    width: fit-content;
   }
   .footer__archive-thumb {
-    width: 140px;
-    height: 80px;
+    width: 210px;
+    height: 120px;
   }
   .footer__archive-screenshot {
     height: 80px;

@@ -135,23 +135,27 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
     return () => { document.body.style.overflow = ''; };
   }, [open, showX]);
 
-  // Open: on mobile, fire the column wipe and mount the menu once the curtain
-  // is fully covering, so the staggered reveal exposes the open menu.
+  // Open: on mobile, mount the menu under a curtain that's already covering,
+  // then play a SINGLE reveal sweep that slides the columns off to expose it.
+  // (One sweep per tap — no separate cover sweep.)
   const openMenu = useCallback(() => {
     setShowX(true);
     if (isMobile()) {
-      wipe('#000');
-      setTimeout(() => setOpen(true), COVER_MS);
+      setOpen(true);
+      wipe('#000', 'reveal');
     } else {
       setOpen(true);
     }
   }, [wipe]);
 
+  // Plain close (tapping the X to dismiss the menu, NOT navigating). Plays a
+  // single cover sweep over the menu, unmounts it under the curtain, then tears
+  // down to reveal the same page. Navigating to another page goes through
+  // handleMobileNav instead, which lets navigate() run its own page wipe.
   const closeMenu = useCallback((cb?: () => void) => {
     setShowX(false);
     if (isMobile()) {
-      // Curtain covers, we unmount the menu under it, then it reveals the page.
-      wipe();
+      wipe('#000', 'cover');
       setClosing(true);
       setTimeout(() => {
         setOpen(false);
