@@ -2247,7 +2247,11 @@ html.konami .projects-nav-m__pill {
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  /* Fade the whole stage IN on open (before the items stagger in). On close we
+     do NOT fade the stage back out — the per-image bioItemOut stagger is the
+     exit, and fading the container at the same time would hide that stagger.
+     So the transition only applies while opening; closing keeps opacity at 1
+     (the stage unmounts with the modal node a beat later). */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* old Edge */
 }
@@ -2258,6 +2262,13 @@ html.konami .projects-nav-m__pill {
 }
 
 .bio-modal--open .bio-modal__stage {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+/* Closing: keep the stage fully opaque so the items' staggered exit is visible
+   rather than masked by a container-wide fade. */
+.bio-modal:not(.bio-modal--open) .bio-modal__stage {
   opacity: 1;
 }
 

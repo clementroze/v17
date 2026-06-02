@@ -1,3 +1,4 @@
+import React from "react";
 import { AccordionRowProps } from "../components/AccordionRow";
 
 // About-page accordions. Each row references a registry entity by `slug`
@@ -59,23 +60,19 @@ export const freelancing: AccordionRowProps[] = [
   },
   {
     slug: "roze",
-    description:
-      "Website audit and design work for a Dubai-based dental clinic ecommerce site.",
+    description: "Website audit and design work for a Dubai-based dental clinic ecommerce site.",
   },
   {
     slug: "hyperform",
-    description:
-      "Concept UI design for a UGC creator payments and invoicing app.",
-    caseStudyHref:
-      "https://web.archive.org/web/20221116004249/https://www.hyperform.app/",
+    description: "Concept UI design for a UGC creator payments and invoicing app.",
+    caseStudyHref: "https://web.archive.org/web/20221116004249/https://www.hyperform.app/",
     caseStudyLabel: "View archived site",
   },
   {
     slug: "oss",
     description:
       "My first freelancing gig! Since then, OSS Capital has changed their website, but I remember how immensely proud I was to have something I designed actually be built out live on the web! This led me to take on more freelance work.",
-    caseStudyHref:
-      "https://web.archive.org/web/20230317210013/https://oss.capital/",
+    caseStudyHref: "https://web.archive.org/web/20230317210013/https://oss.capital/",
     caseStudyLabel: "View archived site",
   },
 ];
@@ -177,3 +174,161 @@ export const infoParagraphs = [
   "I believe great design should be both accessible and beautiful. Whether I'm fine-tuning a Figma component, obsessing over a CSS pseudo-element, or diving into ARIA specs, I care about the little things that make interfaces feel just right.",
   "When I'm not up at 3 a.m. nudging pixels into place, I'm usually on a side quest – a new sport every semester, taking part in a random research study, or hours deep into some obscure internet lore.",
 ];
+
+// ─── bio modal sections ───────────────────────────────────────────────────────
+// Content for the "More about me" bio modal (rendered by <BioModal>). Each
+// section pairs scrolling text with a floating image stage; `layout` controls
+// how that section's images are arranged. Each image displays at its own natural
+// aspect ratio — size/crop the source files to control their shape.
+export type BioLayout = "solo" | "stack" | "scatter" | "pair";
+export type BioImage = {
+  src: string;
+  // scatter-only placement (ignored by the other layouts)
+  top?: string;
+  left?: string;
+  rotate?: string;
+};
+export type BioSection = {
+  id: string;
+  heading: string;
+  layout: BioLayout;
+  images: BioImage[];
+  content: React.ReactNode;
+};
+
+// Built as a factory so the "design clubs" inline link can call back into the
+// About page (it opens the DCC + DTI accordions and scrolls to Activities —
+// state the page owns, not the modal).
+export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
+  return [
+    {
+      id: "origin",
+      heading: "How did I get here?",
+      layout: "stack",
+      images: [{ src: "/images/bio/html.png" }, { src: "/images/bio/python.png" }],
+      content: (
+        <>
+          <p>
+            My journey started in 7th grade, when we were learning Python as part of a CS class. I always found it
+            fascinating how typing a few commands would lead to outputs on the black terminal screen. The following
+            year, we did a module on HTML/CSS/JS and I found this to be even more of an upgrade! Instead of just white
+            text on the black terminal screen, you could see shapes, colors, images, and more! I found this so fun that
+            I went deeper into all this web design part, which I soon learnt was essentially the UI/UX design field.
+          </p>
+          <p>
+            Since then, design has been my main thing, but I've always kept the technical side close. Being able to
+            actually build what I design is a superpower that unlocks so much.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "corner",
+      heading: "Design is broad. What's my corner of it?",
+      layout: "stack",
+      images: [{ src: "/images/bio/mess.png" }, { src: "/images/bio/details.png" }, { src: "/images/bio/system.png" }],
+      content: (
+        <>
+          <p>
+            I'm most at home in the visual and systematic side of things: high-fidelity mockups, design systems, and
+            accessibility. Getting the details right — color tokens, type scales, interaction states — is genuinely so
+            satisfying to me!
+          </p>
+          <p>
+            And being to build what I design makes all of this click even better together. The gap between a Figma frame
+            and a shipped product is where design intent sometimes dies, so I try to close that gap myself as often as
+            possible.
+          </p>
+          <p>
+            I also love the orchestration side: pulling together user needs, design constraints, engineering resources,
+            and edge cases into something coherent. Having spent years as both the designer handing off and the
+            developer receiving that handoff, I've learned exactly where things go wrong.rem
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "takes",
+      heading: "Takes",
+      layout: "scatter",
+      images: [
+        { src: "/images/bio/radius.png", top: "-4%", left: "6%", rotate: "-6deg" },
+        { src: "/images/bio/respond.png", top: "0%", left: "56%", rotate: "5deg" },
+        { src: "/images/bio/poppins.png", top: "30%", left: "28%", rotate: "-3deg" },
+        { src: "/images/bio/shortcuts.png", top: "65%", left: "0%", rotate: "7deg" },
+        { src: "/images/bio/browsers.png", top: "58%", left: "60%", rotate: "-8deg" },
+      ],
+      content: (
+        <>
+          <p>A few of my strong convictions, loosely held:</p>
+          <ul>
+            <li>The Poppins font is an abomination</li>
+            <li>Designers should code — and ship to production at least once</li>
+            <li>Keyboard shortcuts are the ultimate productivity hack</li>
+            <li>Every app needs a "Remind me in X hours" button</li>
+            <li>School should teach how to type fast</li>
+            <li>Your personal site is your hardest client</li>
+            <li>High agency is the most underrated work attribute — do what you say you'll do, and do it well</li>
+            <li>Honest feedback is a gift, but most people are too scared to give it</li>
+            <li>Less border radius is better</li>
+            <li>Naming things in a design system is 40% of the work</li>
+            <li>People should respond faster to emails, texts or messages</li>
+            <li>You should switch browsers every couple of months just to explore</li>
+            <li>Don't trust a bulleted list of hot takes</li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      id: "grass",
+      heading: "Touching grass",
+      layout: "scatter",
+      images: [
+        { src: "/images/bio/tennis.png", top: "-2%", left: "9%", rotate: "-9deg" },
+        { src: "/images/bio/climb.png", top: "3%", left: "61%", rotate: "4deg" },
+        { src: "/images/bio/gym.png", top: "23%", left: "22%", rotate: "-6deg" },
+        { src: "/images/bio/rappel.png", top: "62%", left: "4%", rotate: "11deg" },
+        { src: "/images/bio/cpr.png", top: "65%", left: "57%", rotate: "-5deg" },
+      ],
+      content: (
+        <>
+          <p>
+            I've made it a goal to try out at least 1 new sport every semester at Cornell! So far: ping pong, fencing,
+            bowling, rock-climbing, wilderness first aid training, tennis.{" "}
+            <a href="https://scl.cornell.edu/pe/pe/courses/fall-2026" target="_blank">
+              Let me know
+            </a>{" "}
+            what I should try next!
+          </p>
+          <p>I also enjoy going to the gym regularly: it's the best reset after a full day of staring at screens.</p>
+        </>
+      ),
+    },
+    {
+      id: "community",
+      heading: "Community",
+      layout: "stack",
+      images: [{ src: "/images/bio/comm-a.png" }, { src: "/images/bio/comm-b.png" }],
+      content: (
+        <>
+          <p>
+            Giving back matters a lot to me. I've found real joy in teaching — whether that's TAing{" "}
+            <a href="https://classes.cornell.edu/browse/roster/FA26/class/INFO/1300" target="_blank">
+              an intro web design course at Bowers
+            </a>{" "}
+            or mentoring students through my{" "}
+            <button type="button" className="bio-modal__inline-link" onClick={onOpenDesignClubs}>
+              design clubs
+            </button>
+            .
+          </p>
+          <p>
+            My goal as a teacher is to pass on the same curiosity that got me into this field in the first place. I
+            wouldn't be here without the people who took the time to show me things, and that still shapes how I work
+            today.
+          </p>
+        </>
+      ),
+    },
+  ];
+}
