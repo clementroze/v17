@@ -207,6 +207,54 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
   return [
     {
       id: "origin",
+      heading: "Where am I from?",
+      layout: "scatter",
+      images: [
+        {
+          src: "/images/bio/us.png",
+          alt: "American flag",
+          top: "25%",
+          left: "5%",
+          rotate: "-7deg",
+        },
+        {
+          src: "/images/bio/fr.png",
+          alt: "French flag",
+          top: "15%",
+          left: "50%",
+          rotate: "6deg",
+        },
+        {
+          src: "/images/bio/sg.png",
+          alt: "Singaporean flag",
+          top: "55%",
+          left: "15%",
+          rotate: "-4deg",
+        },
+        {
+          src: "/images/bio/uk.png",
+          alt: "British flag",
+          top: "40%",
+          left: "57%",
+          rotate: "8deg",
+        },
+      ],
+      content: (
+        <>
+          <p>I was born in New York City and raised in London.</p>
+
+          <p>My mom is from Singapore and my dad from France.</p>
+
+          <p>
+            Between family, school, and travel, I was constantly switching between cultures, languages, accents, and
+            foods of course. It's influenced the way I see the world and approach design by opening me up to different
+            perspectives of doing things.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "journey",
       heading: "How did I get here?",
       layout: "stack",
       images: [
@@ -228,11 +276,10 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
             product.
           </p>
           <p>
-            That mindset led me to my first professional experience: interning at Replit at 15 years old. While I was
-            their youngest Design Intern, the title of youngest intern overall had already been claimed by a developer
-            who joined at 13. I spent three years at Replit, working during the summers and part-time throughout high
-            school, and those years shaped me immensely. They deepened my technical knowledge and I consider many of my
-            design opinions to have been formed there.
+            That mindset led me to my first professional experience: interning at Replit at 15 years old. I spent three
+            years there, working during the summers and part-time throughout high school, and those years shaped me
+            immensely. They deepened my technical knowledge and I consider many of my design opinions to have been
+            formed at Replit.
           </p>
           <p>
             I still remember the first time I shipped code to production. It was a one-line change: adding an icon to a

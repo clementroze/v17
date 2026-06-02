@@ -1,17 +1,17 @@
-import { useRef, useCallback, useEffect, useMemo } from 'react';
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import Footer from '../components/Footer';
-import EffectB from '../components/effects/EffectB';
-import ProjectsNav from '../components/ProjectsNav';
-import ProjectsNavMobile from '../components/ProjectsNavMobile';
-import work from '../data/work';
+import { useRef, useCallback, useEffect, useMemo } from "react";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import Footer from "../components/Footer";
+import EffectB from "../components/effects/EffectB";
+import ProjectsNav from "../components/ProjectsNav";
+import ProjectsNavMobile from "../components/ProjectsNavMobile";
+import work from "../data/work";
 
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<React.RefObject<HTMLDivElement>[]>(
-    work.map(() => ({ current: null } as React.RefObject<HTMLDivElement>))
+    work.map(() => ({ current: null }) as React.RefObject<HTMLDivElement>),
   );
 
   const handleSectionRef = useCallback((index: number, el: HTMLDivElement | null) => {
@@ -58,7 +58,10 @@ export default function Home() {
       let bestDist = Math.abs(y - best);
       for (let i = 1; i < tops.length; i++) {
         const d = Math.abs(y - tops[i]);
-        if (d < bestDist) { best = tops[i]; bestDist = d; }
+        if (d < bestDist) {
+          best = tops[i];
+          bestDist = d;
+        }
       }
       return best;
     };
@@ -69,7 +72,10 @@ export default function Home() {
       let bestDist = Math.abs(y - tops[0]);
       for (let i = 1; i < tops.length; i++) {
         const d = Math.abs(y - tops[i]);
-        if (d < bestDist) { idx = i; bestDist = d; }
+        if (d < bestDist) {
+          idx = i;
+          bestDist = d;
+        }
       }
       return idx;
     };
@@ -81,8 +87,8 @@ export default function Home() {
     let wheelResetTimer: ReturnType<typeof setTimeout> | null = null;
 
     const SNAP_COOLDOWN_MS = 900; // coalesce fast swipes into one move
-    const IDLE_SNAP_MS = 140;      // after scroll quiets, snap to nearest
-    const STEP_THRESHOLD = 60;     // px of wheel delta to count as an intentional step
+    const IDLE_SNAP_MS = 140; // after scroll quiets, snap to nearest
+    const STEP_THRESHOLD = 60; // px of wheel delta to count as an intentional step
 
     let scrollRaf: number | null = null;
     const cancelManualScroll = () => {
@@ -102,7 +108,7 @@ export default function Home() {
       snapCooldownUntil = performance.now() + durationMs + 50;
       const step = (now: number) => {
         const t = Math.min(1, (now - start) / durationMs);
-        window.scrollTo({ top: startY + delta * ease(t), behavior: 'auto' });
+        window.scrollTo({ top: startY + delta * ease(t), behavior: "auto" });
         if (t < 1) {
           scrollRaf = requestAnimationFrame(step);
         } else {
@@ -116,9 +122,11 @@ export default function Home() {
     const smoothScrollTo = (y: number) => {
       isSnapping = true;
       snapCooldownUntil = performance.now() + SNAP_COOLDOWN_MS;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      window.scrollTo({ top: y, behavior: "smooth" });
       // 'scrollend' isn't universally reliable; fall back on a timer.
-      const release = () => { isSnapping = false; };
+      const release = () => {
+        isSnapping = false;
+      };
       setTimeout(release, SNAP_COOLDOWN_MS);
     };
 
@@ -162,7 +170,9 @@ export default function Home() {
       // Coalesce wheel deltas so a single big swipe = one step.
       wheelAccum += e.deltaY;
       if (wheelResetTimer) clearTimeout(wheelResetTimer);
-      wheelResetTimer = setTimeout(() => { wheelAccum = 0; }, 260);
+      wheelResetTimer = setTimeout(() => {
+        wheelAccum = 0;
+      }, 260);
 
       if (Math.abs(wheelAccum) < STEP_THRESHOLD) {
         e.preventDefault();
@@ -179,7 +189,7 @@ export default function Home() {
       // If already at last project and scrolling down → release into footer.
       if (dir > 0 && idx === tops.length - 1) {
         snapCooldownUntil = performance.now() + 150;
-        window.scrollBy({ top: e.deltaY, behavior: 'auto' });
+        window.scrollBy({ top: e.deltaY, behavior: "auto" });
         return;
       }
       smoothScrollTo(tops[nextIdx]);
@@ -195,19 +205,27 @@ export default function Home() {
       const delta = touchStartY - endY;
       touchStartY = null;
       const y = window.scrollY;
-      if (!inSnapZone(y)) { scheduleIdleSnap(); return; }
+      if (!inSnapZone(y)) {
+        scheduleIdleSnap();
+        return;
+      }
       if (isSnapping || performance.now() < snapCooldownUntil) return;
-      if (Math.abs(delta) < 30) { scheduleIdleSnap(); return; }
+      if (Math.abs(delta) < 30) {
+        scheduleIdleSnap();
+        return;
+      }
       const tops = snapTops();
       const idx = currentSnapIndex(y);
       const dir = delta > 0 ? 1 : -1;
       const nextIdx = Math.max(0, Math.min(tops.length - 1, idx + dir));
-      if (nextIdx === idx) { scheduleIdleSnap(); return; }
+      if (nextIdx === idx) {
+        scheduleIdleSnap();
+        return;
+      }
       smoothScrollTo(tops[nextIdx]);
     };
 
-    const isPillDragging = () =>
-      (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging === true;
+    const isPillDragging = () => (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging === true;
 
     const onScroll = () => {
       if (isSnapping) return;
@@ -215,13 +233,13 @@ export default function Home() {
       scheduleIdleSnap();
     };
 
-    let heldKey: 'ArrowDown' | 'ArrowUp' | null = null;
+    let heldKey: "ArrowDown" | "ArrowUp" | null = null;
     let holdStreak = 0;
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
       const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
       e.preventDefault();
 
       // Track hold streak: each repeat of the same key bumps the counter; releasing or
@@ -229,7 +247,7 @@ export default function Home() {
       if (heldKey === e.key && e.repeat) {
         holdStreak++;
       } else {
-        heldKey = e.key as 'ArrowDown' | 'ArrowUp';
+        heldKey = e.key as "ArrowDown" | "ArrowUp";
         holdStreak = e.repeat ? holdStreak + 1 : 0;
       }
 
@@ -240,7 +258,7 @@ export default function Home() {
       const stepCount = Math.min(5, 1 + Math.floor(holdStreak / 2));
       let target: number;
 
-      if (e.key === 'ArrowDown') {
+      if (e.key === "ArrowDown") {
         const candidates = tops.filter((t) => t > scrollY + 10);
         target = candidates[Math.min(candidates.length, stepCount) - 1] ?? tops[tops.length - 1];
       } else {
@@ -261,19 +279,19 @@ export default function Home() {
       }
     };
 
-    window.addEventListener('wheel', onWheel, { passive: false });
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchend', onTouchEnd, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     return () => {
-      window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchend', onTouchEnd);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
       cancelManualScroll();
       if (idleTimer) clearTimeout(idleTimer);
       if (wheelResetTimer) clearTimeout(wheelResetTimer);
@@ -283,10 +301,12 @@ export default function Home() {
   return (
     <div className="page">
       <Navbar sections={navSections} />
+      <main className="page__main">
       <div ref={heroRef} className="home__hero-snap">
         <Hero
           title="Welcome."
           subtitle="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautifully."
+          subsubtitle="Design Intern @ IBM"
         />
       </div>
       <EffectB projects={work} onSectionRef={handleSectionRef} />
@@ -296,7 +316,10 @@ export default function Home() {
         tones={work.map((w) => Boolean(w.heroIsLight))}
       />
       <ProjectsNavMobile count={work.length} sectionRefs={sectionRefs.current} variant="light" />
-      <div ref={footerRef} style={{ width: '100%' }}><Footer /></div>
+      </main>
+      <div ref={footerRef} style={{ width: "100%" }}>
+        <Footer />
+      </div>
     </div>
   );
 }

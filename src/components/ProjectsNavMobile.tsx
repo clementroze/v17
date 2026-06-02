@@ -310,6 +310,7 @@ export default function ProjectsNavMobile({
               if (el) wrapRefs.current[i] = el;
             }}
             className="projects-nav-m__dot-wrap"
+            tabIndex={phase !== "entering" ? -1 : undefined}
             onClick={() => handleTap(i)}
             aria-label={`Go to section ${i + 1}`}
           >

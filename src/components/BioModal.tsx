@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import Button from "./Button";
+import Picture from "./Picture";
 import { BioSection, getBioSections } from "../data/about";
 
 // The bio modal pairs a scrolling text column with a floating image stage in the
@@ -31,7 +32,7 @@ function BioVisual({ section, active }: { section: BioSection; active?: boolean 
               : undefined
           }
         >
-          <img src={img.src} alt="" loading="lazy" draggable={false} />
+          <Picture src={img.src} alt="" loading="lazy" draggable={false} />
         </figure>
       ))}
     </div>
@@ -56,6 +57,7 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
   // drives the enter/exit (slide-up + fade) via a class.
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [entered, setEntered] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   // Pending async work for the open/close transition, held in refs so any new
   // open/close can cancel it — this is what makes the animation interruptible
@@ -129,6 +131,14 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
         // remounted stage (scrollTop 0) and the active visual agree.
         setActiveIndex(0);
         scrollDriver.current = null;
+        // Reset `entered` so this new mount cycle starts in the "not yet
+        // entered" state. `entered` persists on the component instance across
+        // open/close (the DOM unmounts but the component stays alive), so
+        // without this the 2nd+ open mounts with `--entered` already set — which
+        // makes the `:not(--open).--entered` rules apply on the very first
+        // frame (stage opacity 1 + the exit animation's opacity-1 `from`),
+        // flashing every image at once before the entrance stagger runs.
+        setEntered(false);
         setMounted(true);
       } else {
         // Reopening mid-close — flip straight to visible to reverse instantly,
@@ -166,6 +176,10 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
       }
     };
   }, [mounted]);
+
+  useEffect(() => {
+    if (visible) setEntered(true);
+  }, [visible]);
 
   // Tidy up any pending timer/frame if the modal unmounts mid-animation.
   useEffect(() => cancelTransition, []);
@@ -390,7 +404,7 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
 
   return (
     <div
-      className={`bio-modal${visible ? " bio-modal--open" : ""}`}
+      className={`bio-modal${visible ? " bio-modal--open" : ""}${entered ? " bio-modal--entered" : ""}`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -450,7 +464,7 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
           >
             {flatImages.map((img, i) => (
               <div className="bio-modal__slide" key={i}>
-                <img src={img.src} alt="" loading="lazy" draggable={false} />
+                <Picture src={img.src} alt="" loading="lazy" draggable={false} />
               </div>
             ))}
           </div>

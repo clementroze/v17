@@ -175,9 +175,7 @@ footer::selection {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-left: 24px;
-  padding-right: 24px;
-  padding-top: env(safe-area-inset-top, 0);
+  padding: calc(env(safe-area-inset-top, 0) + 20px) 24px 10px;
   position: fixed;
   top: 0;
   left: 0;
@@ -543,10 +541,20 @@ footer::selection {
   font-size: 32px;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
-  line-height: var(--leading-body);
+  line-height: 130%;
   width: min(688px, 100%);
   color: inherit;
   text-wrap: balance;
+}
+
+.hero__subsubtitle {
+  font-size: 20px;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-heading);
+  line-height: 130%;
+  width: min(688px, 100%);
+  color: var(--black-muted);
+  margin-top: 8px;
 }
 
 /* =============================================
@@ -632,12 +640,6 @@ footer::selection {
   stroke: currentColor;
   stroke-width: 1.75;
   stroke-linecap: round;
-}
-
-.btn:hover .btn__glyph svg,
-.btn:focus-visible .btn__glyph svg,
-.btn[aria-expanded="true"] .btn__glyph svg {
-  transform: rotate(90deg);
 }
 
 /* ── animated hourglass (Coming soon buttons) ──────────────────────────────── */
@@ -1472,6 +1474,15 @@ html.konami canvas {
   width: 100%;
 }
 
+/* Wraps each page's primary content in a <main> landmark (between the fixed
+   <nav> and the <footer>) so screen-reader users can jump to the main content.
+   `display: contents` makes the element generate no box — its children stay
+   direct flex items of `.page`, so every layout and the scroll-snap
+   getBoundingClientRect math is left exactly as it was. */
+.page__main {
+  display: contents;
+}
+
 /* =============================================
    EFFECT B — Parallax + fade-in text
    ============================================= */
@@ -1494,6 +1505,12 @@ html.konami canvas {
 .effect-b__section--revealed {
   opacity: 1;
   filter: blur(0);
+}
+
+/* <picture> wrappers are layout-transparent so the inner <img> keeps its own
+   positioning (e.g. the absolutely-positioned hero .effect-b__bg below). */
+picture {
+  display: contents;
 }
 
 .effect-b__bg {
@@ -2307,8 +2324,10 @@ html.konami .projects-nav-m__pill {
 }
 
 /* Closing: keep the stage fully opaque so the items' staggered exit is visible
-   rather than masked by a container-wide fade. */
-.bio-modal:not(.bio-modal--open) .bio-modal__stage {
+   rather than masked by a container-wide fade. Only apply once the modal has
+   actually been opened at least once; initial mount before open should stay
+   hidden until the enter transition begins. */
+.bio-modal:not(.bio-modal--open).bio-modal--entered .bio-modal__stage {
   opacity: 1;
 }
 
@@ -2384,12 +2403,13 @@ html.konami .projects-nav-m__pill {
   }
 }
 .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item {
-  animation: bioItemIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: bioItemIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 /* Exit must finish within BIO_MODAL_EXIT_MS (600ms in About.tsx) before the
-   node unmounts, so the duration + largest delay stays under that. */
-.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item {
-  animation: bioItemOut 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+   node unmounts, so the duration + largest delay stays under that. Only run
+   the exit animation when the modal has already been opened once. */
+.bio-modal:not(.bio-modal--open).bio-modal--entered .bio-modal__stage .bio-visual.is-active .bio-visual__item {
+  animation: bioItemOut 0.28s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 /* Stagger — each image starts a beat after the one before it so they animate
@@ -2449,7 +2469,13 @@ html.konami .projects-nav-m__pill {
 .bio-modal--open .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
   animation-name: bioScatterItemIn;
 }
-.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
+/* Must carry `.bio-modal--entered` too: the generic exit rule above gained it
+   (jumping to 7 classes), so without it here this name-override (6 classes)
+   loses the cascade and scatter items wrongly run bioItemOut — whose
+   `transform: none` snaps the rotation back to 0° before they drop out. Matching
+   specificity (and coming later) lets bioScatterItemOut win again, holding the
+   rotation steady through the exit. */
+.bio-modal:not(.bio-modal--open).bio-modal--entered .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
   animation-name: bioScatterItemOut;
 }
 
@@ -2458,7 +2484,7 @@ html.konami .projects-nav-m__pill {
   margin: 0;
   overflow: hidden;
   border-radius: 6px;
-  background: var(--white-faint);
+  /* background: var(--white-faint); */
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
 }
 
@@ -4772,7 +4798,7 @@ button.cs-images__pic:focus-visible {
 
 .craft-lightbox__img {
   display: block;
-  height: 85vh;
+  height: 75vh;
   max-height: 85vh;
   max-width: calc(100vw - 128px);
   width: auto;

@@ -489,6 +489,7 @@ export default function ProjectsNav({
                 if (el) wrapRefs.current[i] = el;
               }}
               className="projects-nav__dot-wrap"
+              tabIndex={phase !== "entering" ? -1 : undefined}
               style={
                 phase !== "hidden"
                   ? { animationDelay: `${delay}ms` }

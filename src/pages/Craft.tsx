@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Hero from '../components/Hero';
-import { Reveal } from '../lib/reveal';
-import CraftLightbox from '../components/CraftLightbox';
-import { CRAFT_ITEMS, distributeIntoColumns, type CraftItem } from '../data/craft';
+import { useState, useRef, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Hero from "../components/Hero";
+import { Reveal } from "../lib/reveal";
+import CraftLightbox from "../components/CraftLightbox";
+import Picture from "../components/Picture";
+import { CRAFT_ITEMS, distributeIntoColumns, type CraftItem } from "../data/craft";
 
 // Responsive column count. The single ordered CRAFT_ITEMS list is dealt out
 // across this many columns (round-robin), so the layout — and the order — adapts
@@ -17,14 +18,12 @@ function getColumnCount(width: number): number {
 }
 
 function useColumnCount(): number {
-  const [count, setCount] = useState(() =>
-    getColumnCount(typeof window === 'undefined' ? 1200 : window.innerWidth),
-  );
+  const [count, setCount] = useState(() => getColumnCount(typeof window === "undefined" ? 1200 : window.innerWidth));
   useEffect(() => {
     const onResize = () => setCount(getColumnCount(window.innerWidth));
     onResize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
   return count;
 }
@@ -57,8 +56,8 @@ function CraftCard({
         onClick={() => onOpen(item.id)}
         aria-label={`Open ${item.label}`}
       >
-        {item.src && (
-          isVideo ? (
+        {item.src &&
+          (isVideo ? (
             <video
               src={item.src}
               className="craft-card__img"
@@ -67,6 +66,7 @@ function CraftCard({
               muted
               playsInline
               preload="metadata"
+              aria-label={item.alt ?? item.label}
               onLoadedMetadata={(e) => {
                 const v = e.currentTarget;
                 if (v.videoWidth && v.videoHeight) {
@@ -75,9 +75,9 @@ function CraftCard({
               }}
             />
           ) : (
-            <img
+            <Picture
               src={item.src}
-              alt={item.alt ?? ''}
+              alt={item.alt ?? item.label}
               className="craft-card__img"
               onLoad={(e) => {
                 const img = e.currentTarget;
@@ -86,8 +86,7 @@ function CraftCard({
                 }
               }}
             />
-          )
-        )}
+          ))}
       </button>
     </Reveal>
   );
@@ -160,10 +159,8 @@ export default function Craft() {
     <div className="page page--craft">
       <Navbar activeLink="craft" />
 
-      <Hero
-        title="Craft"
-        subtitle="A collection of side projects, explorations, and small details."
-      />
+      <main className="page__main">
+      <Hero title="Craft" subtitle="A collection of side projects, explorations, and small details." />
 
       {/* Masonry grid — columns derived from the single ordered CRAFT_ITEMS list */}
       <div className="container-wrapper">
@@ -184,6 +181,7 @@ export default function Craft() {
         </div>
       </div>
 
+      </main>
       <Footer />
 
       {activeIndex !== null && (
@@ -193,7 +191,7 @@ export default function Craft() {
           aspectMap={aspectMap}
           getOriginEl={(i) => {
             const id = CRAFT_ITEMS[i]?.id;
-            return id ? cardElsRef.current[id] ?? null : null;
+            return id ? (cardElsRef.current[id] ?? null) : null;
           }}
           onIndexChange={(i) => setActiveIndex(i)}
           onClose={() => setActiveIndex(null)}

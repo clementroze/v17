@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useRouter, COVER_MS, DOT_LEAD_MS } from '../lib/router';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Link, useRouter, COVER_MS, DOT_LEAD_MS } from "../lib/router";
+import { Reveal } from "../lib/reveal";
 
 type NavbarProps = {
   watchHideRef?: React.RefObject<Element>;
@@ -14,23 +15,30 @@ type NavbarProps = {
   // logic when provided. `isLight: true` means the section background is light.
   sections?: { ref: React.RefObject<Element>; isLight: boolean }[];
   forceWhite?: boolean;
-  activeLink?: 'about' | 'work' | 'craft';
+  activeLink?: "about" | "work" | "craft";
 };
 
 const LINKS = [
-  { label: 'About', href: '/about', key: 'about' },
-  { label: 'Work',  href: '/work',  key: 'work'  },
-  { label: 'Craft', href: '/craft', key: 'craft' },
+  { label: "About", href: "/about", key: "about" },
+  { label: "Work", href: "/work", key: "work" },
+  { label: "Craft", href: "/craft", key: "craft" },
 ] as const;
 
-export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, sections, forceWhite = false, activeLink }: NavbarProps) {
+export default function Navbar({
+  watchHideRef,
+  watchShowRef,
+  watchPastRef,
+  sections,
+  forceWhite = false,
+  activeLink,
+}: NavbarProps) {
   const { navigate } = useRouter();
-  const [open,    setOpen]    = useState(false);   // panel mounted (through the slide-out)
-  const [menuIn,  setMenuIn]  = useState(false);   // panel slid into view (drives the CSS transition)
+  const [open, setOpen] = useState(false); // panel mounted (through the slide-out)
+  const [menuIn, setMenuIn] = useState(false); // panel slid into view (drives the CSS transition)
   const [closing, setClosing] = useState(false);
   // The hamburger morph reflects intent immediately on tap.
-  const [showX,   setShowX]   = useState(false);
-  const [white,   setWhite]   = useState(forceWhite);
+  const [showX, setShowX] = useState(false);
+  const [white, setWhite] = useState(forceWhite);
 
   const navRef = useRef<HTMLElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,7 +46,10 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
   // ── color: observe watched elements ──────────────────────────────────────────
 
   useEffect(() => {
-    if (forceWhite) { setWhite(true); return; }
+    if (forceWhite) {
+      setWhite(true);
+      return;
+    }
     if (sections) return; // per-section tone logic (below) owns the color
 
     const observers: IntersectionObserver[] = [];
@@ -51,24 +62,21 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
       // hero to fully clear the viewport.
       const NAV_BAND = 96;
       const bottomMargin = Math.max(0, window.innerHeight - NAV_BAND);
-      const obs = new IntersectionObserver(
-        ([entry]) => setWhite(!entry.isIntersecting),
-        { threshold: 0, rootMargin: `0px 0px -${bottomMargin}px 0px` }
-      );
+      const obs = new IntersectionObserver(([entry]) => setWhite(!entry.isIntersecting), {
+        threshold: 0,
+        rootMargin: `0px 0px -${bottomMargin}px 0px`,
+      });
       obs.observe(watchHideRef.current);
       observers.push(obs);
     }
 
     if (watchShowRef?.current) {
-      const obs = new IntersectionObserver(
-        ([entry]) => setWhite(entry.isIntersecting),
-        { threshold: 0 }
-      );
+      const obs = new IntersectionObserver(([entry]) => setWhite(entry.isIntersecting), { threshold: 0 });
       obs.observe(watchShowRef.current);
       observers.push(obs);
     }
 
-    return () => observers.forEach(o => o.disconnect());
+    return () => observers.forEach((o) => o.disconnect());
   }, [watchHideRef, watchShowRef, forceWhite, sections]);
 
   // ── color: "past the hero" — white once the watched element's top reaches
@@ -87,11 +95,11 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
     };
 
     update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
   }, [watchPastRef, forceWhite]);
 
@@ -120,23 +128,30 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
     };
 
     update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
   }, [sections, forceWhite]);
 
   // ── mobile menu ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    document.body.style.overflow = open || showX ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = open || showX ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open, showX]);
 
   // Tidy the pending unmount timer if the navbar unmounts mid-transition.
-  useEffect(() => () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    },
+    [],
+  );
 
   // The black menu panel SLIDES in/out on its own (no column wipe). The column
   // wipe is reserved for actual page navigation. `open` keeps the panel mounted;
@@ -188,27 +203,28 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
 
       <nav
         ref={navRef}
-        className={`navbar${white ? ' navbar--white' : ''}${open || closing || showX ? ' navbar--above-overlay' : ''}`}
+        className={`navbar${white ? " navbar--white" : ""}${open || closing || showX ? " navbar--above-overlay" : ""}`}
       >
         <div className="navbar__inner">
-
           <div className="navbar__col">
-            <Link
-              href="/"
-              className="navbar__link"
-              style={linkStyle(!activeLink)}
-            >
-              Clément Rozé
-            </Link>
+            <Reveal delay={0}>
+              <Link href="/" className="navbar__link" style={linkStyle(!activeLink)}>
+                Clément Rozé
+              </Link>
+            </Reveal>
           </div>
 
-          {LINKS.map(({ label, href, key }) => (
+          {LINKS.map(({ label, href, key }, i) => (
             <div key={key} className="navbar__col navbar__col--desktop">
-              <Link
-                href={href}
-                className={`navbar__link${activeLink === key ? ' navbar__link--active' : ''}`}
-                style={linkStyle(activeLink === key)}
-              >{label}</Link>
+              <Reveal delay={80 + i * 80}>
+                <Link
+                  href={href}
+                  className={`navbar__link${activeLink === key ? " navbar__link--active" : ""}`}
+                  style={linkStyle(activeLink === key)}
+                >
+                  {label}
+                </Link>
+              </Reveal>
             </div>
           ))}
 
@@ -216,20 +232,19 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
               into the X in place. It sits above the overlay (see CSS z-index)
               and doubles as the close button when the menu is open. */}
           <button
-            className={`hamburger${showX ? ' hamburger--open' : ''}${open || closing || showX ? ' hamburger--over-overlay' : ''}`}
+            className={`hamburger${showX ? " hamburger--open" : ""}${open || closing || showX ? " hamburger--over-overlay" : ""}`}
             onClick={() => (showX ? closeMenu() : openMenu())}
-            aria-label={showX ? 'Close menu' : 'Open menu'}
+            aria-label={showX ? "Close menu" : "Open menu"}
             aria-expanded={showX}
           >
             <span className="hamburger__bar" />
             <span className="hamburger__bar" />
           </button>
-
         </div>
       </nav>
 
       {open && (
-        <div className={`menu-overlay${menuIn ? ' menu-overlay--open' : ''}`}>
+        <div className={`menu-overlay${menuIn ? " menu-overlay--open" : ""}`}>
           <div className="menu-overlay__inner">
             {/* Empty spacer matching the navbar height. The name and the
                 hamburger both live in the navbar above this overlay (z-index
@@ -242,7 +257,7 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
                   key={key}
                   href={href}
                   onClick={handleMobileNav(href)}
-                  className={`menu-overlay__link${activeLink === key ? ' menu-overlay__link--active' : ''}`}
+                  className={`menu-overlay__link${activeLink === key ? " menu-overlay__link--active" : ""}`}
                   style={{ animationDelay: `${i * 120 + 120}ms` }}
                 >
                   {label}

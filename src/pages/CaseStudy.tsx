@@ -17,6 +17,7 @@ import {
 import { Reveal } from "../lib/reveal";
 import { contrastText } from "../lib/contrast";
 import CraftLightbox from "../components/CraftLightbox";
+import Picture, { bgImageSet } from "../components/Picture";
 import type { CraftItem } from "../data/craft";
 import work from "../data/work";
 import { bySlug } from "../data/data";
@@ -273,11 +274,11 @@ function renderBlock(
                       }`}
                       onClick={() => lb.onOpen(flatIdx)}
                     >
-                      <img src={src} alt={block.alts?.[i] ?? ""} />
+                      <Picture src={src} alt={block.alts?.[i] ?? ""} />
                     </button>
                   ) : (
                     <div className="cs-images__pic">
-                      {src && <img src={src} alt={block.alts?.[i] ?? ""} />}
+                      {src && <Picture src={src} alt={block.alts?.[i] ?? ""} />}
                     </div>
                   )}
                   {block.captions?.[i] && (
@@ -544,10 +545,12 @@ export default function CaseStudy({ slug }: { slug: string }) {
   if (!data) {
     return (
       <div className="page cs-not-found">
+        <main className="page__main">
         <p className="cs-not-found__message">Case study "{slug}" not found.</p>
         <Link href={backHref} className="cs-not-found__back">
           ← {backLabel}
         </Link>
+        </main>
       </div>
     );
   }
@@ -680,6 +683,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
       }
     >
       <Navbar watchShowRef={heroRef} activeLink="work" />
+      <main className="page__main">
       {sectionCount > 0 && (
         <>
           <ProjectsNav
@@ -706,7 +710,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
       {/* ── Hero block ────────────────────────────────────────────── */}
       <div className="cs-hero-wrap">
         <div ref={heroRef} className="cs-hero">
-          {heroBg && <img src={heroBg} alt="" className="cs-hero__img" />}
+          {heroBg && <Picture src={heroBg} alt="" className="cs-hero__img" />}
 
           {/* Title block anchored to bottom */}
           <div className="container-wrapper cs-hero__bottom">
@@ -732,7 +736,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
           <div className="container">
             <div
               className="cs-cover"
-              style={coverBg ? { backgroundImage: `url(${coverBg})` } : {}}
+              style={coverBg ? { backgroundImage: bgImageSet(coverBg) } : {}}
             />
           </div>
         </div>
@@ -877,6 +881,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
         </div>
       </div>
 
+      </main>
       <Footer />
 
       {lbIndex !== null && lbItems.length > 0 && (

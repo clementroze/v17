@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import arrowWhite from "../../assets/arrow.svg";
 import arrowBlack from "../../assets/arrow-black.svg";
 import Button from "../Button";
+import Picture from "../Picture";
 import { contrastText } from "../../lib/contrast";
 
 type Project = {
@@ -167,7 +168,7 @@ function ParallaxProject({
             : { marginLeft: 0, marginRight: 0, borderRadius: 0 }
         }
       >
-        <img
+        <Picture
           ref={imgRef}
           src={project.homeImageSrc}
           alt=""

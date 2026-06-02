@@ -6,6 +6,7 @@ import Hourglass from "../components/Hourglass";
 import arrowBlack from "../assets/arrow-black.svg";
 import { Reveal } from "../lib/reveal";
 import { Link } from "../lib/router";
+import Picture, { bgImageSet } from "../components/Picture";
 
 import work, { WorkItem } from "../data/work";
 
@@ -13,11 +14,7 @@ const WORK_ITEMS = work;
 
 // Hardcoded craft thumbnails for the "See more work" row on the grid view.
 // Picked from /public/craft to feel like a sampler — must exist in that dir.
-const SEE_MORE_GRID_IMAGES = [
-  "/craft/ebb-insights.png",
-  "/craft/iwater-pair.png",
-  "/craft/souvenir-buttons.png",
-];
+const SEE_MORE_GRID_IMAGES = ["/craft/ebb-insights.png", "/craft/iwater-pair.png", "/craft/souvenir-buttons.png"];
 
 // Floating preview for the "See more work" list row. Drop a square-ish image
 // at /public/images/see-more-preview.png (any aspect works, the preview slot
@@ -43,12 +40,8 @@ function saveWorkScroll() {
 
 function GridItem({ item, index }: { item: WorkItem; index: number }) {
   const picCols = item.images.map((h, i) => (
-    <div
-      key={i}
-      className="work-grid__pic"
-      style={{ aspectRatio: `${GRID_COL_WIDTH} / ${h}` }}
-    >
-      {item.imageUrls[i] && <img src={item.imageUrls[i]} alt="" />}
+    <div key={i} className="work-grid__pic" style={{ aspectRatio: `${GRID_COL_WIDTH} / ${h}` }}>
+      {item.imageUrls[i] && <Picture src={item.imageUrls[i]} alt="" />}
     </div>
   ));
 
@@ -65,9 +58,7 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
         <p className="work-grid__role">{item.subtitle}</p>
       </div>
       <span className="work-grid__cta">
-        <span className="work-grid__cta-label">
-          {item.comingSoon ? "Coming soon" : "See more"}
-        </span>
+        <span className="work-grid__cta-label">{item.comingSoon ? "Coming soon" : "See more"}</span>
         {item.comingSoon ? (
           <Hourglass className="work-grid__cta-hourglass" />
         ) : (
@@ -100,8 +91,7 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
   // `textPosition`; otherwise fall back to the original rotating default
   // (0, 2, 3, 0, then repeating) keyed off the row index.
   const DEFAULT_POSITIONS = [0, 2, 3, 0];
-  const rawPos =
-    item.textPosition ?? DEFAULT_POSITIONS[index % DEFAULT_POSITIONS.length];
+  const rawPos = item.textPosition ?? DEFAULT_POSITIONS[index % DEFAULT_POSITIONS.length];
   const textPos = Math.max(0, Math.min(picCols.length, rawPos));
 
   const cells = [...picCols];
@@ -124,12 +114,8 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
 // link (a category, not a project).
 function SeeMoreGridRow({ index }: { index: number }) {
   const picCols = SEE_MORE_GRID_IMAGES.map((src, i) => (
-    <div
-      key={i}
-      className="work-grid__pic"
-      style={{ aspectRatio: `${GRID_COL_WIDTH} / 332` }}
-    >
-      <img src={src} alt="" />
+    <div key={i} className="work-grid__pic" style={{ aspectRatio: `${GRID_COL_WIDTH} / 332` }}>
+      <Picture src={src} alt="" />
     </div>
   ));
 
@@ -172,18 +158,10 @@ type PreviewSource = {
   previewSrc?: string;
 };
 
-function WorkList({
-  items,
-  dividerRef,
-}: {
-  items: WorkItem[];
-  dividerRef: React.RefObject<HTMLDivElement>;
-}) {
+function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.RefObject<HTMLDivElement> }) {
   // `hoveredIndex` is the index into `items`, or "see-more" for the trailing
   // craft row, or null when nothing is hovered.
-  const [hoveredIndex, setHoveredIndex] = useState<number | "see-more" | null>(
-    null,
-  );
+  const [hoveredIndex, setHoveredIndex] = useState<number | "see-more" | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: 0, y: 0 });
@@ -335,9 +313,7 @@ function WorkList({
           displayItem
             ? {
                 backgroundColor: displayItem.accent,
-                backgroundImage: displayItem.previewSrc
-                  ? `url(${displayItem.previewSrc})`
-                  : "none",
+                backgroundImage: displayItem.previewSrc ? bgImageSet(displayItem.previewSrc) : "none",
               }
             : {}
         }
@@ -392,10 +368,8 @@ export default function Work() {
     <div className="page">
       <Navbar activeLink="work" />
 
-      <Hero
-        title="Work"
-        subtitle="A closer look at the projects, decisions, and details behind my work."
-      />
+      <main className="page__main">
+      <Hero title="Work" subtitle="A closer look at the projects, decisions, and details behind my work." />
 
       {/* Main */}
       <div className="container-wrapper">
@@ -427,45 +401,11 @@ export default function Work() {
                   className={`work-main__toggle-btn work-main__toggle-btn--grid${view === "grid" ? " work-main__toggle-btn--active" : ""}`}
                   onClick={() => setViewPersisted("grid")}
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <rect
-                      x="0"
-                      y="0"
-                      width="6"
-                      height="6"
-                      rx="1"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="8"
-                      y="0"
-                      width="6"
-                      height="6"
-                      rx="1"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="0"
-                      y="8"
-                      width="6"
-                      height="6"
-                      rx="1"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="8"
-                      y="8"
-                      width="6"
-                      height="6"
-                      rx="1"
-                      fill="currentColor"
-                    />
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <rect x="0" y="0" width="6" height="6" rx="1" fill="currentColor" />
+                    <rect x="8" y="0" width="6" height="6" rx="1" fill="currentColor" />
+                    <rect x="0" y="8" width="6" height="6" rx="1" fill="currentColor" />
+                    <rect x="8" y="8" width="6" height="6" rx="1" fill="currentColor" />
                   </svg>
                   Grid
                 </button>
@@ -477,43 +417,16 @@ export default function Work() {
                   className={`work-main__toggle-btn work-main__toggle-btn--list${view === "list" ? " work-main__toggle-btn--active" : ""}`}
                   onClick={() => setViewPersisted("list")}
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <rect
-                      x="0"
-                      y="1"
-                      width="14"
-                      height="2"
-                      rx="1"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="0"
-                      y="6"
-                      width="14"
-                      height="2"
-                      rx="1"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="0"
-                      y="11"
-                      width="14"
-                      height="2"
-                      rx="1"
-                      fill="currentColor"
-                    />
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <rect x="0" y="1" width="14" height="2" rx="1" fill="currentColor" />
+                    <rect x="0" y="6" width="14" height="2" rx="1" fill="currentColor" />
+                    <rect x="0" y="11" width="14" height="2" rx="1" fill="currentColor" />
                   </svg>
                   List
                 </button>
               </div>
             </div>
-            <div ref={dividerRef} className="work-main__divider" />
+            {/* <div ref={dividerRef} className="work-main__divider" /> */}
 
             {/* Grid view */}
             {view === "grid" && (
@@ -526,13 +439,12 @@ export default function Work() {
             )}
 
             {/* List view */}
-            {view === "list" && (
-              <WorkList items={WORK_ITEMS} dividerRef={dividerRef} />
-            )}
+            {view === "list" && <WorkList items={WORK_ITEMS} dividerRef={dividerRef} />}
           </div>
         </div>
       </div>
 
+      </main>
       <Footer />
     </div>
   );

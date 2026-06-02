@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import arrowWhite from "../assets/arrow.svg";
 import footerThumb from "../assets/footer-thumbnail.png";
+import footerThumbAvif from "../assets/footer-thumbnail.avif";
+import footerThumbWebp from "../assets/footer-thumbnail.webp";
 import { useReveal } from "../lib/reveal";
 import { Link } from "../lib/router";
 import work from "../data/work";
@@ -148,7 +150,11 @@ export default function Footer() {
           className="reveal footer__archive"
         >
           <div className="footer__archive-thumb">
-            <img src={footerThumb} alt="" />
+            <picture>
+              <source srcSet={footerThumbAvif} type="image/avif" />
+              <source srcSet={footerThumbWebp} type="image/webp" />
+              <img src={footerThumb} alt="" />
+            </picture>
           </div>
           <div className="footer__archive-text">
             <p className="footer__archive-title">Version 17</p>

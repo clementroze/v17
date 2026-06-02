@@ -8,6 +8,7 @@ import About from "./pages/About";
 import Work from "./pages/Work";
 import CaseStudy from "./pages/CaseStudy";
 import Craft from "./pages/Craft";
+import { bySlug } from "./data/data";
 
 const LS_KEY = "konami-rainbow";
 const RAINBOW_COLS = [
@@ -18,6 +19,23 @@ const RAINBOW_COLS = [
   "#0088ff",
   "#8800ff",
 ];
+// ── Document title per route ─────────────────────────────────────────────────
+// Base name shown alone on the homepage; other routes append " • <Page>".
+// Case studies resolve the project's canonical name from the slug registry.
+const SITE_NAME = "Clément Rozé";
+
+function pageTitle(path: string): string {
+  const caseMatch = path.match(/^\/work\/(.+)$/);
+  if (caseMatch) {
+    const name = bySlug(caseMatch[1])?.name ?? caseMatch[1];
+    return `${SITE_NAME} • ${name}`;
+  }
+  if (path === "/about") return `${SITE_NAME} • About`;
+  if (path === "/work") return `${SITE_NAME} • Work`;
+  if (path === "/craft") return `${SITE_NAME} • Craft`;
+  return SITE_NAME;
+}
+
 const STAGGER_MS = 55;
 const COL_ANIM_MS = 480;
 const COVER_MS = COL_ANIM_MS + (RAINBOW_COLS.length - 1) * STAGGER_MS + 40;
@@ -114,6 +132,10 @@ function App() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [triggerWipe]);
+
+  React.useEffect(() => {
+    document.title = pageTitle(path);
+  }, [path]);
 
   const caseMatch = path.match(/^\/work\/(.+)$/);
 

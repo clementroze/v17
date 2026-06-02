@@ -1,11 +1,12 @@
-import { Reveal } from '../lib/reveal';
+import { Reveal } from "../lib/reveal";
 
 type HeroProps = {
   title: string;
   subtitle: string;
+  subsubtitle?: string;
 };
 
-export default function Hero({ title, subtitle }: HeroProps) {
+export default function Hero({ title, subtitle, subsubtitle }: HeroProps) {
   return (
     <div className="container-wrapper">
       <div className="container">
@@ -23,6 +24,9 @@ export default function Hero({ title, subtitle }: HeroProps) {
             <div className="hero__right">
               <Reveal delay={80}>
                 <p className="hero__subtitle">{subtitle}</p>
+              </Reveal>
+              <Reveal delay={160}>
+                <p className="hero__subsubtitle">{subsubtitle}</p>
               </Reveal>
             </div>
           </div>

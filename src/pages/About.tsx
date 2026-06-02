@@ -8,7 +8,11 @@ import BioModal from "../components/BioModal";
 import Button from "../components/Button";
 import { Reveal } from "../lib/reveal";
 import profilePhoto from "../assets/pfp.png";
+import profilePhotoAvif from "../assets/pfp.avif";
+import profilePhotoWebp from "../assets/pfp.webp";
 import resumeThumbnail from "../assets/resume-thumbnail.png";
+import resumeThumbnailAvif from "../assets/resume-thumbnail.avif";
+import resumeThumbnailWebp from "../assets/resume-thumbnail.webp";
 import linkedinIcon from "../assets/linkedin-icon.svg";
 import emailIcon from "../assets/email-icon.svg";
 import { workExperience, freelancing, collaborations, activities, infoParagraphs } from "../data/about";
@@ -89,6 +93,7 @@ export default function About() {
     <div className="page page--dark">
       <Navbar forceWhite activeLink="about" />
 
+      <main className="page__main">
       <Hero title="Who am I?" subtitle="I design at the intersection of cultures, systems, and thoughtful detail." />
 
       {/* Content sections */}
@@ -101,7 +106,11 @@ export default function About() {
               <div className="about-section-row__content">
                 <Reveal>
                   <div className="about-photo-wrap">
-                    <img src={profilePhoto} alt="Picture of Clément Rozé" className="about-photo" />
+                    <picture>
+                      <source srcSet={profilePhotoAvif} type="image/avif" />
+                      <source srcSet={profilePhotoWebp} type="image/webp" />
+                      <img src={profilePhoto} alt="Picture of Clément Rozé" className="about-photo" />
+                    </picture>
                   </div>
                 </Reveal>
               </div>
@@ -205,7 +214,11 @@ export default function About() {
                       <div className="about-resume-clip">
                         <div className="about-resume-card">
                           <div className="about-resume-thumbnail-wrap">
-                            <img src={resumeThumbnail} alt="Résumé preview" className="about-resume-thumbnail" />
+                            <picture>
+                              <source srcSet={resumeThumbnailAvif} type="image/avif" />
+                              <source srcSet={resumeThumbnailWebp} type="image/webp" />
+                              <img src={resumeThumbnail} alt="Résumé preview" className="about-resume-thumbnail" />
+                            </picture>
                           </div>
                         </div>
                       </div>
@@ -241,6 +254,7 @@ export default function About() {
         </div>
       </div>
 
+      </main>
       <BioModal
         open={bioOpen}
         onClose={closeBio}
