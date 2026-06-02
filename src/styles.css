@@ -1972,6 +1972,17 @@ html.konami .projects-nav-m__pill {
   width: 18px;
   height: 18px;
   overflow: visible;
+  /* Springy overshoot easing so the plus spins in with a little bounce that
+     settles, rather than rotating linearly. */
+  transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Spin the plus a quarter-turn on hover/focus, and hold it open (90°) while the
+   drawer is showing (button carries aria-expanded="true"). */
+.about-info-more:hover .about-info-more__icon svg,
+.about-info-more:focus-visible .about-info-more__icon svg,
+.about-info-more[aria-expanded="true"] .about-info-more__icon svg {
+  transform: rotate(90deg);
 }
 
 .about-info-more__bar {
@@ -2020,7 +2031,7 @@ html.konami .projects-nav-m__pill {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #0e0e0e;
+  background: #121212;
   border-left: 1px solid var(--white-faint);
   box-shadow: -30px 0 80px var(--black-scrim);
   transform: translateX(100%);
@@ -2079,7 +2090,6 @@ html.konami .projects-nav-m__pill {
 }
 
 .bio-modal__title {
-  margin: 0;
   font-size: 32px;
   font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-heading);
@@ -2118,10 +2128,23 @@ html.konami .projects-nav-m__pill {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   /* Top padding clears the absolutely-positioned header so the first line
      starts just below it; scrolled content then passes under the blur. */
-  padding: 96px 40px 48px;
+  padding: 128px 40px;
+}
+
+/* Each heading + its copy is now a <section> (so the stage can observe/anchor
+   to it). Spacing/divider that used to sit on the h3 lives on the section. */
+.bio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bio-section + .bio-section {
+  margin-top: 64px;
+  border-top: 1px solid var(--white-faint);
+  padding-top: 84px;
 }
 
 .bio-modal__body h3 {
@@ -2130,12 +2153,6 @@ html.konami .projects-nav-m__pill {
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--white);
-}
-
-.bio-modal__body h3:not(:first-child) {
-  margin-top: 64px;
-  border-top: 1px solid var(--white-faint);
-  padding-top: 84px;
 }
 
 .bio-modal__body p,
@@ -2148,7 +2165,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .bio-modal__body li {
-  margin-left: 20px;
+  margin-left: 24px;
 }
 
 /* Inline links use the site's animated-underline pattern (same as
@@ -2162,6 +2179,7 @@ html.konami .projects-nav-m__pill {
   background: none;
   padding: 0;
   cursor: pointer;
+  height: 27px;
 }
 
 .bio-modal__body a,
@@ -2201,6 +2219,264 @@ html.konami .projects-nav-m__pill {
 @media (max-width: 768px) {
   .bio-modal__panel {
     width: 100%;
+  }
+}
+
+/* =============================================
+   BIO-VISUAL STAGE
+   Floating images in the left 50% of the screen,
+   cross-faded between sections. The stage is its
+   own snap-scroll container; the text panel keeps
+   the right 50% and scrolls smoothly. Scrolling
+   either pane drives the other (see About.tsx).
+   ============================================= */
+
+/* Floating stage occupies the left half of the screen with NO background or
+   border of its own — the images sit directly over the scrim. It's a
+   snap-scroll container: the pinned visuals overlay shows the images, the
+   invisible snap track below it provides the scrollable height. Clicks still
+   bubble to .bio-modal to close; only wheel/touch drive the scroll. The
+   scrollbar is hidden so the empty left area stays clean. */
+.bio-modal__stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
+.bio-modal__stage::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.bio-modal--open .bio-modal__stage {
+  opacity: 1;
+}
+
+/* Visuals overlay: pinned (sticky) so the cross-fading images stay put while
+   the invisible snap track scrolls beneath. `margin-bottom: -100vh` cancels its
+   own flow height so it adds NOTHING to the scroll length — the spacers below
+   are the sole scroll/snap track. It's also the positioned ancestor the
+   absolutely-placed .bio-visual layouts resolve against. (The stage fills the
+   fixed full-screen modal, so 100vh == the stage height on desktop; the stage
+   is hidden on phones.) */
+.bio-modal__stage-visuals {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  margin-bottom: -100vh;
+}
+
+/* One full-height invisible spacer per section — these are the snap points that
+   give the stage its scrollable height. Scrolling them snaps section-by-section
+   and (via scrollTop math in About.tsx) sets the active section. */
+.bio-modal__stage-snap {
+  height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Each section's visual stacks in the same box and cross-fades via is-active;
+   the generous inset keeps the images floating clear of the screen edges. */
+.bio-modal__stage .bio-visual {
+  position: absolute;
+  inset: 88px 56px 88px 88px;
+  opacity: 0;
+  transform: scale(1.01);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bio-modal__stage .bio-visual.is-active {
+  opacity: 1;
+  transform: none;
+}
+
+/* Per-image entrance: when a visual becomes active (on first open, and again
+   as you scroll it into the center band), its images rise + fade in with a
+   small stagger so they feel like they're settling into place rather than
+   just appearing. On close (panel mounted but `--open` removed) the same
+   images run the reverse — they drop + fade back out — so the stage doesn't
+   just blink off with the panel.
+
+   The nth-child delays below are shared by enter and exit; the open vs.
+   closing selectors only swap which keyframe (and direction) plays.
+   `backwards` holds the hidden start state during the enter delay; `forwards`
+   holds the hidden end state during the exit. */
+@keyframes bioItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes bioItemOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+}
+.bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item {
+  animation: bioItemIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+/* Exit must finish within BIO_MODAL_EXIT_MS (600ms in About.tsx) before the
+   node unmounts, so the duration + largest delay stays under that. */
+.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item {
+  animation: bioItemOut 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Stagger — each image starts a beat after the one before it so they animate
+   in (and out) one after the other rather than all at once. These are scoped
+   under the state class (.bio-modal--open / :not) on purpose: that makes them
+   more specific than the `animation` shorthand above, which would otherwise
+   reset animation-delay to 0 and kill the stagger. */
+.bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(2) {
+  animation-delay: 0.11s;
+}
+.bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(3) {
+  animation-delay: 0.22s;
+}
+.bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(4) {
+  animation-delay: 0.33s;
+}
+.bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(5) {
+  animation-delay: 0.44s;
+}
+/* Exit stagger is tighter so the last image still finishes before unmount
+   (0.28s anim + 0.24s max delay ≈ 520ms < 600ms). */
+.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(4) {
+  animation-delay: 0.18s;
+}
+.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(5) {
+  animation-delay: 0.24s;
+}
+
+/* Scatter items carry their own rotate(var(--rot)); separate keyframes keep
+   that rotation through the entrance/exit instead of flattening it. */
+@keyframes bioScatterItemIn {
+  from {
+    opacity: 0;
+    transform: rotate(var(--rot, 0deg)) translateY(18px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg));
+  }
+}
+@keyframes bioScatterItemOut {
+  from {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg));
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--rot, 0deg)) translateY(18px) scale(0.92);
+  }
+}
+.bio-modal--open .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
+  animation-name: bioScatterItemIn;
+}
+.bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
+  animation-name: bioScatterItemOut;
+}
+
+/* Shared image chrome — rounded with a soft shadow so they read as floating. */
+.bio-visual__item {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--white-faint);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+/* Images display at their own natural aspect ratio (no crop) — the figure
+   shrink-wraps each image's height from its intrinsic proportions. */
+.bio-visual__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Layout: solo — one image, centered, fit to the stage box at its own ratio ── */
+.bio-visual--solo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bio-visual--solo .bio-visual__item {
+  max-width: 100%;
+  max-height: 100%;
+}
+.bio-visual--solo .bio-visual__item img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+figure.bio-visual__item {
+  border: 1px solid var(--black-line);
+}
+
+/* ── Layout: stack — 2–3 images, alternating offset collage ── */
+.bio-visual--stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+.bio-visual--stack .bio-visual__item {
+  width: 62%;
+}
+.bio-visual--stack .bio-visual__item:nth-child(even) {
+  align-self: flex-end;
+}
+
+/* ── Layout: pair — two side by side, each at its own ratio ── */
+.bio-visual--pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.bio-visual--pair .bio-visual__item {
+  flex: 1;
+}
+
+/* ── Layout: scatter — thumbnails floated at set positions ── */
+.bio-visual--scatter .bio-visual__item {
+  position: absolute;
+  width: 34%;
+  transform: rotate(var(--rot, 0deg));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* Phones: the panel goes full-width (rule above), so there's no room for the
+   side stage — hide it. */
+@media (max-width: 768px) {
+  .bio-modal__stage {
+    display: none;
   }
 }
 
@@ -5299,6 +5575,10 @@ html.konami .projects-nav-m__pill {
   }
   .hourglass__stream {
     opacity: 1;
+  }
+  .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item,
+  .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item {
+    animation: none;
   }
 }
 
