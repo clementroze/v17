@@ -55,8 +55,9 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
   // The text column is the whole clickable surface (or a non-interactive div
   // when the case study isn't live yet). The name/subtitle stay as a heading +
   // paragraph; the old CTA button becomes an inline label + arrow that animate
-  // on hover. An aria-label on the link names the destination so screen-reader
-  // users get the project name, not just "See more".
+  // on hover. The link's aria-label mirrors the visible reading order — name,
+  // then the role/subtitle, then the "See more" action — so screen-reader users
+  // hear the subtitle (which the label would otherwise suppress) before the CTA.
   const inner = (
     <>
       <div className="work-grid__text-top">
@@ -87,7 +88,7 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
     <Link
       href={item.href}
       className="work-grid__text"
-      aria-label={`See more: ${item.name}`}
+      aria-label={`${item.name}. ${item.subtitle}. See more`}
       style={{ "--accent": item.accent } as React.CSSProperties}
       onClick={saveWorkScroll}
     >

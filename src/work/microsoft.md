@@ -51,13 +51,13 @@ The feature I designed fit into the Discovery flow of the buyer. Specifically, I
 
 The features we designed fit as a Copilot extension on the browser.
 
-![lowfi](/images/microsoft/lowfi.png)
+![Low-fi wireframe of a product page with highlighted text and floating comment popovers, plus a button to find alternative products.](/images/microsoft/lowfi.png) LABEL HERE
 
 The first version of this feature actually looked very different than what I ended up with. In this version, users would be able to highlight information directly on the product page and add comments with their thoughts.
 
 However, this approach had some usability challenges: activating the highlighting feature was unintuitive, and the interaction as a whole felt too complex for a quick task.
 
-![iteration](/images/microsoft/iteration.png)
+![A scraped product-feature table with thumbs-up and thumbs-down controls on each attribute, beside a list of alternative products.](/images/microsoft/iteration.png) LABEL HERE
 
 My next iteration consisted in scraping and compiling the features from the webpage and adding them to an organized table. Buyers would then be able to either “thumbs up” or “thumbs down” specific attributes of the product, which would help Copilot determine alternative products.
 
@@ -65,7 +65,7 @@ My next iteration consisted in scraping and compiling the features from the webp
 
 I had to change the “Thumbs up” and “thumbs down” mechanism.
 
-![/images/microsoft/interaction.png | /images/microsoft/binary.png | /images/microsoft/natural.png]
+![/images/microsoft/interaction.png "Copilot extension showing the feature table with thumbs-up and thumbs-down buttons on each row." | /images/microsoft/binary.png "The same table using plus and minus buttons on each row instead of thumbs." | /images/microsoft/natural.png "The table with an editable Adjust criteria text box open on one row, asking what would make the product a better fit."]
 
 COLS
 
@@ -95,11 +95,11 @@ ENDCOLS
 
 The last step was to put everything into a Copilot extension in the browser. Here is the whole flow.
 
-![hifi](/images/microsoft/hifi.png)
+![High-fidelity browser mockup of a printer product page with the Copilot extension panel open alongside it.](/images/microsoft/hifi.png)
 
-![/images/microsoft/criteria.png | /images/microsoft/changes.png] Adjusting the criteria on the “Print Speed” attribute of the printer product. | Changes are indicated with blue text and an indicator dot.
+![/images/microsoft/criteria.png "Copilot panel with the Print Speed row expanded into an editable Adjust criteria text box." | /images/microsoft/changes.png "Copilot feature list with several adjusted values shown in blue and marked with indicator dots."] Adjusting the criteria on the “Print Speed” attribute of the printer product. | Changes are indicated with blue text and an indicator dot.
 
-![/images/microsoft/loading.png | /images/microsoft/alt.png] Loading screen | Alternative products found by Copilot, with a table showing the comparison of the original/new values.
+![/images/microsoft/loading.png "Copilot panel showing a spinner with Finding alternatives while it searches." | /images/microsoft/alt.png "Copilot alternative-product result with a comparison table of original versus new values for speed and cost."] Loading screen | Alternative products found by Copilot, with a table showing the comparison of the original/new values.
 
 ## Learnings & reflections
 

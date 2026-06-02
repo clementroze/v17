@@ -17,7 +17,7 @@ Grain trading has traditionally been a B2B business, with complex platforms like
 
 The trading process is deeply tied to physical constraints – trucks or boats with specific loading quantities, established protocols, and strict flows that we couldn't change. This meant that it was in the user interface itself that we needed to design innovative new approaches.
 
-![tools](/images/frog/tools.png) Traditional tools are too complex or overwhelming for consumers
+![A four-up grid of dense, dark professional trading terminals packed with candlestick charts, data tables, and rows of small red-and-green price figures.](/images/frog/tools.png) Traditional tools are too complex or overwhelming for consumers
 
 HMW How might we make complex trading interactions accessible and intuitive for first-time mobile users?
 
@@ -40,7 +40,7 @@ To design this platform for trading, we first had to understand how grain trader
 
 At its most basic level, grain trading involves sellers listing a quantity at a certain price: this is an offer. On the other hand, buyers submit bids specifying the price they're willing to buy for a particular volume and spec.
 
-![trading](/images/frog/trading.png) How trading basically works {1200px}
+![Diagram comparing a mismatched corn offer (No trade) with a matching one (Yes trade).](/images/frog/trading.png) How trading basically works {1200px}
 
 For example, a seller might list Russian corn at $9,300 pounds per metric ton ($/mT) for 3,000 mT. A buyer, for example a local feed mill, might place a bid offering $8,200 for 2,000 mT of similar corn.
 
@@ -55,7 +55,7 @@ To accommodate this, I designed a toggle in the bottom right corner, easily acce
 - Graph mode: Simplified analytics and charts
 - Listings mode: Full list of market offers and bids
 
-![mode](/images/frog/mode.png) Graph and Listings mode
+![Two phone mockups with a pill toggle showing the graph and listings mode.](/images/frog/mode.png) Graph and Listings mode
 
 ## Filters and Views
 
@@ -65,7 +65,7 @@ For example, a trader might monitor Russian corn arriving at New York as well as
 
 To manage this, I introduced Views: preset collections of filters users can easily switch between. The default “All” View would show every listing, while custom Views isolate specific filters for quick access.
 
-![views](/images/frog/views.png) Views are preset collections of filters
+![Annotated pills (All, Russia to New York, Ukraine to Boston) beside a phone showing switchable View tabs.](/images/frog/views.png) Views are preset collections of filters
 
 ## Designing listing cards for mobile
 
@@ -83,7 +83,7 @@ Instead, we used self-contained listing cards, each representing either a bid or
 
 We reinforced context with color-coding: red for offers (sellers) and green for bids (buyers), which is consistent with trading conventions.
 
-![card](/images/frog/card.png) LABEL HERE
+![Annotated green bid card for Corn from Russia to New York, labeling price, MOQ, quantity available, and expiry.](/images/frog/card.png) LABEL HERE
 
 ## Designing the next-generation trading model
 
@@ -91,9 +91,9 @@ To move beyond traditional table layouts, I designed a “wheel-inspired” inte
 
 I was inspired by Depth of Market tools, which are too complex for this app. And I was also inspired by the picker view UI when setting an alarm in iOS.
 
-![/images/frog/complex.png | /images/frog/alarm.png] Complicated and unintuitive trading tools | Setting an alarm is just a scroll away
+![/images/frog/complex.png "A dense desktop Depth of Market trading tool, heavily annotated with numbered callouts for its bid and offer price ladders and controls." | /images/frog/alarm.png "The iOS Add Alarm screen with a scrollable time picker wheel set."] Complicated and unintuitive trading tools | Setting an alarm is just a scroll away
 
-![scroller](/images/frog/scroller.gif) I inspired myself iOS’ picker view UI interactions {800px}
+![An iOS-style date picker wheel that can be drgaged up and down.](/images/frog/scroller.gif) I inspired myself iOS’ picker view UI interactions {800px}
 
 Put together, this model creates a push-pull dynamic that reflects live trading:
 
@@ -105,11 +105,11 @@ Swiping up reveals more bids and swiping down shows more offers. The tabs labele
 
 This spatial layout mirrors how traders scan for price advantages, time sensitivity, and MOQ constraints. It makes the interface both functional and intuitive, especially for touchscreen, mobile devices.
 
-![video](/images/frog/vid.mov) {800px}
+![A prototype showing how the interactive trading view works.](/images/frog/vid.mov) {800px}
 
-![three](/images/frog/three.png) Annotations detailing how the listings screen works
+![Three annotated phone screens for the All, Offers, and Bids tabs, explaining the red offer and green bid lists and how they scroll.](/images/frog/three.png) Annotations detailing how the listings screen works
 
-![/images/frog/down.png | /images/frog/up.png] Swiping down reveals more offers | Swiping up reveals more bids
+![/images/frog/down.png "A hand swiping down on the phone marketplace, a pink arrow marking the gesture that reveals more offers." | /images/frog/up.png "A hand swiping up on the phone marketplace, a pink arrow marking the gesture that reveals more bids."] Swiping down reveals more offers | Swiping up reveals more bids
 
 ## Responding to and creating orders
 
@@ -129,7 +129,7 @@ After reviewing the order and confirming with an OTP, it launches live on the ma
 
 Initially, this form was a single page. However, I received feedback from the client that it was too long and felt a bit intimidating, risking costly errors. Breaking it into multiple steps introduced intentional friction to ensure quality and guided users with clear labels.
 
-![new order](/images/frog/new-order.png) The flow for creating a new order
+![Multi-step phone flow for creating an order: product, port, price, validity, review, OTP confirmation, then an order-confirmed screen.](/images/frog/new-order.png) The flow for creating a new order
 
 ## Navigating the complexity of trading
 
@@ -147,7 +147,7 @@ To help users navigate, I designed clear, color-coded tags on listing cards:
 - FOT (Free on Truck, meaning goods are transported domestically via truck) and FOB (Free on Board, meaning goods are transported internationally via boat) are logistical terms that indicate delivery conditions, and gray implies a neutral metadata, which is why we chose it for that.
 - We used orange as a cautionary status for OTC since they were off-market and custom negotiations, which are a slightly riskier.
 
-![types](/images/frog/types.png) Different types of tags listing cards use {800px}
+![Legend of color-coded card tags: green Bid, red Offer, blue My order, gray FOT and FOB, orange OTC, each with a definition.](/images/frog/types.png) Different types of tags listing cards use {800px}
 
 ## Learnings & reflections
 

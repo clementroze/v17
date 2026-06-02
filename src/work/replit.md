@@ -15,7 +15,7 @@ finalDesigns: AI Comparison page
 
 The [Comparison page](https://web.archive.org/web/20240820034931/https://replit.com/comparison) is designed to highlight the advantages of Replit AI over GitHub Copilot. In the hero section, a comparison table provides a clear, side-by-side view of key features, offering an intuitive way for users to quickly grasp the differences. The sections that follow dive deeper, elaborating on what makes each Replit AI feature stand out. Testimonials provide valuable social proof, reinforcing the credibility and effectiveness of the product.
 
-![card](/images/replit/comparison.png) Comparison page
+![The full comparison page design](/images/replit/comparison.png) Comparison page
 
 ## About and Careers pages
 
@@ -23,7 +23,7 @@ The [About](https://web.archive.org/web/20250401013012/https://replit.com/about)
 
 A key aspect of this project was optimizing these marketing pages for search engines. This involved refining the language in the hero section – the first content users see upon landing on the page – and selecting strategic keywords behind the scenes to improve discoverability.
 
-![/images/replit/about.png | /images/replit/careers.png] About page | Careers page
+![/images/replit/about.png "The full design of the About page" | /images/replit/careers.png "The full design of the Careers page"] About page | Careers page
 
 ## Replit blog
 
@@ -31,4 +31,4 @@ For the [Replit blog](https://blog.replit.com/), I took creative liberties to g
 
 To maintain cohesion with Replit’s overall branding, the blog still incorporates key design elements from other marketing pages, such as the signature orange accent color and the consistent use of fonts.
 
-![blog](/images/replit/blog.png) Blog
+![The full blog page design](/images/replit/blog.png) Blog

@@ -120,7 +120,8 @@ export default function About() {
                   <div className="about-info-more-wrap">
                     <Button
                       ref={bioTriggerRef}
-                      variant="outline-white-full"
+                      variant="dark-gray"
+                      icon="plus"
                       onClick={toggleBio}
                       ariaHaspopup="dialog"
                       ariaExpanded={bioOpen}

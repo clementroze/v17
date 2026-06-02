@@ -131,20 +131,37 @@ export function parseCase(raw: string): CaseStudy {
     // image line — two supported formats, optional trailing caption(s) and width:
     //   ![src1 | src2 | …] Caption            single shared caption
     //   ![src1 | src2 | …] Cap1 | Cap2        per-image captions (parallel to srcs)
+    //   ![src "alt" | src "alt"] Cap1 | Cap2  per-image alt (quoted, after each src)
     //   ![alt](src) Caption                   standard markdown image
     //   any format can end with {600px} or {50%} to constrain width, e.g.:
     //   ![alt](src) Caption {600px}
     //   ![src] {400px}
+    // NB: within the brackets, alt text can't contain " | ] (they're delimiters).
     const widthToken = line.match(/\{([^}]+)\}\s*$/);
     const width = widthToken?.[1].trim();
     const lineNoWidth = widthToken ? line.slice(0, widthToken.index).trimEnd() : line;
     const imgMulti = lineNoWidth.match(/^!\[(.+?)\](?:\s+(.+))?$/);
     const imgStd = !imgMulti ? lineNoWidth.match(/^!\[([^\]]*)\]\(([^)]+)\)(?:\s+(.+))?$/) : null;
     if (imgMulti) {
-      const srcs = imgMulti[1].split('|').map(s => s.trim()).filter(Boolean);
+      // Each pipe-separated entry is `src` or `src "alt"` — peel the optional
+      // quoted alt off each so multi-image rows can be described per image.
+      const srcs: string[] = [];
+      const alts: string[] = [];
+      let hasAlt = false;
+      imgMulti[1].split('|').map(s => s.trim()).filter(Boolean).forEach(entry => {
+        const m = entry.match(/^(.*?)\s*"([^"]*)"$/);
+        if (m) {
+          srcs.push(m[1].trim());
+          alts.push(m[2].trim());
+          hasAlt = true;
+        } else {
+          srcs.push(entry);
+          alts.push('');
+        }
+      });
       const captionRaw = imgMulti[2]?.trim();
       const captions = captionRaw ? captionRaw.split('|').map(s => s.trim()) : undefined;
-      blocks.push({ type: 'images', srcs, captions, width });
+      blocks.push({ type: 'images', srcs, alts: hasAlt ? alts : undefined, captions, width });
       i++;
       continue;
     }

@@ -18,7 +18,7 @@ When I joined, GC AI was a single chat box bolted onto a model — functional, b
 
 The 2025 rebrand by [Monopo](https://monopo.nyc) brought a warmer palette and updated styles. I used that opening to rethink the platform's visual & UX design from the ground up.
 
-![old](/images/gcai/old.png) The original interface of GC AI
+![The original GC AI chat: a cool-toned three-column layout with a chat list, a legal Q&A thread, and a Prompt Library panel.](/images/gcai/old.png) The original interface of GC AI
 
 HMW How might we make a powerful AI feel as precise and reliable as the legal work it supports?
 
@@ -33,11 +33,11 @@ Their feedback mirrored what I'd already flagged in my own review:
 - Prompts were difficult to surface and reuse
 - Split sidebars created visual noise
 
-![research](/images/gcai/research.png) Synthesizing patterns from our user conversations
+![Four research deck slides on the redesign interviews: title, methodology overview, the seven participants, and overall feedback.](/images/gcai/research.png) Synthesizing patterns from our user conversations
 
 From there, I built low- and mid-fidelity prototypes to run usability tests against the new layouts.
 
-![lowfis](/images/gcai/lowfis.png) Initial low- and mid-fidelity mocks presented during user interviews
+![Two early chat-layout mockups side by side, from a gray low-fi wireframe to a cleaner mid-fi welcome screen.](/images/gcai/lowfis.png) Initial low- and mid-fidelity mocks presented during user interviews
 
 ## Building a design system
 
@@ -47,11 +47,11 @@ With the direction set, I first conducted an audit of existing components like b
 - The actual Figma library wasn't built as efficiently and lacked new features like slots, advanced variables, etc.
 - The color palette of the previous design system used cooler tones, while the new app needed to look more like the marketing page (with the revamped, warmed color palette)
 
-![components](/images/gcai/components.png) Before and after of several components
+![Before-and-after design systems for Button, Input, and Tabs, trading many cool-blue variants for a smaller warm-toned set.](/images/gcai/components.png) Before and after of several components
 
 I built out the foundations: a type scale, color tokens, and a library of components that every surface could share. This let us move fast without the interface drifting apart as we added features.
 
-![design system](/images/gcai/design-system.png) A slice of the components and styles used in GC AI's new look {1000px}
+![A collage of the new design system: buttons, inputs, toggles, sidebar nav, type scale, color swatches, and a modal.](/images/gcai/design-system.png) A slice of the components and styles used in GC AI's new look {1000px}
 
 ## The core workspace
 
@@ -67,13 +67,13 @@ The main section uses two tints of beige — a warmer #FAF3EC for the sidebar an
 
 Finally, interactive elements like text fields, buttons, and the chat composer use pure white (#FFFFFF) to lift off the beige canvas.
 
-![messaging](/images/gcai/messaging.png) Messaging with the AI
+![The redesigned workspace: a navy shell and beige sidebar around a white chat showing a Brown v. Board summary with key facts.](/images/gcai/messaging.png) Messaging with the AI
 
 ## Editing and versioning
 
 Legal work is iterative, so drafts don't always survive first contact. I designed an editing flow that fits directly inside the messaging interface. It lets users refine their input, track changes as they go, and step back through previous versions when needed.
 
-![/images/gcai/edit.png | /images/gcai/editing.png | /images/gcai/versions.png] Entering edit mode | Editing a draft inline | Browsing version history
+![/images/gcai/edit.png "An AI response card with the Edit button hovered on." | /images/gcai/editing.png "The same response in edit mode, its prompt now an editable field with save and cancel controls." | /images/gcai/versions.png "The response showing a version selector , with an updated draft."] Entering edit mode | Editing a draft inline | Browsing version history
 
 ## Company profiles and account menu
 
@@ -87,7 +87,7 @@ Company profiles give the AI persistent context about an entity — its structur
 
 The account menu is where the user manages their profile, settings, and organization. It also doubles as a natural home for new features. The Personalization toggle, for instance, is surfaced here with a "New!" tooltip, making it a low-friction way to introduce capabilities.
 
-![/images/gcai/company.png | /images/gcai/profile.png] Company profile menu | User account menu
+![/images/gcai/company.png "The workspace with the company-profile dropdown open, listing companies to switch between plus a New company profile button." | /images/gcai/profile.png "The account menu open from the profile avatar, with Settings, a Personalization toggle marked New, Metrics, and Sign out."] Company profile menu | User account menu
 
 ## Context window
 
@@ -95,9 +95,9 @@ When users work through long, document-heavy chats, their context window – t
 
 The indicator tracks two context tiers: normal (up to 200K tokens) and extended (up to 1M). It's displayed as a segmented bar where green (#74A75A) and purple (#B721B7) fill in as the chat grows. When things get critical, the bar shifts to amber (#DE8703) and red (#D16268), and the status label updates to match. Color carries the signal, but for accessibility, I added icons and explicit text labels to back it up so the indicator works for everyone.
 
-![/images/gcai/context-1.png | /images/gcai/context-2.png | /images/gcai/context-3.png] Default context indicator | Using normal context | Normal context nearly full
+![/images/gcai/context-1.png "Close-up of the composer showing a small 5.1% context-usage pill beside the send button." | /images/gcai/context-2.png "The expanded context popover at 5.1%, a green normal-context segment, labeled Context available." | /images/gcai/context-3.png "The popover at 19.2% with a fuller green bar and an amber Normal context nearly full warning."] Default context indicator | Using normal context | Normal context nearly full
 
-![/images/gcai/context-4.png | /images/gcai/context-5.png | /images/gcai/context-6.png] Using extended context | Extended context nearly full | Entier context window is full
+![/images/gcai/context-4.png "The popover at 60.6% with green and magenta segments, labeled Using extended context." | /images/gcai/context-5.png "The popover at 95.5%, the bar mostly magenta, with an amber Extended context almost full warning." | /images/gcai/context-6.png "The popover at 100%, the bar ending in red, labeled Extended context completely full."] Using extended context | Extended context nearly full | Entier context window is full
 
 ## Queue and loading states
 
@@ -107,7 +107,7 @@ Because legal research can take time, I paid close attention to the in-between m
 
 A queue lets users line up work and keep moving instead of waiting on the AI between sends. Queued messages stack above the composer, and each one can be edited, saved as a prompt, or jumped to immediately by interrupting the current response.
 
-![queue](/images/gcai/queue.png) Queuing up multiple pieces of work
+![Four states of the message queue stacking above the composer, from empty to three queued messages with per-item controls.](/images/gcai/queue.png) Queuing up multiple pieces of work
 
 ### Loading states
 
@@ -119,17 +119,17 @@ While the AI works, it doesn't just spin — it thinks through each action in se
 
 The pills stay visually minimal when collapsed, which keeps the interface calm during what could otherwise feel like a long wait. They also double as a branding moment: each action gets a tint derived from the primary navy #003047, divided evenly across however many steps the query takes — two actions split it into two tints, eight into eight. The more complex the task, the richer the gradient.
 
-![loading](/images/gcai/loading.png) A loading state that keeps users informed
+![Six stages of the loading pills as the AI works — Receiving, Researching, Thinking, Writing, Done — and the expanded thinking trace.](/images/gcai/loading.png) A loading state that keeps users informed
 
 Below is a video showing the prototype in action:
 
-![thinking states](/images/gcai/thinking-states.mov) Prototype of the thinking states
+![A prototype showing how the thinking states work.](/images/gcai/thinking-states.mov) Prototype of the thinking states
 
 ## Adding files, context, and more
 
 The chat composer was getting crowded. To fix this, I redesigned how users add items — files, company profiles, skills, and more — replacing deeply nested dropdowns with a slide-out panel. Selecting a category opens a beige detail panel on the side, so users can browse and pick without losing their place.
 
-![add menu](/images/gcai/add-menu.mov) Prototype of the add menu
+![A prototype of the add menu.](/images/gcai/add-menu.mov) Prototype of the add menu
 
 ## Learnings & reflections
 

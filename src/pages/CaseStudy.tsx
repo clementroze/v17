@@ -15,27 +15,12 @@ import {
   Col,
 } from "../lib/parseCase";
 import { Reveal } from "../lib/reveal";
+import { contrastText } from "../lib/contrast";
+import CraftLightbox from "../components/CraftLightbox";
+import type { CraftItem } from "../data/craft";
 import work from "../data/work";
 import { bySlug } from "../data/data";
 
-// Pick black or white for legible text on top of a given hex background, using
-// the W3C relative-luminance threshold. Used for the per-case ::selection color.
-function contrastText(hex?: string): string {
-  if (!hex) return "#fff";
-  const m = hex.replace("#", "").match(/^([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (!m) return "#fff";
-  let h = m[1];
-  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-  const toLin = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  const r = toLin(parseInt(h.slice(0, 2), 16));
-  const g = toLin(parseInt(h.slice(2, 4), 16));
-  const b = toLin(parseInt(h.slice(4, 6), 16));
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return luminance > 0.5 ? "#000" : "#fff";
-}
 
 // Turn heading text into a URL-fragment id, e.g. "Loading states" →
 // "loading-states". Used so in-page `[label](#anchor)` links can target a
@@ -127,11 +112,61 @@ function loadCase(slug: string): CaseStudyData | null {
   return parseCase(mdFiles[key]);
 }
 
+// Matches the video extensions handled by CaseStudyVideo — videos are excluded
+// from the lightbox (they keep their inline player) so this also tells the image
+// renderer which srcs are clickable.
+const VIDEO_RE = /\.(mp4|mov|webm|ogg)$/i;
+
+// Wiring passed down to the body renderers so a body image can open the shared
+// lightbox: `indexMap` maps each images-block's src position to its flat index
+// in the lightbox list (null for videos/empties, which aren't clickable), and
+// `onOpen` opens the lightbox at that index using the clicked element as the
+// morph origin.
+type Lightbox = {
+  indexMap: Map<Block, (number | null)[]>;
+  // Registers an image element by its lightbox index, so the lightbox can morph
+  // back to whichever image is currently shown (not just the one first clicked).
+  registerEl: (index: number, el: HTMLElement | null) => void;
+  onOpen: (index: number) => void;
+};
+
+// Build the flat list of lightbox images (in document order) plus the per-block
+// position→flat-index map the renderer needs. Videos and empty srcs are skipped
+// so prev/next steps through images only, matching the inline render order.
+function collectCaseImages(blocks: Block[]): {
+  items: CraftItem[];
+  indexMap: Map<Block, (number | null)[]>;
+} {
+  const items: CraftItem[] = [];
+  const indexMap = new Map<Block, (number | null)[]>();
+  for (const b of blocks) {
+    if (b.type !== "images") continue;
+    const positions: (number | null)[] = [];
+    b.srcs.forEach((src, i) => {
+      if (!src || VIDEO_RE.test(src)) {
+        positions.push(null);
+        return;
+      }
+      positions.push(items.length);
+      items.push({
+        id: `cs-img-${items.length}`,
+        src,
+        alt: b.alts?.[i],
+        label: b.captions?.[i] ?? b.alts?.[i] ?? "",
+        date: "",
+      });
+    });
+    indexMap.set(b, positions);
+  }
+  return { items, indexMap };
+}
+
 // ── body block renderer ───────────────────────────────────────────────────────
 function renderBlock(
   block: Block,
   idx: number,
   prevBlock?: Block,
+  lb?: Lightbox,
 ): React.ReactNode {
   switch (block.type) {
     case "section":
@@ -217,20 +252,34 @@ function renderBlock(
             }
           >
             {block.srcs.map((src, i) => {
-              const isVideo = /\.(mp4|mov|webm|ogg)$/i.test(src);
+              const isVideo = VIDEO_RE.test(src);
+              const flatIdx = lb?.indexMap.get(block)?.[i] ?? null;
               return (
                 <figure key={i} className="cs-figure">
-                  <div className="cs-images__pic">
-                    {src &&
-                      (isVideo ? (
-                        <CaseStudyVideo
-                          src={src}
-                          label={block.captions?.[i] ?? block.alts?.[i]}
-                        />
-                      ) : (
-                        <img src={src} alt={block.alts?.[i] ?? ""} />
-                      ))}
-                  </div>
+                  {src && isVideo ? (
+                    <div className="cs-images__pic">
+                      <CaseStudyVideo
+                        src={src}
+                        label={block.captions?.[i] ?? block.alts?.[i]}
+                      />
+                    </div>
+                  ) : src && lb && flatIdx !== null ? (
+                    <button
+                      type="button"
+                      className="cs-images__pic cs-images__pic--zoomable"
+                      ref={(el) => lb.registerEl(flatIdx, el)}
+                      aria-label={`Expand image${
+                        block.captions?.[i] ? `: ${block.captions[i]}` : ""
+                      }`}
+                      onClick={() => lb.onOpen(flatIdx)}
+                    >
+                      <img src={src} alt={block.alts?.[i] ?? ""} />
+                    </button>
+                  ) : (
+                    <div className="cs-images__pic">
+                      {src && <img src={src} alt={block.alts?.[i] ?? ""} />}
+                    </div>
+                  )}
                   {block.captions?.[i] && (
                     <figcaption className="cs-figcaption">
                       {block.captions[i]}
@@ -251,6 +300,7 @@ function renderBlock(
 function renderBody(
   blocks: Block[],
   setSectionRef?: (idx: number, el: HTMLHeadingElement | null) => void,
+  lb?: Lightbox,
 ) {
   const out: React.ReactNode[] = [];
   let i = 0;
@@ -324,7 +374,7 @@ function renderBody(
         } else {
           const prevRun = runs[r - 1];
           const prev = prevRun?.kind === "image" ? prevRun.block : undefined;
-          out.push(renderBlock(run.block, i * 100 + r, prev));
+          out.push(renderBlock(run.block, i * 100 + r, prev, lb));
         }
       });
 
@@ -343,7 +393,7 @@ function renderBody(
       }
     } else {
       const prevBlock = i > 0 ? blocks[i - 1] : undefined;
-      out.push(renderBlock(block, i, prevBlock));
+      out.push(renderBlock(block, i, prevBlock, lb));
       i++;
     }
   }
@@ -503,6 +553,22 @@ export default function CaseStudy({ slug }: { slug: string }) {
   }
 
   const { meta, blocks } = data;
+
+  // ── Image lightbox ──────────────────────────────────────────────────────────
+  // Body images open in the shared CraftLightbox (scroll-to-dismiss, arrows,
+  // zoom, drag-to-pan). Videos are excluded — they keep their inline player.
+  // `lbItems` is the flat prev/next sequence; `lbIndexMap` maps each clickable
+  // image back to its position in it. The clicked element is the morph origin.
+  const [lbIndex, setLbIndex] = useState<number | null>(null);
+  const lbElsRef = useRef<(HTMLElement | null)[]>([]);
+  const { items: lbItems, indexMap: lbIndexMap } = collectCaseImages(blocks);
+  const registerLbEl = useCallback((index: number, el: HTMLElement | null) => {
+    lbElsRef.current[index] = el;
+  }, []);
+  const openLightbox = useCallback((index: number) => {
+    setLbIndex(index);
+  }, []);
+
   const workItem = work.find((w) => w.slug === slug);
   // Meta "About" links use the light variant of the case's text accent,
   // defaulting to its `accent` color (the case study page is light mode).
@@ -705,7 +771,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
                   {hasFinalDesigns && (
                     <div className="cs-meta__cta cs-meta__cta--down">
                       <Button
-                        variant="outline-black"
+                        variant="light-gray"
                         iconSrc={arrowBlack}
                         onClick={scrollToFinalDesigns}
                       >
@@ -718,7 +784,11 @@ export default function CaseStudy({ slug }: { slug: string }) {
             </Reveal>
 
             {/* Sections */}
-            {renderBody(blocks, setSectionTitleRef)}
+            {renderBody(blocks, setSectionTitleRef, {
+              indexMap: lbIndexMap,
+              registerEl: registerLbEl,
+              onOpen: openLightbox,
+            })}
 
             {/* Prev / Next nav */}
             <div
@@ -808,6 +878,16 @@ export default function CaseStudy({ slug }: { slug: string }) {
       </div>
 
       <Footer />
+
+      {lbIndex !== null && lbItems.length > 0 && (
+        <CraftLightbox
+          items={lbItems}
+          index={lbIndex}
+          getOriginEl={(i) => lbElsRef.current[i] ?? null}
+          onIndexChange={setLbIndex}
+          onClose={() => setLbIndex(null)}
+        />
+      )}
     </div>
   );
 }

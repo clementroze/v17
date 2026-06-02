@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import Button from "./Button";
 import { BioSection, getBioSections } from "../data/about";
 
 // The bio modal pairs a scrolling text column with a floating image stage in the
@@ -359,9 +360,7 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
       if (isMobile) {
         // Scroll the carousel to this section's first image slide.
         const carousel = carouselRef.current;
-        const slide = carousel?.children[sectionFirstSlide[activeIndex]] as
-          | HTMLElement
-          | undefined;
+        const slide = carousel?.children[sectionFirstSlide[activeIndex]] as HTMLElement | undefined;
         if (carousel && slide) {
           carousel.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
         }
@@ -467,16 +466,28 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
           onPointerDown={() => (scrollDriver.current = "right")}
         >
           {sections.map((s, i) => (
-            <section
-              key={s.id}
-              className="bio-section"
-              data-bio-index={i}
-              ref={(el) => (sectionRefs.current[i] = el)}
-            >
+            <section key={s.id} className="bio-section" data-bio-index={i} ref={(el) => (sectionRefs.current[i] = el)}>
               <h3>{s.heading}</h3>
               {s.content}
+              {/* Accessible images for this section, read by AT right after its
+                  text (the visual stage/carousel is an aria-hidden decorative
+                  copy). Visually hidden — empty role="img" elements announce
+                  their alt without re-fetching the picture. */}
+              <div className="bio-section__media">
+                {s.images.map((img, idx) => (
+                  <span key={idx} role="img" aria-label={img.alt} />
+                ))}
+              </div>
             </section>
           ))}
+
+          {/* End of the panel — a Close button mirroring the "More" trigger
+              (same dark-gray pill) but with a minus glyph, to collapse the modal. */}
+          <div className="bio-modal__footer">
+            <Button variant="dark-gray" onClick={onClose}>
+              Close
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -7,105 +7,24 @@ import work from "../data/work";
 
 function SunIcon() {
   return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <circle cx="7" cy="7" r="3" fill="currentColor" />
-      <line
-        x1="7"
-        y1="0.5"
-        x2="7"
-        y2="2.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="7"
-        y1="11.5"
-        x2="7"
-        y2="13.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="0.5"
-        y1="7"
-        x2="2.5"
-        y2="7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="11.5"
-        y1="7"
-        x2="13.5"
-        y2="7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="2.4"
-        y1="2.4"
-        x2="3.8"
-        y2="3.8"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="10.2"
-        y1="10.2"
-        x2="11.6"
-        y2="11.6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="11.6"
-        y1="2.4"
-        x2="10.2"
-        y2="3.8"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <line
-        x1="3.8"
-        y1="10.2"
-        x2="2.4"
-        y2="11.6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <line x1="7" y1="0.5" x2="7" y2="2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="7" y1="11.5" x2="7" y2="13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="0.5" y1="7" x2="2.5" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="11.5" y1="7" x2="13.5" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="2.4" y1="2.4" x2="3.8" y2="3.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="10.2" y1="10.2" x2="11.6" y2="11.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="11.6" y1="2.4" x2="10.2" y2="3.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="3.8" y1="10.2" x2="2.4" y2="11.6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
 
 function MoonIcon() {
   return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M11 7.5A5 5 0 0 1 5.5 2a5 5 0 1 0 5.5 5.5z"
-        fill="currentColor"
-      />
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M11 7.5A5 5 0 0 1 5.5 2a5 5 0 1 0 5.5 5.5z" fill="currentColor" />
     </svg>
   );
 }
@@ -158,9 +77,7 @@ export default function Footer() {
   const archiveRef = useReveal<HTMLAnchorElement>(180);
   const bottomRef = useReveal(240);
   const { local, localDaytime } = useCurrentTime();
-  const [rainbowOn, setRainbowOn] = useState(() =>
-    document.documentElement.classList.contains("konami"),
-  );
+  const [rainbowOn, setRainbowOn] = useState(() => document.documentElement.classList.contains("konami"));
 
   const toggleRainbow = () => {
     window.dispatchEvent(new Event("toggle-rainbow"));
@@ -188,19 +105,12 @@ export default function Footer() {
           <p className="footer__col-title">Work</p>
           {work.map((item) =>
             item.comingSoon ? (
-              <span
-                key={item.slug}
-                className="footer__col-item footer__col-item--disabled"
-              >
+              <span key={item.slug} className="footer__col-item footer__col-item--disabled">
                 {item.name}
                 <span className="footer__col-item-soon"> - Coming soon</span>
               </span>
             ) : (
-              <Link
-                key={item.slug}
-                href={item.href}
-                className="footer__col-item"
-              >
+              <Link key={item.slug} href={item.href} className="footer__col-item">
                 {item.name}
               </Link>
             ),
@@ -210,20 +120,10 @@ export default function Footer() {
         {/* Contact */}
         <div ref={col2Ref} className="reveal footer__col">
           <p className="footer__col-title">Contact</p>
-          <a
-            href="mailto:cpr58@cornell.edu"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer__col-item"
-          >
+          <a href="mailto:cpr58@cornell.edu" target="_blank" rel="noopener noreferrer" className="footer__col-item">
             Email
           </a>
-          <a
-            href="https://x.com/TheBookie0"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer__col-item"
-          >
+          <a href="https://x.com/TheBookie0" target="_blank" rel="noopener noreferrer" className="footer__col-item">
             Twitter
           </a>
           <a
@@ -234,12 +134,7 @@ export default function Footer() {
           >
             LinkedIn
           </a>
-          <a
-            href="/Clement-Roze-Resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer__col-item"
-          >
+          <a href="/Clement-Roze-Resume.pdf" target="_blank" rel="noopener noreferrer" className="footer__col-item">
             Résumé
           </a>
         </div>
@@ -253,7 +148,7 @@ export default function Footer() {
           className="reveal footer__archive"
         >
           <div className="footer__archive-thumb">
-            <img src={footerThumb} alt="Version 17 thumbnail" />
+            <img src={footerThumb} alt="" />
           </div>
           <div className="footer__archive-text">
             <p className="footer__archive-title">Version 17</p>
@@ -267,9 +162,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div ref={bottomRef} className="reveal footer__bottom">
-        <p className="footer__copyright">
-          &copy; {new Date().getFullYear()} Cl&eacute;ment Roz&eacute;
-        </p>
+        <p className="footer__copyright">&copy; {new Date().getFullYear()} Cl&eacute;ment Roz&eacute;</p>
         <span className="footer__location-time">
           <span className="footer__local-row">
             <span className="footer__city-name">

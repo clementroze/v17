@@ -161,7 +161,7 @@ export default function AccordionRow({
                 <Button
                   href={caseStudyHref}
                   iconSrc={arrowWhite}
-                  variant="outline-gray"
+                  variant="dark-gray"
                   onClick={
                     caseStudyHref.startsWith("/") ? saveScrollState : undefined
                   }

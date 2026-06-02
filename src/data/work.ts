@@ -79,63 +79,39 @@ const sources: WorkSource[] = [
     heroIsLight: false,
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
-    imageUrls: [
-      "/images/ibm/grid-1.png",
-      "/images/ibm/grid-2.png",
-      "/images/ibm/grid-3.png",
-    ],
+    imageUrls: ["/images/ibm/grid-1.png", "/images/ibm/grid-2.png", "/images/ibm/grid-3.png"],
   },
   {
     slug: "google",
     heroIsLight: true,
     previewSrc: "/images/google/preview.png",
     images: [332, 332, 332],
-    imageUrls: [
-      "/images/google/grid-1.png",
-      "/images/google/grid-2.png",
-      "/images/google/grid-3.png",
-    ],
+    imageUrls: ["/images/google/grid-1.png", "/images/google/grid-2.png", "/images/google/grid-3.png"],
   },
   {
     slug: "frog",
     previewSrc: "/images/frog/preview.png",
     images: [332, 332, 332],
-    imageUrls: [
-      "/images/frog/grid-1.png",
-      "/images/frog/grid-2.png",
-      "/images/frog/grid-3.png",
-    ],
+    imageUrls: ["/images/frog/grid-1.png", "/images/frog/grid-2.png", "/images/frog/grid-3.png"],
   },
   {
     slug: "microsoft",
     previewSrc: "/images/microsoft/preview.png",
     images: [332, 332, 332],
-    imageUrls: [
-      "/images/microsoft/grid-1.png",
-      "/images/microsoft/grid-2.png",
-      "/images/microsoft/grid-3.png",
-    ],
+    imageUrls: ["/images/microsoft/grid-1.png", "/images/microsoft/grid-2.png", "/images/microsoft/grid-3.png"],
   },
   {
     slug: "gcai",
     previewSrc: "/images/gcai/preview.png",
     images: [332, 332, 332],
-    imageUrls: [
-      "/images/gcai/grid-1.png",
-      "/images/gcai/grid-2.png",
-      "/images/gcai/grid-3.png",
-    ],
+    imageUrls: ["/images/gcai/grid-1.png", "/images/gcai/grid-2.png", "/images/gcai/grid-3.png"],
     textPosition: 2,
   },
   {
     slug: "replit",
     previewSrc: "/images/replit/preview.png",
     images: [332, 332, 332],
-    imageUrls: [
-      "/images/replit/grid-1.png",
-      "/images/replit/grid-2.png",
-      "/images/replit/grid-3.png",
-    ],
+    imageUrls: ["/images/replit/grid-1.png", "/images/replit/grid-2.png", "/images/replit/grid-3.png"],
     textPosition: 1,
   },
 ];
@@ -146,13 +122,12 @@ const sources: WorkSource[] = [
 // so drift is caught immediately.
 const work: WorkItem[] = sources.map((s, i) => {
   const entity = bySlug(s.slug);
-  if (!entity)
-    throw new Error(`work.ts: no registry entity for slug "${s.slug}"`);
+  if (!entity) throw new Error(`work.ts: no registry entity for slug "${s.slug}"`);
   return {
     ...s,
     // Tagline pulled from the case-study .md frontmatter; entries without a
     // .md yet (ibm) fall back to "Coming soon.".
-    subtitle: mdSubtitle(s.slug) ?? "Coming soon.",
+    subtitle: mdSubtitle(s.slug) ?? "",
     // Homepage hero, by slug convention (see comment at top of file).
     homeImageSrc: `/images/${s.slug}/home-hero.png`,
     name: entity.name,

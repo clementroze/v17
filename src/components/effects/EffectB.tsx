@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import arrowWhite from "../../assets/arrow.svg";
 import arrowBlack from "../../assets/arrow-black.svg";
 import Button from "../Button";
+import { contrastText } from "../../lib/contrast";
 
 type Project = {
   number: string;
@@ -185,14 +186,14 @@ function ParallaxProject({
             const contentClass = `project__content${
               project.heroIsLight ? " project__content--light" : ""
             }${project.comingSoon ? " project__content--disabled" : ""}`;
+            // The "See more" button is filled with the project's accent; its
+            // text/arrow ink is whichever of black/white stays legible on it.
+            const accentInk = contrastText(project.accent);
             const style = {
               "--accent": project.accent,
+              "--accent-ink": accentInk,
             } as React.CSSProperties;
-            // Button tone follows the hero: dark hero → white outline, light
-            // hero → black outline. The arrow matches the resting ink.
-            const variant = project.heroIsLight
-              ? "outline-black"
-              : "outline-white-full";
+            const accentArrow = accentInk === "#000" ? arrowBlack : arrowWhite;
             return (
               <div className={contentClass} style={style}>
                 <h2
@@ -206,14 +207,14 @@ function ParallaxProject({
                   className="project__cta effect-b__item effect-b__item--cta"
                 >
                   {project.comingSoon ? (
-                    <Button variant={variant} disabled>
+                    <Button variant="accent" disabled>
                       Coming soon
                     </Button>
                   ) : (
                     <Button
                       href={project.href}
-                      variant={variant}
-                      iconSrc={project.heroIsLight ? arrowBlack : arrowWhite}
+                      variant="accent"
+                      iconSrc={accentArrow}
                       ariaLabel={`View ${project.name}`}
                     >
                       See more

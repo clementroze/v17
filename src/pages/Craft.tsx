@@ -37,25 +37,24 @@ function CraftCard({
   onOpen,
   onAspectResolved,
   aspect,
+  registerEl,
 }: {
   item: CraftItem;
   delay: number;
-  onOpen: (id: string, el: HTMLElement) => void;
+  onOpen: (id: string) => void;
   onAspectResolved: (id: string, aspect: number) => void;
   aspect: number;
+  registerEl: (id: string, el: HTMLElement | null) => void;
 }) {
-  const ref = useRef<HTMLButtonElement>(null);
   const isVideo = item.src ? /\.(mp4|mov|webm|ogg)$/i.test(item.src) : false;
   return (
     <Reveal delay={delay}>
       <button
-        ref={ref}
+        ref={(el) => registerEl(item.id, el)}
         type="button"
         className="craft-card"
         style={{ aspectRatio: String(aspect) }}
-        onClick={() => {
-          if (ref.current) onOpen(item.id, ref.current);
-        }}
+        onClick={() => onOpen(item.id)}
         aria-label={`Open ${item.label}`}
       >
         {item.src && (
@@ -102,12 +101,14 @@ function CraftCol({
   onOpen,
   onAspectResolved,
   aspectMap,
+  registerEl,
 }: {
   items: CraftItem[];
   baseDelay: number;
-  onOpen: (id: string, el: HTMLElement) => void;
+  onOpen: (id: string) => void;
   onAspectResolved: (id: string, aspect: number) => void;
   aspectMap: Record<string, number>;
+  registerEl: (id: string, el: HTMLElement | null) => void;
 }) {
   return (
     <div className="craft-col">
@@ -119,6 +120,7 @@ function CraftCol({
           onOpen={onOpen}
           onAspectResolved={onAspectResolved}
           aspect={aspectMap[item.id] ?? item.aspect ?? 1}
+          registerEl={registerEl}
         />
       ))}
     </div>
@@ -129,7 +131,10 @@ function CraftCol({
 
 export default function Craft() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const originElRef = useRef<HTMLElement | null>(null);
+  // Source card elements keyed by item id, registered as cards mount. The
+  // lightbox morphs to/from the card for whatever index is CURRENTLY shown, so
+  // closing after prev/next navigation lands on the right card (getOriginEl).
+  const cardElsRef = useRef<Record<string, HTMLElement | null>>({});
   // Real image aspects (width / height), populated as <img> elements load.
   // Source-card aspect AND lightbox aspect both derive from this — same value
   // → no shape change between grid and lightbox.
@@ -142,12 +147,13 @@ export default function Craft() {
     setAspectMap((m) => (m[id] === aspect ? m : { ...m, [id]: aspect }));
   };
 
-  const openById = (id: string, el: HTMLElement) => {
+  const registerCardEl = (id: string, el: HTMLElement | null) => {
+    cardElsRef.current[id] = el;
+  };
+
+  const openById = (id: string) => {
     const idx = CRAFT_ITEMS.findIndex((i) => i.id === id);
-    if (idx >= 0) {
-      originElRef.current = el;
-      setActiveIndex(idx);
-    }
+    if (idx >= 0) setActiveIndex(idx);
   };
 
   return (
@@ -171,6 +177,7 @@ export default function Craft() {
                 onOpen={openById}
                 onAspectResolved={handleAspectResolved}
                 aspectMap={aspectMap}
+                registerEl={registerCardEl}
               />
             ))}
           </div>
@@ -184,12 +191,12 @@ export default function Craft() {
           items={CRAFT_ITEMS}
           index={activeIndex}
           aspectMap={aspectMap}
-          getOriginEl={() => originElRef.current}
-          onIndexChange={(i) => setActiveIndex(i)}
-          onClose={() => {
-            setActiveIndex(null);
-            originElRef.current = null;
+          getOriginEl={(i) => {
+            const id = CRAFT_ITEMS[i]?.id;
+            return id ? cardElsRef.current[id] ?? null : null;
           }}
+          onIndexChange={(i) => setActiveIndex(i)}
+          onClose={() => setActiveIndex(null)}
         />
       )}
     </div>

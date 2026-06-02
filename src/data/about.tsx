@@ -183,6 +183,10 @@ export const infoParagraphs = [
 export type BioLayout = "solo" | "stack" | "scatter" | "pair";
 export type BioImage = {
   src: string;
+  // Screen-reader description. Rendered after each section's text (see BioModal)
+  // so AT reads "section text → its image". The visual stage/carousel is a
+  // decorative duplicate and stays aria-hidden.
+  alt: string;
   // scatter-only placement (ignored by the other layouts)
   top?: string;
   left?: string;
@@ -205,7 +209,10 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       id: "origin",
       heading: "How did I get here?",
       layout: "stack",
-      images: [{ src: "/images/bio/html.png" }, { src: "/images/bio/python.png" }],
+      images: [
+        { src: "/images/bio/html.png", alt: "My first HTML website" },
+        { src: "/images/bio/python.png", alt: "My first Python program" },
+      ],
       content: (
         <>
           <p>
@@ -226,7 +233,11 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       id: "corner",
       heading: "Design is broad. What's my corner of it?",
       layout: "stack",
-      images: [{ src: "/images/bio/mess.png" }, { src: "/images/bio/details.png" }, { src: "/images/bio/system.png" }],
+      images: [
+        { src: "/images/bio/mess.png", alt: "An example of my Figma file" },
+        { src: "/images/bio/details.png", alt: "Detailed UI I like to make" },
+        { src: "/images/bio/system.png", alt: "An example of a design system" },
+      ],
       content: (
         <>
           <p>
@@ -252,11 +263,41 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       heading: "Takes",
       layout: "scatter",
       images: [
-        { src: "/images/bio/radius.png", top: "-4%", left: "6%", rotate: "-6deg" },
-        { src: "/images/bio/respond.png", top: "0%", left: "56%", rotate: "5deg" },
-        { src: "/images/bio/poppins.png", top: "30%", left: "28%", rotate: "-3deg" },
-        { src: "/images/bio/shortcuts.png", top: "65%", left: "0%", rotate: "7deg" },
-        { src: "/images/bio/browsers.png", top: "58%", left: "60%", rotate: "-8deg" },
+        {
+          src: "/images/bio/radius.png",
+          alt: "A red cross next to a round button, a green checkmark next to a less round button",
+          top: "-4%",
+          left: "6%",
+          rotate: "-6deg",
+        },
+        {
+          src: "/images/bio/respond.png",
+          alt: "iMessage conversation showing how fast I respond",
+          top: "0%",
+          left: "56%",
+          rotate: "5deg",
+        },
+        {
+          src: "/images/bio/poppins.png",
+          alt: "Poppins, the worst font ever",
+          top: "30%",
+          left: "28%",
+          rotate: "-3deg",
+        },
+        {
+          src: "/images/bio/shortcuts.png",
+          alt: "Shift A, Cmd C/V, Spotlight, Tab, and Option keys",
+          top: "65%",
+          left: "0%",
+          rotate: "7deg",
+        },
+        {
+          src: "/images/bio/browsers.png",
+          alt: "Safari, Chrome, Firefox, Dia, and Edge browsers",
+          top: "58%",
+          left: "60%",
+          rotate: "-8deg",
+        },
       ],
       content: (
         <>
@@ -284,11 +325,23 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       heading: "Touching grass",
       layout: "scatter",
       images: [
-        { src: "/images/bio/tennis.png", top: "-2%", left: "9%", rotate: "-9deg" },
-        { src: "/images/bio/climb.png", top: "3%", left: "61%", rotate: "4deg" },
-        { src: "/images/bio/gym.png", top: "23%", left: "22%", rotate: "-6deg" },
-        { src: "/images/bio/rappel.png", top: "62%", left: "4%", rotate: "11deg" },
-        { src: "/images/bio/cpr.png", top: "65%", left: "57%", rotate: "-5deg" },
+        { src: "/images/bio/tennis.png", alt: "Playing tennis with friends", top: "-2%", left: "9%", rotate: "-9deg" },
+        { src: "/images/bio/climb.png", alt: "Belaying at the climbing wall", top: "3%", left: "61%", rotate: "4deg" },
+        {
+          src: "/images/bio/gym.png",
+          alt: "On the pec fly machine at the gym",
+          top: "23%",
+          left: "22%",
+          rotate: "-6deg",
+        },
+        {
+          src: "/images/bio/rappel.png",
+          alt: "Rappelling off of Schoellkopf Stadium",
+          top: "62%",
+          left: "4%",
+          rotate: "11deg",
+        },
+        { src: "/images/bio/cpr.png", alt: "Practicing CPR on a dummy", top: "65%", left: "57%", rotate: "-5deg" },
       ],
       content: (
         <>
@@ -308,7 +361,11 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       id: "community",
       heading: "Community",
       layout: "stack",
-      images: [{ src: "/images/bio/comm-a.png" }, { src: "/images/bio/comm-b.png" }],
+      images: [
+        { src: "/images/bio/present.png", alt: "Presenting a new website at DTI, a club at Cornell" },
+        { src: "/images/bio/collab.png", alt: "Collaborating with teammates on a whiteboard" },
+        { src: "/images/bio/nme.png", alt: "Welcoming the new members at DCC, a club at Cornell" },
+      ],
       content: (
         <>
           <p>

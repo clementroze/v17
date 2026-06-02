@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { Link } from '../lib/router';
 import Hourglass from './Hourglass';
 
-type ButtonVariant = 'white' | 'outline-gray' | 'outline-white-full' | 'outline-black';
+type ButtonVariant = 'dark-gray' | 'light-gray' | 'accent';
 
 type ButtonProps = {
   children: React.ReactNode;
@@ -11,6 +11,9 @@ type ButtonProps = {
   href?: string;
   iconSrc?: string;
   iconAlt?: string;
+  /** Inline glyph rendered instead of an image icon. Spins on hover / while
+   *  expanded — 'plus' for the About "More" trigger, 'minus' for "Close". */
+  icon?: 'plus' | 'minus';
   disabled?: boolean;
   onClick?: () => void;
   ariaLabel?: string;
@@ -20,11 +23,12 @@ type ButtonProps = {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   children,
-  variant = 'outline-white-full',
+  variant = 'dark-gray',
   fullWidth = false,
   href,
   iconSrc,
   iconAlt = '',
+  icon,
   disabled = false,
   onClick,
   ariaLabel,
@@ -38,12 +42,27 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
     disabled ? 'btn--disabled' : '',
   ].filter(Boolean).join(' ');
 
+  let trailing: React.ReactNode = null;
+  if (disabled) {
+    trailing = <Hourglass className="btn__icon" />;
+  } else if (icon) {
+    // Horizontal bar always; the vertical bar (making it a plus) only for 'plus'.
+    trailing = (
+      <span className="btn__glyph" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <line className="btn__glyph-bar" x1="5" y1="12" x2="19" y2="12" />
+          {icon === 'plus' && <line className="btn__glyph-bar" x1="12" y1="5" x2="12" y2="19" />}
+        </svg>
+      </span>
+    );
+  } else if (iconSrc) {
+    trailing = <img className="btn__icon" src={iconSrc} alt={iconAlt} />;
+  }
+
   const content = (
     <>
       <span>{children}</span>
-      {disabled
-        ? <Hourglass className="btn__icon" />
-        : iconSrc && <img className="btn__icon" src={iconSrc} alt={iconAlt} />}
+      {trailing}
     </>
   );
 

@@ -8,9 +8,9 @@ const FOCUSABLE =
 const MORPH_IN_MS = 520;
 const MORPH_OUT_MS = 380;
 // How much accumulated same-direction wheel intent it takes to dismiss the
-// lightbox. Tuned high so casual scrolling within a tall screenshot doesn't
-// accidentally close — the user has to deliberately push through.
-const SCROLL_DISMISS_PX = 420;
+// lightbox. Tuned so casual scrolling within a tall screenshot doesn't
+// accidentally close, while a deliberate flick commits crisply.
+const SCROLL_DISMISS_PX = 360;
 // Edge-overflow grace: when the user pans a zoomed image past the top/bottom
 // bound, this much "wasted" wheel must accumulate before we start counting
 // toward dismiss. Lets you reach the end of a screenshot and pause without
@@ -63,9 +63,11 @@ type Props = {
    *  Used to compute initial zoom synchronously on open so tall screenshots
    *  don't flash at 1× before jumping to their framed zoom. */
   aspectMap?: Record<string, number>;
-  // Returns the source card element so we can re-measure its current viewport
-  // position (which moves as the user scrolls the page underneath the overlay).
-  getOriginEl: () => HTMLElement | null;
+  // Returns the source element to morph from/to for a given item index — we
+  // re-measure it each frame so it tracks the page scrolling underneath the
+  // overlay. Queried for the CURRENT index (not the one first clicked) so that
+  // closing after prev/next navigation animates back to the item actually shown.
+  getOriginEl: (index: number) => HTMLElement | null;
   onClose: () => void;
   onIndexChange: (i: number) => void;
 };
@@ -98,7 +100,7 @@ export default function CraftLightbox({
     const a = measured ?? items[index]?.aspect ?? 0;
     return computeInitialFraming(a);
   })();
-  const [phase, setPhase] = useState<Phase>(() => (getOriginEl() ? 'origin' : 'idle'));
+  const [phase, setPhase] = useState<Phase>(() => (getOriginEl(index) ? 'origin' : 'idle'));
   const [mounted, setMounted] = useState(false);
   const [dir, setDir] = useState(0);
   const [animKey, setAnimKey] = useState(0);
@@ -154,6 +156,15 @@ export default function CraftLightbox({
   // (e.g. from scroll-progress) don't overwrite our imperative rAF writes.
   const [closingStartTransform, setClosingStartTransform] = useState<string | null>(null);
 
+  // Always-current index for callbacks (close / origin transform) that must read
+  // the latest value WITHOUT being recreated on every navigation — recreating
+  // `close` would needlessly re-bind the heavy wheel listener and reset its
+  // gesture accumulators.
+  const indexRef = useRef(index);
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
+
   // Compute the inverted origin transform — re-measures the source card every
   // time so it tracks scroll/layout changes. Uses a UNIFORM scale to preserve
   // aspect ratio (no distortion). The source card uses `object-fit: cover`
@@ -162,7 +173,7 @@ export default function CraftLightbox({
   // entirely (max of sx, sy) and center the difference with translate.
   const computeOriginTransform = useCallback((): string | null => {
     const card = cardRef.current;
-    const sourceEl = getOriginEl();
+    const sourceEl = getOriginEl(indexRef.current);
     if (!card || !sourceEl) return null;
     const finalRect = measure(card);
     const sourceRect = measure(sourceEl);
@@ -229,7 +240,7 @@ export default function CraftLightbox({
     closingRef.current = true;
 
     const card = cardRef.current;
-    const sourceEl = getOriginEl();
+    const sourceEl = getOriginEl(indexRef.current);
     if (!card || !sourceEl) {
       setMounted(false);
       setPhase('closing');
@@ -520,48 +531,63 @@ export default function CraftLightbox({
     // with the same total push.
     let releaseRaf = 0;
     let releaseTimer = 0;
-    const RELEASE_DELAY_MS = 80; // brief settle after last event
-    const RELEASE_DECAY_PER_MS = 4; // px/ms — controls bounce-back speed
-    const MAX_DRIFT_PX = 64;
+    const RELEASE_DELAY_MS = 60; // brief settle after last event
+    const MAX_DRIFT_PX = 120;
+    // Release spring (under-damped → a small elastic overshoot on snap-back).
+    // Operates on `v` = pull progress (= accum / SCROLL_DISMISS_PX). k/c are
+    // tuned for a subtle bounce (damping ratio ≈ 0.6); dt is clamped so a
+    // dropped frame can't make it explode.
+    const SPRING_K = 200;
+    const SPRING_C = 17;
+    let springV = 0;
+    let springVel = 0;
     let lastFrameAt = 0;
 
-    // Single function that writes BOTH the scrim and the card drift from the
-    // same eased dismiss progress. Using one curve for both keeps them
-    // visually locked together — when the user pulls, the scrim fades and
-    // the image drifts at the same rate, not on different curves.
-    const applyDismiss = (accum: number, dir: number) => {
-      const progress = Math.min(1, accum / SCROLL_DISMISS_PX);
-      // ease-out quadratic: starts fast, slows as it nears full dismiss.
-      const eased = 1 - Math.pow(1 - progress, 2);
-      setScrollProgress(accum === 0 ? 1 : 1 - eased);
-      setDismissDrift(accum === 0 ? 0 : -dir * eased * MAX_DRIFT_PX);
+    // Writes BOTH the scrim and the card drift from one pull value `v`, so they
+    // stay visually locked. Drift is a rubber-band (tanh) so the card keeps
+    // responding across the WHOLE pull — no dead zone where the back half of
+    // the scroll stops moving it — and is signed so the release spring's
+    // overshoot can bounce the card a hair past center. The scrim only dims for
+    // a positive (toward-dismiss) pull.
+    const applyPull = (v: number, dir: number) => {
+      setDismissDrift(v === 0 ? 0 : -dir * Math.tanh(v * 1.1) * MAX_DRIFT_PX);
+      const p = Math.max(0, Math.min(1, v));
+      const eased = 1 - Math.pow(1 - p, 2);
+      setScrollProgress(1 - eased);
     };
 
     const tick = (now: number) => {
-      const dt = lastFrameAt === 0 ? 16 : now - lastFrameAt;
+      const dt = Math.min(lastFrameAt === 0 ? 16 : now - lastFrameAt, 32) / 1000;
       lastFrameAt = now;
-      const step = RELEASE_DECAY_PER_MS * dt;
-      if (dismissAccum > step) {
-        dismissAccum -= step;
-      } else {
+      // Critically-ish damped spring toward rest (v = 0).
+      const a = -SPRING_K * springV - SPRING_C * springVel;
+      springVel += a * dt;
+      springV += springVel * dt;
+      // Keep the gate accumulator synced to the spring so a re-scroll mid-bounce
+      // continues smoothly from where the card actually is.
+      dismissAccum = Math.max(0, springV) * SCROLL_DISMISS_PX;
+      if (Math.abs(springV) < 0.002 && Math.abs(springVel) < 0.02) {
+        springV = 0;
+        springVel = 0;
         dismissAccum = 0;
         dismissDir = 0;
-      }
-      applyDismiss(dismissAccum, dismissDir);
-      if (dismissAccum > 0) {
-        releaseRaf = requestAnimationFrame(tick);
-      } else {
+        applyPull(0, dismissDir);
         releaseRaf = 0;
+        return;
       }
+      applyPull(springV, dismissDir);
+      releaseRaf = requestAnimationFrame(tick);
     };
     const scheduleRelease = () => {
       cancelAnimationFrame(releaseRaf);
       releaseRaf = 0;
-      // Use a tiny setTimeout so a burst of wheel events doesn't start
-      // decaying mid-gesture. Each wheel cancels the pending start.
+      // Use a tiny setTimeout so a burst of wheel events doesn't start the
+      // spring mid-gesture. Each wheel cancels the pending start.
       window.clearTimeout(releaseTimer);
       releaseTimer = window.setTimeout(() => {
         lastFrameAt = 0;
+        springV = dismissAccum / SCROLL_DISMISS_PX;
+        springVel = 0;
         releaseRaf = requestAnimationFrame(tick);
       }, RELEASE_DELAY_MS);
     };
@@ -585,7 +611,7 @@ export default function CraftLightbox({
         dismissAccum = 0;
         dismissDir = 0;
         edgeOverflow = 0;
-        applyDismiss(0, 0);
+        applyPull(0, 0);
       }
       lastEventAt = now;
 
@@ -645,8 +671,8 @@ export default function CraftLightbox({
 
       // Update the signed dismiss accumulator. Direction reversal zeroes it
       // — short back-and-forth scrolling never adds up to dismiss. Scrim
-      // and drift are both written from the same eased progress so they
-      // stay visually locked together (see applyDismiss).
+      // and drift are both written from the same pull progress so they
+      // stay visually locked together (see applyPull).
       if (dismissContribution !== 0) {
         const dir = Math.sign(dismissContribution);
         if (dir !== dismissDir) {
@@ -654,7 +680,7 @@ export default function CraftLightbox({
           dismissDir = dir;
         }
         dismissAccum += Math.abs(dismissContribution);
-        applyDismiss(dismissAccum, dismissDir);
+        applyPull(dismissAccum / SCROLL_DISMISS_PX, dismissDir);
         if (dismissAccum > SCROLL_DISMISS_PX) close();
       }
       // Always schedule release after each event — if more wheel events
@@ -727,7 +753,11 @@ export default function CraftLightbox({
     return () => {
       const target = prevFocusRef.current;
       if (!target) return;
-      target.focus?.();
+      // preventScroll: restoring focus must NOT scroll the source back into
+      // view. After a scroll-to-dismiss the user has often scrolled elsewhere,
+      // and yanking them back to the just-closed item is jarring — let their
+      // new scroll position stand.
+      target.focus?.({ preventScroll: true });
       // If the close was triggered by Esc, drop the focus immediately so the
       // restored element doesn't display a keyboard focus ring. The user can
       // still tab back to it if they actually want keyboard focus.
