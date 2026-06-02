@@ -267,7 +267,13 @@ export default function CaseStudyVideo({ src, label }: Props) {
             aria-label="Seek video"
             aria-valuetext={`${formatTime(current)} of ${formatTime(duration)}`}
             style={
-              { "--cs-video-progress": `${progress}%` } as React.CSSProperties
+              {
+                "--cs-video-progress": `${progress}%`,
+                // Let the slider own horizontal drags so scrubbing never triggers
+                // the browser's back/forward edge-swipe (paired with the global
+                // overscroll-behavior-x guard).
+                touchAction: "none",
+              } as React.CSSProperties
             }
           />
           {/* The only thumb: shown at the cursor position while hovering the

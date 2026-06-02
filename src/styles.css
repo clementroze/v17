@@ -14,6 +14,12 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Kill the browser's horizontal edge-swipe back/forward gesture site-wide.
+     Several surfaces drive their own horizontal gestures (the case-study page
+     dots / mobile pill scrubber, the video scrubber, lightbox swipes); without
+     this an iOS/trackpad horizontal swipe navigates history instead. Vertical
+     overscroll (rubber-band) is left untouched. */
+  overscroll-behavior-x: none;
 }
 
 body {
@@ -26,6 +32,7 @@ body {
   overflow-wrap: break-word;
   word-wrap: break-word;
   -webkit-text-size-adjust: 100%;
+  overscroll-behavior-x: none;
 }
 
 body::selection {
@@ -105,6 +112,19 @@ footer::selection {
   /* One body weight; headings step up to 500. */
   --weight-body: 400;
   --weight-heading: 500;
+
+  /* ── Mobile type scale ──────────────────────────────────────
+     A single coherent ladder applied across the ≤768px breakpoint so type is
+     consistent everywhere: every body copy is one size, every small label is
+     one size, headings step up, titles are biggest. Tuned to stay readable on a
+     ~375px screen without overflowing the frame. Overridden slightly at ≤480 /
+     ≤360. (On desktop these tokens are unused — desktop keeps its own sizes.) */
+  --m-text: 17px; /* body copy: paragraphs, list items, bios, quotes, descriptions */
+  --m-label: 15px; /* small UI labels: section labels, meta, roles, periods, captions */
+  --m-heading: 22px; /* sub-headings: case-study section titles, inline headings, modal h3 */
+  --m-subtitle: 19px; /* hero/cover subtitles */
+  /* Titles (hero, case-study hero, project, work names) stay biggest and keep
+     their per-element fluid clamp() values. */
 
   /* page-transition column color: overridden to var(--white) on dark pages */
   --radius-img: 4px; /* cards, images, craft cards, project cards */
@@ -375,9 +395,21 @@ footer::selection {
   z-index: 200;
   display: flex;
   flex-direction: column;
-  /* No slide of its own — the staggered column wipe (page-transition) acts as
-     the curtain on both open and close: it covers, the menu mounts/unmounts
-     behind it, then it reveals. The menu just appears/disappears in place. */
+  /* The black panel SLIDES DOWN from the top — the expanded navbar dropping in
+     over the page. Starts pulled up off-screen + transparent; .menu-overlay--open
+     drops it to rest. The column wipe is NOT used here (it's reserved for page
+     navigation). transform+opacity only, so the slide is GPU-composited/smooth. */
+  transform: translateY(-100%);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s ease;
+}
+
+.menu-overlay--open {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .menu-overlay__inner {
@@ -412,10 +444,10 @@ footer::selection {
   line-height: var(--leading-heading);
   padding: 12px 0;
   transition: opacity 150ms ease;
-  /* stagger in — bigger travel + longer duration so the per-link delay
-     (set inline in Navbar.tsx) reads as a clear cascade, not a near-simultaneous
-     fade. */
-  animation: menuLinkIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* The PANEL sliding down is the main motion now; the links just settle in with
+     a soft staggered fade + small rise (per-link delay set inline in Navbar.tsx)
+     so the list feels alive without competing with the slide. */
+  animation: menuLinkIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .menu-overlay__link--active,
@@ -426,31 +458,27 @@ footer::selection {
 @keyframes menuLinkIn {
   from {
     opacity: 0;
-    transform: translateY(48px);
-    filter: blur(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 0.25;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
 /* active link animates to full opacity */
 .menu-overlay__link--active {
-  animation: menuLinkInActive 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: menuLinkInActive 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes menuLinkInActive {
   from {
     opacity: 0;
-    transform: translateY(48px);
-    filter: blur(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -1931,6 +1959,11 @@ html.konami .projects-nav-m__pill {
   color: var(--white-muted);
 }
 
+.about-info-more-wrap {
+  display: flex;
+  justify-content: flex-start;
+}
+
 /* "More" trigger — reads like the bio paragraph text above, with the same plus
    icon the accordions use (same 24px box / 18px glyph / spacing) on the right.
    Self-sizing inline button that brightens to full white on hover. */
@@ -2215,10 +2248,88 @@ html.konami .projects-nav-m__pill {
     100% 1px;
 }
 
-/* Phones: a half-width drawer would be too cramped — go full-width. */
+/* Phones: a half-width drawer would be too cramped. Go full-width and swap the
+   desktop left/right split for a stacked layout — an image carousel across the
+   top ~32%, the text below. The header (title + close) overlays the carousel. */
 @media (max-width: 768px) {
   .bio-modal__panel {
     width: 100%;
+  }
+  .bio-modal__body p,
+  .bio-modal__body li {
+    font-size: var(--m-text);
+  }
+  .bio-modal__body h3 {
+    font-size: var(--m-heading);
+  }
+  .bio-modal__title {
+    font-size: var(--m-heading);
+  }
+
+  /* Image carousel: a horizontal scroll-snap row pinned to the top of the panel.
+     One slide per image (flattened across sections in BioModal.tsx). Snapping it
+     drives the active section; scrolling the text below scrolls it back. */
+  .bio-modal__carousel {
+    flex: 0 0 32%;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior: contain;
+    /* Own horizontal drags so swiping the carousel never triggers the browser's
+       back/forward edge-swipe. */
+    touch-action: pan-x;
+    background: #0d0d0d;
+    border-bottom: 1px solid var(--white-faint);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .bio-modal__carousel::-webkit-scrollbar {
+    display: none;
+  }
+  .bio-modal__slide {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Clear the header (title + close) that overlays the carousel top. */
+    padding: 64px 24px 20px;
+  }
+  .bio-modal__slide img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius-img);
+    border: 1px solid var(--white-faint);
+  }
+
+  /* Text fills the rest; trimmed padding (the top padding no longer needs to
+     clear an absolute header — the carousel sits above it in normal flow). */
+  .bio-modal__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 32px 24px 48px;
+  }
+  .bio-section + .bio-section {
+    margin-top: 40px;
+    padding-top: 40px;
+  }
+
+  /* Header overlays the carousel top; a subtle scrim keeps the title/close
+     legible over any image. The desktop blur layers are dropped on mobile. */
+  .bio-modal__header {
+    padding: 20px 24px;
+    background: linear-gradient(to bottom, rgba(13, 13, 13, 0.9) 0%, transparent 100%);
+  }
+  .bio-modal__header::before,
+  .bio-modal__header::after {
+    display: none;
   }
 }
 
@@ -4539,6 +4650,7 @@ figure.bio-visual__item {
 
 .craft-lightbox__meta-inner {
   display: flex;
+  flex-direction: column;
 }
 
 .craft-lightbox__meta-inner--next {
@@ -4917,6 +5029,24 @@ figure.bio-visual__item {
     padding-right: 20px;
   }
 
+  /* ── Mobile performance ──
+     Animating filter: blur() is one of the most expensive things on a phone GPU
+     (full re-rasterization every frame). Many elements use the .reveal entrance,
+     so on mobile we drop the blur and animate only opacity + transform — both
+     cheaply GPU-composited. The reveal still fades + rises, just smoothly. */
+  .reveal {
+    filter: none;
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      background 160ms ease-out,
+      border-color 160ms ease-out,
+      color 160ms ease-out;
+  }
+  .reveal--visible {
+    filter: none;
+  }
+
   /* ── Navbar: hamburger appears ── */
   .hamburger {
     display: flex;
@@ -4928,7 +5058,7 @@ figure.bio-visual__item {
     gap: 0;
   }
   .navbar__link {
-    font-size: 14px;
+    font-size: var(--m-label);
   }
 
   /* ── Hero: collapse 2-row structure to 1-col stack ── */
@@ -4957,7 +5087,7 @@ figure.bio-visual__item {
     word-break: break-word;
   }
   .hero__subtitle {
-    font-size: clamp(17px, 3.8vw, 22px);
+    font-size: var(--m-subtitle);
     width: 100%;
     letter-spacing: var(--tracking);
     line-height: var(--leading-heading);
@@ -4996,20 +5126,54 @@ figure.bio-visual__item {
   .work-grid {
     gap: 80px;
   }
+  /* On desktop the text block interleaves between the images (its source-order
+     splice position). Below 768px we keep the DOM identical but switch the row
+     to a 2-row CSS grid: the text spans a full-width line on top, and ALL the
+     images are forced onto a single horizontally-scrolling carousel row below —
+     regardless of where the text sits in source order — with scroll snapping.
+
+     The whole row is the horizontal scroll container. The text lives on grid
+     row 1 and is position:sticky/left:0 so it stays pinned to the left (i.e.
+     visually fixed on top of the carousel) while the images on row 2 scroll. */
   .work-grid__row {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-rows: auto auto;
+    grid-auto-flow: column;
+    grid-auto-columns: 78%;
     gap: 16px;
+    align-items: start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .work-grid__pic {
-    flex: 0 0 calc(50% - 8px);
+  .work-grid__row::-webkit-scrollbar {
+    display: none;
   }
-  /* Rows interleave the text block at different positions on desktop; on mobile
-     force it FIRST every time, with the images flowing below. */
-  .work-grid__text {
+  /* Text: pinned full-width line on top of the carousel. order:-1 keeps it
+     visually first even when spliced later in source order; sticky+left:0 keeps
+     it from scrolling away with the images. It spans only the first column track
+     but stays the viewport width via the sticky width below. Applies to both the
+     live link and the disabled variant. */
+  .work-grid__text,
+  .work-grid__text--disabled {
     order: -1;
-    flex: 0 0 100%;
+    grid-row: 1;
+    grid-column: 1;
+    position: sticky;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
     height: auto;
     padding: 16px 0 8px;
+  }
+  /* Images: all on the second grid row, each a uniform 78% wide (grid-auto-
+     columns), flowing into implicit columns the row scrolls through. */
+  .work-grid__pic {
+    grid-row: 2;
+    grid-column: auto;
+    width: 100%;
+    scroll-snap-align: start;
   }
 
   /* ── Work list ── */
@@ -5058,7 +5222,7 @@ figure.bio-visual__item {
     flex: none;
   }
   .about-section-row__label {
-    font-size: 16px;
+    font-size: var(--m-label);
     letter-spacing: var(--tracking);
     line-height: var(--leading-body);
     opacity: 0.5;
@@ -5067,9 +5231,16 @@ figure.bio-visual__item {
     gap: 20px;
   }
   .about-info-text p {
-    font-size: clamp(18px, 3.6vw, 22px);
+    font-size: var(--m-text);
     letter-spacing: var(--tracking);
     line-height: var(--leading-body);
+  }
+  .about-info-more-wrap {
+    display: flex;
+    justify-content: center;
+  }
+  .about-info-more-wrap .btn {
+    width: 100%;
   }
 
   /* ── Accordion rows (mobile re-layout) ──
@@ -5091,14 +5262,15 @@ figure.bio-visual__item {
   .accordion-row__company {
     white-space: normal;
     word-break: break-word;
-    font-size: 17px;
+    font-size: var(--m-heading);
   }
   .accordion-row__role {
     flex: 0 0 100%;
     order: 3;
     padding-left: 16px;
-    font-size: 14px;
+    font-size: var(--m-label);
     line-height: var(--leading-body);
+    font-family: var(--font-inter);
   }
   .accordion-row__period {
     flex: 0 0 auto;
@@ -5107,7 +5279,7 @@ figure.bio-visual__item {
     padding-left: 0;
     justify-content: flex-end;
     gap: 12px;
-    font-size: 14px;
+    font-size: var(--m-label);
     align-items: center;
   }
   .accordion-row__period > span:first-child {
@@ -5124,7 +5296,7 @@ figure.bio-visual__item {
     height: 20px;
   }
   .accordion-row__description {
-    font-size: 15px;
+    font-size: var(--m-text);
     line-height: var(--leading-body);
   }
 
@@ -5145,11 +5317,11 @@ figure.bio-visual__item {
     letter-spacing: var(--tracking-heading);
   }
   .cs-hero__subtitle {
-    font-size: clamp(16px, 3.6vw, 22px);
+    font-size: var(--m-subtitle);
     letter-spacing: var(--tracking);
   }
   .cs-hero__back {
-    font-size: 15px;
+    font-size: var(--m-label);
   }
   .cs-hero__back-arrow {
     width: 16px;
@@ -5175,8 +5347,10 @@ figure.bio-visual__item {
   }
   .cs-meta {
     flex-direction: column;
+    /* stretch (not the desktop flex-start) so stacked children fill the width */
+    align-items: stretch;
     gap: 24px;
-    font-size: 15px;
+    font-size: var(--m-text);
     letter-spacing: var(--tracking);
   }
   .cs-meta__left {
@@ -5192,11 +5366,30 @@ figure.bio-visual__item {
     padding-top: 16px;
     gap: 16px;
   }
+  /* Stack each meta row: label above value. The desktop space-between layout
+     (label left, value hard right) squeezes long values like "Type" on a narrow
+     screen and clips them — stacking lets the value use the full width and wrap. */
+  .cs-meta__row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cs-meta__label {
+    flex: none;
+  }
+  .cs-meta__value {
+    width: 100%;
+  }
   .cs-role {
     max-width: none;
+    text-align: left;
   }
   .cs-section {
     flex-direction: column;
+    /* Stack full-width: the desktop row keeps align-items: flex-start, which in
+       a column makes children size to their CONTENT width (overflowing the frame
+       and clipping the body text). Stretch so title + body fill the container and
+       their text wraps. */
+    align-items: stretch;
     gap: 16px;
     padding-top: 80px;
   }
@@ -5217,25 +5410,43 @@ figure.bio-visual__item {
   .cs-section__title {
     flex: none;
     width: 100%;
-    font-size: clamp(22px, 5.2vw, 28px);
+    font-size: var(--m-heading);
+  }
+  /* Body column also goes full-width (it kept flex: 0 0 50% otherwise). */
+  .cs-section__body {
+    flex: none;
+    width: 100%;
   }
   .cs-paragraph {
-    font-size: 16px;
+    font-size: var(--m-text);
     letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .cs-list li {
-    font-size: 16px;
+    font-size: var(--m-text);
     letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .cs-quote {
-    font-size: 17px;
+    font-size: var(--m-text);
     line-height: var(--leading-body);
   }
   .cs-heading {
-    font-size: 20px;
+    font-size: var(--m-heading);
     line-height: var(--leading-heading);
+  }
+  .cs-cols__heading {
+    font-size: var(--m-text);
+  }
+  .cs-cols__body {
+    font-size: var(--m-text);
+    line-height: var(--leading-body);
+  }
+  .cs-figcaption {
+    font-size: var(--m-label);
+  }
+  .cs-video__label {
+    font-size: var(--m-label);
   }
   .cs-images--3 {
     flex-wrap: wrap;
@@ -5300,13 +5511,18 @@ figure.bio-visual__item {
     padding-right: 16px;
   }
 
+  .craft-lightbox__label {
+    white-space: break-spaces;
+    max-width: 200px;
+  }
+
   /* ── Navbar ── */
   .navbar {
     padding-left: 16px;
     padding-right: 16px;
   }
   .navbar__link {
-    font-size: 13px;
+    font-size: var(--m-label);
     padding: 14px 0;
   }
 
@@ -5320,11 +5536,7 @@ figure.bio-visual__item {
     letter-spacing: var(--tracking-heading);
     line-height: var(--leading-heading);
   }
-  .hero__subtitle {
-    font-size: clamp(15px, 4.4vw, 19px);
-    letter-spacing: var(--tracking);
-    line-height: var(--leading-heading);
-  }
+  /* subtitle inherits --m-subtitle from ≤768 (consistent across phones) */
 
   /* ── Project cards: aspect ratio for portrait phones ── */
   .project {
@@ -5361,27 +5573,13 @@ figure.bio-visual__item {
     padding-top: 12px;
     gap: 12px;
   }
-  .about-section-row__label {
-    font-size: 13px;
-    letter-spacing: var(--tracking);
-  }
+  /* Font sizes inherit from the ≤768 mobile type tokens (already sized to fit a
+     375px frame) — only spacing changes here, so type stays consistent down to
+     the smallest phones instead of shrinking further. */
   .about-info-text {
     gap: 16px;
   }
-  .about-info-text p {
-    font-size: clamp(16px, 4.4vw, 18px);
-    letter-spacing: var(--tracking);
-    line-height: var(--leading-body);
-  }
-  .accordion-row__company {
-    font-size: 15px;
-  }
-  .accordion-row__role,
-  .accordion-row__period {
-    font-size: 13px;
-  }
   .accordion-row__description {
-    font-size: 14px;
     padding-left: 16px;
   }
   .accordion-row__header {
@@ -5438,9 +5636,7 @@ figure.bio-visual__item {
   .cs-hero__title {
     font-size: clamp(28px, 8.5vw, 36px);
   }
-  .cs-hero__subtitle {
-    font-size: clamp(15px, 4vw, 18px);
-  }
+  /* cs-hero subtitle inherits --m-subtitle from ≤768 */
   .cs-hero__bottom {
     top: 60px;
   }
@@ -5461,33 +5657,28 @@ figure.bio-visual__item {
   .cs-cols--after-image {
     margin-top: calc(16px - 56px);
   }
-  .cs-hmw {
-    font-size: 20px;
-  }
-  .cs-section__title {
-    font-size: clamp(20px, 5.4vw, 24px);
-  }
-  .cs-paragraph,
-  .cs-list li {
-    font-size: 15px;
-  }
-  .cs-meta {
-    font-size: 14px;
-  }
+  /* Body / heading / meta sizes inherit the ≤768 tokens — consistent, not
+     shrunk further. Only the hero title/subtitle (titles) keep fluid clamps. */
   .cs-images {
     flex-direction: column;
     gap: 16px;
   }
-  .cs-images__pic {
+  /* Multi-image rows stack into a column on phones. The flex CHILD of .cs-images
+     is .cs-figure (which wraps each .cs-images__pic), and it carries flex: 1 0 0
+     for equal-width COLUMNS in a row. Once the container is a column, that 0
+     flex-basis is on the vertical axis, collapsing every figure (and so its
+     image) to height 0. Reset the figures to natural height + full width. */
+  .cs-images .cs-figure,
+  .cs-images--1 .cs-figure,
+  .cs-images--2 .cs-figure,
+  .cs-images--3 .cs-figure {
     flex: none;
     width: 100%;
   }
   .cs-meta__left {
     flex-direction: column;
   }
-  .cs-nav__name {
-    font-size: 22px;
-  }
+  /* cs-nav__name keeps its ≤768 fluid clamp (a title) */
   .cs-nav {
     margin-top: 24px;
     padding-bottom: 40px;
@@ -5510,7 +5701,7 @@ figure.bio-visual__item {
   .footer__col-title,
   .footer__col-item,
   .footer__rainbow-btn {
-    font-size: 13px;
+    font-size: var(--m-label);
   }
   .footer__archive {
     flex: 0 0 100%;
@@ -5589,6 +5780,14 @@ figure.bio-visual__item {
   }
   .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item,
   .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item {
+    animation: none;
+  }
+  /* Menu panel + links appear instantly (no slide / stagger). */
+  .menu-overlay {
+    transition: none;
+  }
+  .menu-overlay__link,
+  .menu-overlay__link--active {
     animation: none;
   }
 }

@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Link } from '../lib/router';
 import Hourglass from './Hourglass';
 
@@ -13,9 +14,11 @@ type ButtonProps = {
   disabled?: boolean;
   onClick?: () => void;
   ariaLabel?: string;
+  ariaHaspopup?: React.AriaAttributes['aria-haspopup'];
+  ariaExpanded?: boolean;
 };
 
-export default function Button({
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   children,
   variant = 'outline-white-full',
   fullWidth = false,
@@ -25,7 +28,9 @@ export default function Button({
   disabled = false,
   onClick,
   ariaLabel,
-}: ButtonProps) {
+  ariaHaspopup,
+  ariaExpanded,
+}, ref) {
   const classes = [
     'btn',
     `btn--${variant}`,
@@ -50,5 +55,7 @@ export default function Button({
     return <a href={href} className={classes} aria-label={ariaLabel} target="_blank" rel="noopener noreferrer" onClick={onClick ? () => onClick() : undefined}>{content}</a>;
   }
 
-  return <button className={classes} aria-label={ariaLabel} disabled={disabled} onClick={onClick}>{content}</button>;
-}
+  return <button ref={ref} className={classes} aria-label={ariaLabel} aria-haspopup={ariaHaspopup} aria-expanded={ariaExpanded} disabled={disabled} onClick={onClick}>{content}</button>;
+});
+
+export default Button;

@@ -74,12 +74,37 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
   // full-height sections drives the cross-fade); `stageRef` is that container so
   // we can read/set its scrollTop.
   const stageRef = useRef<HTMLDivElement>(null);
-  // Which pane the user is actively driving ("left" stage vs "right" text), so
-  // the two-way scroll sync only ever pushes the *other* pane and never fights
-  // itself in a feedback loop. Null until the first interaction.
+  // Mobile (≤768px) swaps the desktop left/right split for a top image carousel
+  // + bottom text. The carousel is a horizontal scroll-snap row; on mobile it
+  // plays the "left" (image) role in the two-way sync.
+  const carouselRef = useRef<HTMLDivElement>(null);
+  // Which pane the user is actively driving ("left" = image stage/carousel,
+  // "right" = text), so the two-way scroll sync only ever pushes the *other*
+  // pane and never fights itself in a feedback loop. Null until first interaction.
   const scrollDriver = useRef<"left" | "right" | null>(null);
 
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const onChange = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   const sections = getBioSections(onOpenDesignClubs);
+
+  // Flat list of every image across all sections, each its own carousel slide,
+  // tagged with the section it belongs to. `sectionFirstSlide[i]` is the flat
+  // index of section i's first image — the slide the carousel scrolls to when
+  // section i becomes active (text → carousel sync).
+  const flatImages: { src: string; sectionIndex: number }[] = [];
+  const sectionFirstSlide: number[] = [];
+  sections.forEach((s, si) => {
+    sectionFirstSlide[si] = flatImages.length;
+    s.images.forEach((img) => flatImages.push({ src: img.src, sectionIndex: si }));
+  });
 
   const cancelTransition = () => {
     if (closeTimer.current !== null) {
@@ -281,6 +306,45 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted]);
 
+  // Mobile carousel → activeIndex: the horizontal image row reports which slide
+  // is centered; we map that slide back to its section. Only acts while the
+  // carousel is the driver ("left"), so a programmatic sync-scroll from the text
+  // doesn't bounce back. Mirrors the desktop stage effect, rotated 90°.
+  useEffect(() => {
+    if (!mounted || !isMobile) return;
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (scrollDriver.current !== "left") return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        // Which slide's center is nearest the carousel's center.
+        const center = carousel.scrollLeft + carousel.clientWidth / 2;
+        const slides = carousel.children;
+        let nearest = 0;
+        let best = Infinity;
+        for (let i = 0; i < slides.length; i++) {
+          const el = slides[i] as HTMLElement;
+          const c = el.offsetLeft + el.offsetWidth / 2;
+          const d = Math.abs(c - center);
+          if (d < best) {
+            best = d;
+            nearest = i;
+          }
+        }
+        const sectionIdx = flatImages[nearest]?.sectionIndex ?? 0;
+        setActiveIndex((prev) => (prev === sectionIdx ? prev : sectionIdx));
+      });
+    };
+    carousel.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      carousel.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, isMobile]);
+
   // activeIndex → follower pane: whenever the active section changes, scroll the
   // pane the user *isn't* driving to match. Left stage snaps; right text glides
   // smoothly (centering the section the same way the observer band does).
@@ -292,12 +356,23 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
     if (!driver) return;
 
     if (driver !== "left") {
-      const stage = stageRef.current;
-      if (stage) {
-        const range = stage.scrollHeight - stage.clientHeight;
-        const lastIndex = sections.length - 1;
-        const top = lastIndex > 0 ? (activeIndex / lastIndex) * range : 0;
-        stage.scrollTo({ top, behavior: "smooth" });
+      if (isMobile) {
+        // Scroll the carousel to this section's first image slide.
+        const carousel = carouselRef.current;
+        const slide = carousel?.children[sectionFirstSlide[activeIndex]] as
+          | HTMLElement
+          | undefined;
+        if (carousel && slide) {
+          carousel.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
+        }
+      } else {
+        const stage = stageRef.current;
+        if (stage) {
+          const range = stage.scrollHeight - stage.clientHeight;
+          const lastIndex = sections.length - 1;
+          const top = lastIndex > 0 ? (activeIndex / lastIndex) * range : 0;
+          stage.scrollTo({ top, behavior: "smooth" });
+        }
       }
     }
     if (driver !== "right") {
@@ -322,32 +397,33 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
       aria-modal="true"
       aria-label="More about me"
     >
-      {/* Floating image stage in the left 50% of the screen. It's a snap-scroll
-          container: the pinned `__stage-visuals` overlay holds the cross-fading
-          images, while an invisible track of full-height snap sections underneath
-          gives it scrollable height. Scrolling it snaps section-by-section and
-          drives `activeIndex` (synced to the text pane). Clicks still bubble up
-          to close. */}
-      <div
-        className="bio-modal__stage"
-        aria-hidden="true"
-        ref={stageRef}
-        onWheel={() => (scrollDriver.current = "left")}
-        onTouchStart={() => (scrollDriver.current = "left")}
-        onPointerDown={() => (scrollDriver.current = "left")}
-      >
-        <div className="bio-modal__stage-visuals">
-          {sections.map((s, i) => (
-            <BioVisual key={s.id} section={s} active={i === activeIndex} />
+      {/* DESKTOP: floating image stage in the left 50% of the screen. A snap-scroll
+          container — the pinned `__stage-visuals` overlay holds the cross-fading
+          images, an invisible full-height snap track underneath gives it scroll
+          height. Scrolling it snaps section-by-section and drives `activeIndex`
+          (synced to the text pane). Hidden on mobile (the carousel replaces it). */}
+      {!isMobile && (
+        <div
+          className="bio-modal__stage"
+          aria-hidden="true"
+          ref={stageRef}
+          onWheel={() => (scrollDriver.current = "left")}
+          onTouchStart={() => (scrollDriver.current = "left")}
+          onPointerDown={() => (scrollDriver.current = "left")}
+        >
+          <div className="bio-modal__stage-visuals">
+            {sections.map((s, i) => (
+              <BioVisual key={s.id} section={s} active={i === activeIndex} />
+            ))}
+          </div>
+          {/* Snap track: one full-height spacer per section. The visuals overlay
+              above contributes no scroll height (negative margin), so these alone
+              define the snap points (one stage-height apart). */}
+          {sections.map((s) => (
+            <div key={s.id} className="bio-modal__stage-snap" />
           ))}
         </div>
-        {/* Snap track: one full-height spacer per section. The visuals overlay
-            above contributes no scroll height (negative margin), so these alone
-            define the snap points (one stage-height apart). */}
-        {sections.map((s) => (
-          <div key={s.id} className="bio-modal__stage-snap" />
-        ))}
-      </div>
+      )}
 
       <div ref={panelRef} className="bio-modal__panel" tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         {/* Header: title on the left, close on the right — both sit at the same
@@ -360,8 +436,29 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
             </svg>
           </button>
         </div>
-        {/* Content lives in `sections`; the floating stage tracks which section
-            is centered. */}
+
+        {/* MOBILE: image carousel across the top of the panel. One horizontal
+            scroll-snap slide per image (flattened across sections); snapping it
+            drives `activeIndex` and scrolling the text below scrolls it back. */}
+        {isMobile && (
+          <div
+            className="bio-modal__carousel"
+            aria-hidden="true"
+            ref={carouselRef}
+            onWheel={() => (scrollDriver.current = "left")}
+            onTouchStart={() => (scrollDriver.current = "left")}
+            onPointerDown={() => (scrollDriver.current = "left")}
+          >
+            {flatImages.map((img, i) => (
+              <div className="bio-modal__slide" key={i}>
+                <img src={img.src} alt="" loading="lazy" draggable={false} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Content lives in `sections`; the floating stage / carousel tracks
+            which section is centered. */}
         <div
           className="bio-modal__body"
           ref={bodyRef}

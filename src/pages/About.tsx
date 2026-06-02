@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Hero from "../components/Hero";
 import AccordionRow from "../components/AccordionRow";
 import BioModal from "../components/BioModal";
+import Button from "../components/Button";
 import { Reveal } from "../lib/reveal";
 import profilePhoto from "../assets/pfp.png";
 import resumeThumbnail from "../assets/resume-thumbnail.png";
@@ -116,22 +117,17 @@ export default function About() {
                   </Reveal>
                 ))}
                 <Reveal delay={infoParagraphs.length * 70}>
-                  <button
-                    ref={bioTriggerRef}
-                    type="button"
-                    className="about-info-more"
-                    onClick={toggleBio}
-                    aria-haspopup="dialog"
-                    aria-expanded={bioOpen}
-                  >
-                    <span className="about-info-more__label">More</span>
-                    <span className="about-info-more__icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <line className="about-info-more__bar" x1="5" y1="12" x2="19" y2="12" />
-                        <line className="about-info-more__bar" x1="12" y1="5" x2="12" y2="19" />
-                      </svg>
-                    </span>
-                  </button>
+                  <div className="about-info-more-wrap">
+                    <Button
+                      ref={bioTriggerRef}
+                      variant="outline-white-full"
+                      onClick={toggleBio}
+                      ariaHaspopup="dialog"
+                      ariaExpanded={bioOpen}
+                    >
+                      More
+                    </Button>
+                  </div>
                 </Reveal>
               </div>
             </div>

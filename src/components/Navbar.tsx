@@ -24,16 +24,16 @@ const LINKS = [
 ] as const;
 
 export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, sections, forceWhite = false, activeLink }: NavbarProps) {
-  const { navigate, wipe } = useRouter();
-  const [open,    setOpen]    = useState(false);
+  const { navigate } = useRouter();
+  const [open,    setOpen]    = useState(false);   // panel mounted (through the slide-out)
+  const [menuIn,  setMenuIn]  = useState(false);   // panel slid into view (drives the CSS transition)
   const [closing, setClosing] = useState(false);
-  // The hamburger morph reflects intent immediately on tap (the menu itself
-  // only mounts/unmounts after the column curtain covers, so `open` lags).
+  // The hamburger morph reflects intent immediately on tap.
   const [showX,   setShowX]   = useState(false);
   const [white,   setWhite]   = useState(forceWhite);
 
   const navRef = useRef<HTMLElement>(null);
-  const isMobile = () => typeof window !== 'undefined' && window.innerWidth <= 768;
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── color: observe watched elements ──────────────────────────────────────────
 
@@ -135,48 +135,46 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
     return () => { document.body.style.overflow = ''; };
   }, [open, showX]);
 
-  // Open: on mobile, mount the menu under a curtain that's already covering,
-  // then play a SINGLE reveal sweep that slides the columns off to expose it.
-  // (One sweep per tap — no separate cover sweep.)
+  // Tidy the pending unmount timer if the navbar unmounts mid-transition.
+  useEffect(() => () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); }, []);
+
+  // The black menu panel SLIDES in/out on its own (no column wipe). The column
+  // wipe is reserved for actual page navigation. `open` keeps the panel mounted;
+  // `menuIn` drives the slide via a CSS class, flipped a frame after mount so the
+  // transition runs. The hamburger morphs to an X immediately via `showX`.
+  const MENU_SLIDE_MS = 480;
+
   const openMenu = useCallback(() => {
     setShowX(true);
-    if (isMobile()) {
-      setOpen(true);
-      wipe('#000', 'reveal');
-    } else {
-      setOpen(true);
-    }
-  }, [wipe]);
+    setOpen(true);
+    // Next frame: panel is mounted off-screen, now flip the class to slide it in.
+    requestAnimationFrame(() => setMenuIn(true));
+  }, []);
 
-  // Plain close (tapping the X to dismiss the menu, NOT navigating). Plays a
-  // single cover sweep over the menu, unmounts it under the curtain, then tears
-  // down to reveal the same page. Navigating to another page goes through
-  // handleMobileNav instead, which lets navigate() run its own page wipe.
+  // Plain close (tapping the X to dismiss the menu, NOT navigating): slide the
+  // panel back out, then unmount once the transition has finished.
   const closeMenu = useCallback((cb?: () => void) => {
     setShowX(false);
-    if (isMobile()) {
-      wipe('#000', 'cover');
-      setClosing(true);
-      setTimeout(() => {
-        setOpen(false);
-        setClosing(false);
-        cb?.();
-      }, COVER_MS);
-    } else {
-      setClosing(true);
-      setTimeout(() => { setOpen(false); setClosing(false); cb?.(); }, 440);
-    }
-  }, [wipe]);
+    setMenuIn(false);
+    setClosing(true);
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+      cb?.();
+    }, MENU_SLIDE_MS);
+  }, []);
 
   const handleMobileNav = (href: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    // Navigation runs its OWN column wipe to bring in the new page, so we don't
-    // play a separate close-wipe (that would double up). Keep the menu mounted
-    // under the curtain while it covers, then unmount once the page has swapped
-    // — so there's no flash of the old page and the full wipe plays out.
+    // Navigating to a page: the router's OWN column wipe is the transition here.
+    // Slide the menu panel out at the same time and unmount once the wipe has
+    // covered the screen, so the new page is revealed cleanly underneath.
     setShowX(false);
+    setMenuIn(false);
     navigate(href);
-    setTimeout(() => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
       setOpen(false);
       setClosing(false);
     }, COVER_MS + DOT_LEAD_MS);
@@ -230,8 +228,8 @@ export default function Navbar({ watchHideRef, watchShowRef, watchPastRef, secti
         </div>
       </nav>
 
-      {(open || closing) && (
-        <div className={`menu-overlay${closing ? ' menu-overlay--closing' : ''}`}>
+      {open && (
+        <div className={`menu-overlay${menuIn ? ' menu-overlay--open' : ''}`}>
           <div className="menu-overlay__inner">
             {/* Empty spacer matching the navbar height. The name and the
                 hamburger both live in the navbar above this overlay (z-index
