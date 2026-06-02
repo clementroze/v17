@@ -269,7 +269,7 @@ footer::selection {
   bottom: 6px;
   width: 4px;
   height: 4px;
-  border-radius: 50%;
+  border-radius: 0;
   background: currentColor;
   transform: translateX(-50%) translateY(8px) scale(0);
   opacity: 0;

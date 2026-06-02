@@ -78,7 +78,7 @@ export const internships: Entity[] = [
   {
     slug: "replit",
     name: "Replit",
-    date: "2022 – 24",
+    date: "2022 - 24",
     role: "Internship",
     accent: "#ff3d00",
     href: "/work/replit",
@@ -90,7 +90,7 @@ export const freelance: Entity[] = [
   {
     slug: "gcai",
     name: "General Counsel AI",
-    date: "2024 – 26",
+    date: "2024 - 26",
     role: "Freelancing",
     aboutRole: "Designer & Developer",
     accent: "#003047",
@@ -197,28 +197,20 @@ export const activities: Entity[] = [
   },
 ];
 
-const entities: Entity[] = [
-  ...internships,
-  ...freelance,
-  ...collaborations,
-  ...activities,
-];
+const entities: Entity[] = [...internships, ...freelance, ...collaborations, ...activities];
 
 export default entities;
 
 const entityIndex = new Map(entities.map((e) => [e.slug, e]));
 
 /** Look up an entity by slug. */
-export const bySlug = (slug: string): Entity | undefined =>
-  entityIndex.get(slug);
+export const bySlug = (slug: string): Entity | undefined => entityIndex.get(slug);
 
 /** The role label to show on the About accordion (override falls back to role). */
 export const aboutRole = (e: Entity): string => e.aboutRole ?? e.role;
 
 /** The dark-mode link/dot color for an entity (About). Falls back to its accent. */
-export const darkAccent = (e: Entity): string =>
-  e.textAccentColor?.dark ?? e.accent;
+export const darkAccent = (e: Entity): string => e.textAccentColor?.dark ?? e.accent;
 
 /** The light-mode link color for an entity (case study page). Falls back to its accent. */
-export const lightAccent = (e: Entity): string =>
-  e.textAccentColor?.light ?? e.accent;
+export const lightAccent = (e: Entity): string => e.textAccentColor?.light ?? e.accent;

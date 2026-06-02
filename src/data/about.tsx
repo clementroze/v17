@@ -210,21 +210,34 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       heading: "How did I get here?",
       layout: "stack",
       images: [
-        { src: "/images/bio/html.png", alt: "My first HTML website" },
         { src: "/images/bio/python.png", alt: "My first Python program" },
+        { src: "/images/bio/html.png", alt: "My first HTML website" },
       ],
       content: (
         <>
           <p>
             My journey started in 7th grade, when we were learning Python as part of a CS class. I always found it
             fascinating how typing a few commands would lead to outputs on the black terminal screen. The following
-            year, we did a module on HTML/CSS/JS and I found this to be even more of an upgrade! Instead of just white
-            text on the black terminal screen, you could see shapes, colors, images, and more! I found this so fun that
-            I went deeper into all this web design part, which I soon learnt was essentially the UI/UX design field.
+            year, we did a module on HTML/CSS/JS and that felt like an even bigger leap! Instead of just white text on
+            the black terminal screen, you could create shapes, colors, images, and more! I enjoyed it so much that I
+            started exploring web design more deeply, which eventually led me to discover the world of UI/UX design.
           </p>
           <p>
-            Since then, design has been my main thing, but I've always kept the technical side close. Being able to
-            actually build what I design is a superpower that unlocks so much.
+            Since then, design has been my main focus, but I've always kept the technical side close. Being able to
+            actually build what I design feels like a superpower that closes the gap between an idea and a finished
+            product.
+          </p>
+          <p>
+            That mindset led me to my first professional experience: interning at Replit at 15 years old. While I was
+            their youngest Design Intern, the title of youngest intern overall had already been claimed by a developer
+            who joined at 13. I spent three years at Replit, working during the summers and part-time throughout high
+            school, and those years shaped me immensely. They deepened my technical knowledge and I consider many of my
+            design opinions to have been formed there.
+          </p>
+          <p>
+            I still remember the first time I shipped code to production. It was a one-line change: adding an icon to a
+            button component. Tiny in scope, but incredibly meaningful to me. Seeing something I had contributed become
+            part of a real product—and being able to point to that specific change—was just so rewarding!
           </p>
         </>
       ),
@@ -241,19 +254,18 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       content: (
         <>
           <p>
-            I'm most at home in the visual and systematic side of things: high-fidelity mockups, design systems, and
-            accessibility. Getting the details right — color tokens, type scales, interaction states — is genuinely so
-            satisfying to me!
+            I've always been drawn to the visual and systemic side of things. I love making interfaces that feel
+            polished and intentional, but I also enjoy the underlying structure that makes them consistent and scalable.
           </p>
           <p>
-            And being to build what I design makes all of this click even better together. The gap between a Figma frame
-            and a shipped product is where design intent sometimes dies, so I try to close that gap myself as often as
-            possible.
+            I'm most at home with things like high-fidelity mockups, design systems, and accessibility. Getting the
+            details right (eg: color tokens, type scales, spacing systems, interaction states) is genuinely satisfying
+            to me because those small decisions compound. Most users won't consciously notice them, but together they're
+            what make an interface feel intuitive and polished.
           </p>
           <p>
-            I also love the orchestration side: pulling together user needs, design constraints, engineering resources,
-            and edge cases into something coherent. Having spent years as both the designer handing off and the
-            developer receiving that handoff, I've learned exactly where things go wrong.rem
+            Recently, I've also gained an interest in the orchestration side: pulling together user and business needs,
+            design constraints, engineering resources, and edge cases into something coherent.
           </p>
         </>
       ),
@@ -304,18 +316,25 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
           <p>A few of my strong convictions, loosely held:</p>
           <ul>
             <li>The Poppins font is an abomination</li>
-            <li>Designers should code — and ship to production at least once</li>
+            <li>Helvetica is king</li>
+            <li>Designers should code and ship to production (at least once)</li>
             <li>Keyboard shortcuts are the ultimate productivity hack</li>
-            <li>Every app needs a "Remind me in X hours" button</li>
+            <li>
+              Every app needs a "Remind me in X hours" button (like the{" "}
+              <a href="https://slack.com/help/articles/208423427-Set-a-reminder" target="_blank">
+                Slack feature
+              </a>
+              )
+            </li>
             <li>School should teach how to type fast</li>
             <li>Your personal site is your hardest client</li>
-            <li>High agency is the most underrated work attribute — do what you say you'll do, and do it well</li>
+            <li>High agency is the most underrated work attribute; do what you say you'll do, and do it well</li>
             <li>Honest feedback is a gift, but most people are too scared to give it</li>
             <li>Less border radius is better</li>
             <li>Naming things in a design system is 40% of the work</li>
-            <li>People should respond faster to emails, texts or messages</li>
-            <li>You should switch browsers every couple of months just to explore</li>
-            <li>Don't trust a bulleted list of hot takes</li>
+            <li>People should respond to messages faster</li>
+            <li>You should switch browsers every couple of months because variety is the spice of life</li>
+            <li>Most importantly: never trust a bulleted list of hot takes!</li>
           </ul>
         </>
       ),
