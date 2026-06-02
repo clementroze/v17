@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import arrowWhite from "../../assets/arrow.svg";
 import arrowBlack from "../../assets/arrow-black.svg";
-import { Link } from "../../lib/router";
+import Button from "../Button";
 
 type Project = {
   number: string;
@@ -70,7 +70,7 @@ function ParallaxProject({
     const inner = innerRef.current;
     const img = imgRef.current;
     const name = nameRef.current;
-    const cta = ctaRef.current; // null on coming-soon entries (no CTA rendered)
+    const cta = ctaRef.current; // "Coming soon" label on coming-soon entries, else "See more" CTA
     if (!section || !inner || !img || !name) return;
 
     const els: HTMLElement[] = cta ? [name, cta] : [name];
@@ -180,65 +180,47 @@ function ParallaxProject({
         />
         <div className="project__inner">
           {(() => {
-            // The whole row IS the link — line sweep + name color change ARE
-            // the affordance. No explicit CTA (cs-nav__card pattern). Tone
-            // class flips border/text ink to contrast with light vs dark heroes.
+            // The row is NOT a link — only the Button on the right is. Tone
+            // class flips the border/ink to contrast with light vs dark heroes.
             const contentClass = `project__content${
               project.heroIsLight ? " project__content--light" : ""
-            }`;
-            // Hover color: per-theme readable accent (falls back to brand
-            // accent). Light heroes use the .light variant so e.g. Google's
-            // brand yellow doesn't become invisible on a yellow image.
-            const readableAccent =
-              (project.heroIsLight
-                ? project.textAccentColor?.light
-                : project.textAccentColor?.dark) ?? project.accent;
-            const inner = (
-              <>
+            }${project.comingSoon ? " project__content--disabled" : ""}`;
+            const style = {
+              "--accent": project.accent,
+            } as React.CSSProperties;
+            // Button tone follows the hero: dark hero → white outline, light
+            // hero → black outline. The arrow matches the resting ink.
+            const variant = project.heroIsLight
+              ? "outline-black"
+              : "outline-white-full";
+            return (
+              <div className={contentClass} style={style}>
                 <h2
                   ref={nameRef}
                   className="project__name effect-b__item effect-b__item--name"
                 >
                   {project.name}
-                  {project.comingSoon ? (
-                    <span className="project__name-suffix"> — Coming soon</span>
-                  ) : null}
                 </h2>
-                {project.comingSoon ? null : (
-                  <span
-                    ref={ctaRef}
-                    className="project__cta effect-b__item effect-b__item--cta"
-                  >
-                    <span className="project__cta-label">See more</span>
-                    <img
-                      src={project.heroIsLight ? arrowBlack : arrowWhite}
-                      alt=""
-                      className="project__cta-arrow"
-                    />
-                  </span>
-                )}
-              </>
-            );
-            const style = {
-              "--accent": project.accent,
-              "--accent-readable": readableAccent,
-            } as React.CSSProperties;
-            return project.comingSoon ? (
-              <div
-                className={`${contentClass} project__content--disabled`}
-                style={style}
-              >
-                {inner}
+                <span
+                  ref={ctaRef}
+                  className="project__cta effect-b__item effect-b__item--cta"
+                >
+                  {project.comingSoon ? (
+                    <Button variant={variant} disabled>
+                      Coming soon
+                    </Button>
+                  ) : (
+                    <Button
+                      href={project.href}
+                      variant={variant}
+                      iconSrc={project.heroIsLight ? arrowBlack : arrowWhite}
+                      ariaLabel={`View ${project.name}`}
+                    >
+                      See more
+                    </Button>
+                  )}
+                </span>
               </div>
-            ) : (
-              <Link
-                href={project.href}
-                className={contentClass}
-                aria-label={`View ${project.name}`}
-                style={style}
-              >
-                {inner}
-              </Link>
             );
           })()}
         </div>

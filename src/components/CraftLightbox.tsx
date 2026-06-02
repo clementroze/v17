@@ -397,6 +397,16 @@ export default function CraftLightbox({
     else setPan((p) => clampPan(p.x, p.y, next));
   }, [zoom, zoomSteps, clampPan]);
 
+  // Reset to the item's initial framing (how it opened): 1× for normal images,
+  // the auto-framed zoom + top-aligned pan for tall screenshots. Bound to "R".
+  const resetZoom = useCallback(() => {
+    const id = items[index]?.id;
+    const a = (id ? aspectMap?.[id] : undefined) ?? items[index]?.aspect ?? 0;
+    const { zoom: z, panY } = computeInitialFraming(a);
+    setZoom(z);
+    setPan({ x: 0, y: panY });
+  }, [items, index, aspectMap]);
+
   // ── Drag-to-pan ────────────────────────────────────────────────────────────
   // Zoom is controlled exclusively by the top-right zoom buttons (and +/-
   // keys). Clicking the image no longer zooms. Pointer interaction on the card
@@ -675,6 +685,7 @@ export default function CraftLightbox({
       }
       else if (e.key === '+' || e.key === '=') zoomIn();
       else if (e.key === '-' || e.key === '_') zoomOut();
+      else if (e.key === 'r' || e.key === 'R') resetZoom();
       else if (e.key === 'Tab') {
         const root = rootRef.current;
         if (!root) return;
@@ -703,7 +714,7 @@ export default function CraftLightbox({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [close, go, zoomIn, zoomOut, pulseNavButton]);
+  }, [close, go, zoomIn, zoomOut, resetZoom, pulseNavButton]);
 
   // Focus mgmt
   useEffect(() => {
@@ -760,6 +771,10 @@ export default function CraftLightbox({
         transform: framedTransform(pan.x, pan.y, zoom),
         transition: `transform ${MORPH_IN_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
         willChange: 'transform',
+        // The card's scale(zoom) would also scale its border-radius, making the
+        // corners look rounder when zoomed. Divide the authored radius by zoom
+        // so the rendered radius stays a constant --radius-img at any zoom.
+        borderRadius: `calc(var(--radius-img) / ${zoom})`,
       };
     }
     if (phase === 'idle') {
@@ -778,6 +793,9 @@ export default function CraftLightbox({
         transition: live
           ? 'transform 80ms linear'
           : 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+        // Keep the rendered corner radius constant regardless of zoom — the
+        // card's scale(zoom) would otherwise enlarge the border-radius too.
+        borderRadius: `calc(var(--radius-img) / ${zoom})`,
       };
     }
     if (phase === 'closing' && closingStartTransform) {
@@ -831,7 +849,7 @@ export default function CraftLightbox({
           }`}
         >
           <div className="craft-lightbox__label-row">
-            <div className="craft-lightbox__label">{item.label}</div>
+            <h3 className="craft-lightbox__label">{item.label}</h3>
             {item.link ? (
               <span className="craft-lightbox__link-sep" aria-hidden="true">
                 •
@@ -867,14 +885,14 @@ export default function CraftLightbox({
               </a>
             ) : null}
           </div>
-          <div className="craft-lightbox__date">{item.date}</div>
+          <p className="craft-lightbox__date">{item.date}</p>
         </div>
       </div>
 
       <div className="craft-lightbox__top-actions">
         <button
           type="button"
-          className="craft-lightbox__icon-btn"
+          className="craft-lightbox__icon-btn craft-lightbox__icon-btn--zoom-out"
           aria-label="Zoom out"
           disabled={zoom <= ZOOM_MIN + 0.01}
           onClick={(e) => {
@@ -890,7 +908,7 @@ export default function CraftLightbox({
         </button>
         <button
           type="button"
-          className="craft-lightbox__icon-btn"
+          className="craft-lightbox__icon-btn craft-lightbox__icon-btn--zoom-in"
           aria-label="Zoom in"
           disabled={zoom >= zoomMax - 0.01}
           onClick={(e) => {
@@ -906,7 +924,7 @@ export default function CraftLightbox({
         </button>
         <button
           type="button"
-          className="craft-lightbox__icon-btn"
+          className="craft-lightbox__icon-btn craft-lightbox__icon-btn--close"
           aria-label="Close"
           onClick={(e) => {
             e.stopPropagation();

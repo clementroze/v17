@@ -118,7 +118,7 @@ export const freelance: Entity[] = [
     name: "ROZE Clinics",
     date: "2024",
     role: "Web Designer",
-    accent: "#F3EDE9",
+    accent: "#E9BFA3",
     hasCaseStudy: false,
   },
   {

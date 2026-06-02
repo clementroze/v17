@@ -122,12 +122,7 @@ footer::selection {
 
   --white: #fff;
   --white-muted: rgba(255, 255, 255, 0.7); /* secondary text on dark */
-  --white-faint: rgba(
-    255,
-    255,
-    255,
-    0.15
-  ); /* hairlines / subtle fills on dark */
+  --white-faint: rgba(255, 255, 255, 0.15); /* hairlines / subtle fills on dark */
 
   --surface: #e5e5e5; /* light gray surfaces, skeletons, hover bg */
   --surface-dark: #1a1a2e; /* dark placeholder bg (hero) */
@@ -925,12 +920,7 @@ footer::selection {
   padding-left: 24px;
   padding-right: 24px;
   width: 100%;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.7) 0%,
-    rgba(0, 0, 0, 0.35) 50%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0) 100%);
 }
 
 /* Light-hero variant: invert the scrim so dark text/line read against it. */
@@ -957,8 +947,7 @@ footer::selection {
   color: inherit;
 }
 
-/* Base top border — brighter than before (0.6 instead of 0.35) so it reads
-   without depending on a hover. Tone flips for light heroes. */
+/* Base top border — kept subtle/transparent. Tone flips for light heroes. */
 .project__content::before {
   content: "";
   position: absolute;
@@ -966,29 +955,11 @@ footer::selection {
   left: 0;
   right: 0;
   height: 1.5px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .project__content--light::before {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-/* Accent overlay sweeps left-to-right on hover/focus. Uses --accent-readable
-   (a per-project text-safe variant) so light-hero accents don't disappear. */
-.project__content::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 1.5px;
-  width: 0;
-  background: var(--accent-readable, var(--accent));
-  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.project__content:hover::after,
-.project__content:focus-visible::after {
-  width: 100%;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .project__content:focus-visible {
@@ -997,12 +968,9 @@ footer::selection {
   border-radius: 2px;
 }
 
-/* Coming-soon: non-interactive, no accent reveal. */
+/* Coming-soon: non-interactive. */
 .project__content--disabled {
   cursor: default;
-}
-.project__content--disabled::after {
-  display: none;
 }
 
 .project__name {
@@ -1014,7 +982,6 @@ footer::selection {
   font-weight: var(--weight-heading);
   color: var(--white);
   line-height: var(--leading-heading);
-  transition: color 200ms ease;
 }
 
 .project__content--light .project__name {
@@ -1022,62 +989,18 @@ footer::selection {
   text-shadow: none;
 }
 
-.project__content:hover .project__name,
-.project__content:focus-visible .project__name {
-  color: var(--accent-readable, var(--accent));
-}
-
-/* "— Coming soon" suffix on the name itself (replaces the removed CTA). */
-.project__name-suffix {
-  font-weight: var(--weight-body);
-  opacity: 0.55;
-}
-
-/* "See more →" CTA pinned right of the project row. Same hover language as
-   .work-grid__cta and .cs-nav__meta — label brightens, arrow nudges right.
-   Tone follows the hero: white over dark images, black over light ones. */
+/* Wrapper that pins the CTA Button to the right of the project row. The Button
+   carries its own tone/hover language; this is just layout + reveal target. */
 .project__cta {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   margin-left: auto;
-  font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
-  color: var(--white);
-  opacity: 0.7;
-  line-height: var(--leading-heading);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  transition: opacity 160ms ease-out;
 }
 
-.project__content--light .project__cta {
-  color: var(--black);
-  text-shadow: none;
-}
-
-.project__cta-label {
-  display: inline-block;
-}
-
-.project__cta-arrow {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  transition:
-    opacity 160ms ease-out,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.project__content:hover .project__cta,
-.project__content:focus-visible .project__cta {
-  opacity: 1;
-}
-
-.project__content:hover .project__cta-arrow,
-.project__content:focus-visible .project__cta-arrow {
-  transform: translateX(4px);
+/* "Coming soon" disabled button — dimmer/muted vs. a live "See more". */
+.project__cta .btn--disabled {
+  opacity: 0.55;
 }
 
 /* =============================================
@@ -1163,16 +1086,7 @@ footer::selection {
 
 .footer__rainbow-btn:hover {
   opacity: 1;
-  background: linear-gradient(
-    90deg,
-    #ff0080,
-    #ff6600,
-    #ffee00,
-    #00cc44,
-    #00aaff,
-    #7700ff,
-    #ff0080
-  );
+  background: linear-gradient(90deg, #ff0080, #ff6600, #ffee00, #00cc44, #00aaff, #7700ff, #ff0080);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -1416,9 +1330,9 @@ html.konami {
 }
 
 html.konami
-  *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(
-    .projects-nav__track
-  ):not(.projects-nav__dot-wrap):not(.projects-nav__pill) {
+  *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(.projects-nav__track):not(
+    .projects-nav__dot-wrap
+  ):not(.projects-nav__pill) {
   animation: konami-rainbow 2s linear infinite !important;
   cursor: inherit;
 }
@@ -1495,17 +1409,7 @@ html.konami canvas {
   /* 2px gradient ring: conic-gradient as bg, black inset via background-clip */
   background:
     linear-gradient(var(--black), var(--black)) padding-box,
-    conic-gradient(
-        from var(--konami-angle),
-        #ff0040,
-        #ff8800,
-        #ffee00,
-        #00cc44,
-        #0088ff,
-        #8800ff,
-        #ff0040
-      )
-      border-box;
+    conic-gradient(from var(--konami-angle), #ff0040, #ff8800, #ffee00, #00cc44, #0088ff, #8800ff, #ff0040) border-box;
   border: 2px solid transparent;
   color: var(--white);
   /* Border spin always runs; enter/exit animations are applied per-phase. */
@@ -1730,10 +1634,7 @@ html.konami canvas {
   position: absolute;
   top: 50%;
   right: calc(-1 * var(--label-overlay-extend-right));
-  width: calc(
-    100% + var(--label-overlay-extend-left) +
-      var(--label-overlay-extend-right) + 200px
-  );
+  width: calc(100% + var(--label-overlay-extend-left) + var(--label-overlay-extend-right) + 200px);
   height: calc(100% + var(--label-overlay-pad-y) * 4);
   transform: translateY(-50%);
   /* `100% 100%` stretches the image to fill the box on both axes, so the
@@ -1858,16 +1759,7 @@ html.konami canvas {
 }
 
 html.konami .projects-nav__pill {
-  background-image: linear-gradient(
-    180deg,
-    #ff0080,
-    #ff6600,
-    #ffee00,
-    #00cc44,
-    #00aaff,
-    #7700ff,
-    #ff0080
-  );
+  background-image: linear-gradient(180deg, #ff0080, #ff6600, #ffee00, #00cc44, #00aaff, #7700ff, #ff0080);
   background-color: transparent;
   background-size: 100% 400%;
   background-repeat: repeat;
@@ -1910,16 +1802,7 @@ html.konami .projects-nav__pill {
 
 /* Konami rainbow integration for mobile bar */
 html.konami .projects-nav-m__pill {
-  background-image: linear-gradient(
-    180deg,
-    #ff0080,
-    #ff6600,
-    #ffee00,
-    #00cc44,
-    #00aaff,
-    #7700ff,
-    #ff0080
-  );
+  background-image: linear-gradient(180deg, #ff0080, #ff6600, #ffee00, #00cc44, #00aaff, #7700ff, #ff0080);
   background-color: transparent;
   background-size: 100% 400%;
   background-repeat: repeat;
@@ -1995,6 +1878,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .about-section-row__label {
+  margin: 0;
   font-size: 32px;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
@@ -2036,6 +1920,7 @@ html.konami .projects-nav-m__pill {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding-top: 8px;
 }
 
 .about-info-text p {
@@ -2044,6 +1929,279 @@ html.konami .projects-nav-m__pill {
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--white-muted);
+}
+
+/* "More" trigger — reads like the bio paragraph text above, with the same plus
+   icon the accordions use (same 24px box / 18px glyph / spacing) on the right.
+   Self-sizing inline button that brightens to full white on hover. */
+.about-info-more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-body);
+  color: var(--white-muted);
+  cursor: pointer;
+  transition: color 160ms ease-out;
+}
+
+.about-info-more:hover,
+.about-info-more:focus-visible {
+  color: var(--white);
+}
+
+/* Matches .accordion-row__toggle / __toggle-bar exactly. */
+.about-info-more__icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-info-more__icon svg {
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+}
+
+.about-info-more__bar {
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+/* ── Bio "+ More" drawer ──────────────────────────────────────────────────────
+   A right-docked drawer at 50% width that slides in from the right. The scrim
+   shares the craft lightbox's blur + 0.4s ease but a lighter 0.6 tint so the
+   page stays faintly visible. The panel slide and scrim fade reverse on exit
+   (driven by toggling .bio-modal--open); BIO_MODAL_EXIT_MS in About.tsx must be
+   ≥ the panel transition so the node unmounts after the animation finishes. */
+.bio-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+  /* Only intercept clicks while actually open. During the exit animation the
+     node lingers but lets clicks through — so the More button (underneath) is
+     live again the instant you close, instead of being shadowed by a fading,
+     still-clickable scrim that would re-arm the close timer. */
+  pointer-events: none;
+  transition:
+    background-color 0.4s ease,
+    backdrop-filter 0.4s ease,
+    -webkit-backdrop-filter 0.4s ease;
+}
+
+.bio-modal--open {
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+
+.bio-modal__panel {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0e0e0e;
+  border-left: 1px solid var(--white-faint);
+  box-shadow: -30px 0 80px var(--black-scrim);
+  transform: translateX(100%);
+  /* Hint compositing so the slide stays buttery, including mid-flight reversals. */
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bio-modal--open .bio-modal__panel {
+  transform: translateX(0);
+}
+
+/* Header: title (left) and close (right) at the same horizontal inset. Sits
+   absolutely over the top of the scrolling body so the body content blurs +
+   fades as it passes underneath (same effect as the page navbar). */
+.bio-modal__header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 40px;
+  pointer-events: none;
+}
+
+/* Two masked blur layers mirroring .navbar__blur-bg: a strong blur near the top
+   and a softer one extending down, both fading out toward the bottom edge. */
+.bio-modal__header::before,
+.bio-modal__header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 10%, transparent 100%);
+}
+.bio-modal__header::before {
+  height: 60%;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.bio-modal__header::after {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Title + close ride above the blur layers and stay interactive. */
+.bio-modal__title,
+.bio-modal__close {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.bio-modal__title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: var(--weight-heading);
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-heading);
+  color: var(--white);
+}
+
+.bio-modal__close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  /* Pull the icon to the right edge of its box so the glyph optically aligns
+     with the header's right padding (the 36px hit area extends inward). */
+  margin-right: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--white-muted);
+  cursor: pointer;
+  transition: color 160ms ease-out;
+}
+
+.bio-modal__close:hover,
+.bio-modal__close:focus-visible {
+  color: var(--white);
+}
+
+/* Content typography mirrors the rest of the site: a 500-weight heading, muted
+   body copy, and inline links that brighten + underline on hover. */
+.bio-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* Top padding clears the absolutely-positioned header so the first line
+     starts just below it; scrolled content then passes under the blur. */
+  padding: 96px 40px 48px;
+}
+
+.bio-modal__body h3 {
+  font-size: 24px;
+  font-weight: var(--weight-heading);
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-heading);
+  color: var(--white);
+}
+
+.bio-modal__body h3:not(:first-child) {
+  margin-top: 64px;
+  border-top: 1px solid var(--white-faint);
+  padding-top: 84px;
+}
+
+.bio-modal__body p,
+.bio-modal__body li {
+  font-size: 18px;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--leading-body);
+  color: var(--white-muted);
+}
+
+.bio-modal__body li {
+  margin-left: 20px;
+}
+
+/* Inline links use the site's animated-underline pattern (same as
+   .accordion-row__link): a faded full-width line sits underneath by default,
+   and a full-opacity line wipes in 0% → 100% on hover. The inline-link button
+   (e.g. "design clubs", which triggers an in-page action rather than navigating)
+   shares the exact look — reset its native button styling first. */
+.bio-modal__inline-link {
+  font: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.bio-modal__body a,
+.bio-modal__inline-link {
+  --link-accent-color: var(--white);
+  color: var(--link-accent-color);
+  text-decoration: none;
+  background-image:
+    linear-gradient(var(--link-accent-color), var(--link-accent-color)),
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
+  background-repeat: no-repeat;
+  background-position:
+    0 100%,
+    0 100%;
+  background-size:
+    0% 1px,
+    100% 1px;
+  transition: background-size 320ms cubic-bezier(0.76, 0, 0.24, 1);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-bottom: 2px;
+}
+
+.bio-modal__body a:hover,
+.bio-modal__body a:focus-visible,
+.bio-modal__inline-link:hover,
+.bio-modal__inline-link:focus-visible {
+  background-size:
+    100% 1px,
+    100% 1px;
+}
+
+/* Phones: a half-width drawer would be too cramped — go full-width. */
+@media (max-width: 768px) {
+  .bio-modal__panel {
+    width: 100%;
+  }
 }
 
 /* =============================================
@@ -2207,7 +2365,6 @@ html.konami .projects-nav-m__pill {
 .accordion-row {
   width: 100%;
   position: relative;
-  margin-top: 24px;
 }
 
 /* Static base border */
@@ -2253,10 +2410,21 @@ html.konami .projects-nav-m__pill {
   width: 100%;
   background: none;
   border: none;
-  padding: 32px 0 0;
+  /* Symmetric top/bottom padding so the whole strip between a row's border and
+     the next is part of the clickable button — no dead gap between rows (the
+     old margin-top:24px lived outside any button and swallowed clicks). */
+  padding: 28px 0;
   color: var(--white);
   text-align: left;
   gap: 0;
+  /* Eases the open-state bottom-padding tighten below in step with the body. */
+  transition: padding-bottom 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* When open, pull the body close to the title — the large bottom padding is
+   only needed for the collapsed hit target (the body fills that space here). */
+.accordion-row:has(.accordion-row__body--open) .accordion-row__header {
+  padding-bottom: 8px;
 }
 
 .accordion-row__header--link {
@@ -2388,7 +2556,6 @@ html.konami .projects-nav-m__pill {
 
 .accordion-row__body-inner {
   overflow: hidden;
-  padding-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -2990,11 +3157,7 @@ html.konami .projects-nav-m__pill {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    var(--black-line) 0%,
-    var(--black-scrim) 100%
-  );
+  background: linear-gradient(to bottom, var(--black-line) 0%, var(--black-scrim) 100%);
   pointer-events: none;
 }
 
@@ -3986,15 +4149,18 @@ html.konami .projects-nav-m__pill {
 }
 
 .craft-lightbox__link-sep {
-  font-size: 18px;
+  font-size: 14px;
   color: var(--white-muted);
   line-height: 1;
+  position: relative;
+  top: -2px;
 }
 
 .craft-lightbox__label {
+  margin: 0;
   font-weight: var(--weight-body);
   letter-spacing: var(--tracking);
-  font-size: 18px;
+  font-size: 16px;
 }
 
 /* Optional external link sitting next to the label. Pointer events on the
@@ -4034,6 +4200,7 @@ html.konami .projects-nav-m__pill {
 }
 
 .craft-lightbox__date {
+  margin: 0;
   color: var(--white-muted);
   font-size: 12px;
   letter-spacing: var(--tracking);
@@ -4085,8 +4252,6 @@ html.konami .projects-nav-m__pill {
 
 .craft-lightbox__meta-inner {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .craft-lightbox__meta-inner--next {
@@ -4167,8 +4332,38 @@ html.konami .projects-nav-m__pill {
   opacity: 0.35;
 }
 
-/* Arrow-key feedback: just the movement, no background change. */
+/* Icon micro-motion: the button pill stays put, the glyph inside reacts. */
+.craft-lightbox__icon-btn svg,
+.craft-lightbox__nav svg {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
 
+/* Zoom buttons telegraph their direction: + grows, − shrinks on hover. */
+.craft-lightbox__icon-btn--zoom-in:hover:not(:disabled) svg {
+  transform: scale(1.18);
+}
+
+.craft-lightbox__icon-btn--zoom-out:hover:not(:disabled) svg {
+  transform: scale(0.82);
+}
+
+/* Close button: a quick "blink" — the X dips smaller then springs back, same
+   language as the work-page grid/list toggle icons. */
+@keyframes lb-close-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.82);
+  }
+}
+
+.craft-lightbox__icon-btn--close:hover:not(:disabled) svg {
+  animation: lb-close-pulse 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Prev/next: nudge the arrow glyph (not the pill) toward its direction. */
 .craft-lightbox__nav--prev {
   left: 24px;
   top: 50%;
@@ -4181,14 +4376,14 @@ html.konami .projects-nav-m__pill {
   transform: translateY(-50%);
 }
 
-.craft-lightbox__nav--prev:hover,
-.craft-lightbox__nav--prev.is-pressed {
-  transform: translateY(-50%) translateX(-3px);
+.craft-lightbox__nav--prev:hover svg,
+.craft-lightbox__nav--prev.is-pressed svg {
+  transform: translateX(-3px);
 }
 
-.craft-lightbox__nav--next:hover,
-.craft-lightbox__nav--next.is-pressed {
-  transform: translateY(-50%) translateX(3px);
+.craft-lightbox__nav--next:hover svg,
+.craft-lightbox__nav--next.is-pressed svg {
+  transform: translateX(3px);
 }
 
 /* ── Card ── */
@@ -4598,7 +4793,8 @@ html.konami .projects-nav-m__pill {
   .accordion-row__header {
     flex-wrap: wrap;
     gap: 4px 8px;
-    padding-top: 20px;
+    /* Symmetric like desktop so the full inter-row strip stays clickable. */
+    padding: 20px 0;
   }
   .accordion-row__name {
     flex: 1 1 auto;
@@ -4902,7 +5098,7 @@ html.konami .projects-nav-m__pill {
     padding-left: 16px;
   }
   .accordion-row__header {
-    padding-top: 18px;
+    padding: 18px 0;
   }
 
   /* ── Work grid: single column ── */
@@ -5266,12 +5462,12 @@ html.konami .projects-nav-m__pill {
     right: 50%;
     margin-right: -48px;
   }
-  .craft-lightbox__nav--prev:hover,
-  .craft-lightbox__nav--prev.is-pressed {
+  .craft-lightbox__nav--prev:hover svg,
+  .craft-lightbox__nav--prev.is-pressed svg {
     transform: translateX(-3px);
   }
-  .craft-lightbox__nav--next:hover,
-  .craft-lightbox__nav--next.is-pressed {
+  .craft-lightbox__nav--next:hover svg,
+  .craft-lightbox__nav--next.is-pressed svg {
     transform: translateX(3px);
   }
 }

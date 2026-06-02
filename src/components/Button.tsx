@@ -12,6 +12,7 @@ type ButtonProps = {
   iconAlt?: string;
   disabled?: boolean;
   onClick?: () => void;
+  ariaLabel?: string;
 };
 
 export default function Button({
@@ -23,6 +24,7 @@ export default function Button({
   iconAlt = '',
   disabled = false,
   onClick,
+  ariaLabel,
 }: ButtonProps) {
   const classes = [
     'btn',
@@ -43,10 +45,10 @@ export default function Button({
   if (href && !disabled) {
     const isInternal = href.startsWith('/');
     if (isInternal) {
-      return <Link href={href} className={classes} onClick={onClick ? () => onClick() : undefined}>{content}</Link>;
+      return <Link href={href} className={classes} aria-label={ariaLabel} onClick={onClick ? () => onClick() : undefined}>{content}</Link>;
     }
-    return <a href={href} className={classes} target="_blank" rel="noopener noreferrer" onClick={onClick ? () => onClick() : undefined}>{content}</a>;
+    return <a href={href} className={classes} aria-label={ariaLabel} target="_blank" rel="noopener noreferrer" onClick={onClick ? () => onClick() : undefined}>{content}</a>;
   }
 
-  return <button className={classes} disabled={disabled} onClick={onClick}>{content}</button>;
+  return <button className={classes} aria-label={ariaLabel} disabled={disabled} onClick={onClick}>{content}</button>;
 }

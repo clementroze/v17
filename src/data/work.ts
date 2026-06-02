@@ -76,7 +76,7 @@ export type WorkItem = WorkSource & {
 const sources: WorkSource[] = [
   {
     slug: "ibm",
-    heroIsLight: true,
+    heroIsLight: false,
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
     imageUrls: [
