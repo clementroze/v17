@@ -195,34 +195,94 @@ export default function Home() {
       smoothScrollTo(tops[nextIdx]);
     };
 
-    let touchStartY: number | null = null;
+    // ── Mobile touch snap (TikTok-style) ────────────────────────────────────
+    // We intercept touchmove and drive the scroll manually so native momentum
+    // can never run past the snap target. On release we commit to exactly
+    // ±1 section based on velocity or total distance, then ease there.
+
+    let touchActive = false; // true while we own this touch sequence
+    let touchStartY = 0;
+    let touchStartScrollY = 0;
+    let touchLastY = 0;
+    let touchLastTime = 0;
+    let touchVelocity = 0; // px/ms, positive = finger moved up = scroll down
+
+    const SWIPE_VELOCITY_PX_MS = 0.3; // px/ms — anything faster is an intentional flick
+    const SWIPE_DELTA_PX = 50; // px  — minimum drag distance to count as a swipe
+
     const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0]?.clientY ?? null;
+      if (isPillDragging()) return;
+      cancelManualScroll();
+      const ty = e.touches[0].clientY;
+      touchStartY = ty;
+      touchLastY = ty;
+      touchStartScrollY = window.scrollY;
+      touchLastTime = performance.now();
+      touchVelocity = 0;
+      // Only take control when the touch begins inside the snap zone.
+      touchActive = inSnapZone(window.scrollY);
     };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!touchActive || isPillDragging()) {
+        touchActive = false;
+        return;
+      }
+
+      const ty = e.touches[0].clientY;
+      const now = performance.now();
+      const dt = now - touchLastTime;
+      if (dt > 0) touchVelocity = (touchLastY - ty) / dt;
+      touchLastY = ty;
+      touchLastTime = now;
+
+      const dy = touchStartY - ty; // positive = finger up = scroll down
+      let target = touchStartScrollY + dy;
+
+      const r = snapRange();
+      if (r) {
+        if (target < r.min) {
+          // Rubber-band above first snap point.
+          target = r.min + (target - r.min) * 0.18;
+        } else if (target > r.max) {
+          // Past the last project — release control and let the page scroll freely.
+          touchActive = false;
+          return;
+        }
+      }
+
+      e.preventDefault();
+      window.scrollTo({ top: target, behavior: "auto" });
+    };
+
     const onTouchEnd = (e: TouchEvent) => {
-      if (touchStartY === null) return;
-      const endY = e.changedTouches[0]?.clientY ?? touchStartY;
-      const delta = touchStartY - endY;
-      touchStartY = null;
+      if (!touchActive) {
+        // Touch started outside snap zone — idle snap as safety net.
+        if (inSnapZone(window.scrollY)) scheduleIdleSnap();
+        return;
+      }
+      touchActive = false;
+
+      const endY = e.changedTouches[0]?.clientY ?? touchLastY;
+      const totalDelta = touchStartY - endY; // positive = swiped up = scroll down
+
       const y = window.scrollY;
-      if (!inSnapZone(y)) {
-        scheduleIdleSnap();
-        return;
-      }
-      if (isSnapping || performance.now() < snapCooldownUntil) return;
-      if (Math.abs(delta) < 30) {
-        scheduleIdleSnap();
-        return;
-      }
       const tops = snapTops();
       const idx = currentSnapIndex(y);
-      const dir = delta > 0 ? 1 : -1;
-      const nextIdx = Math.max(0, Math.min(tops.length - 1, idx + dir));
-      if (nextIdx === idx) {
-        scheduleIdleSnap();
-        return;
+
+      // Velocity wins over distance for flick gestures; fall back to distance.
+      let dir = 0;
+      if (Math.abs(touchVelocity) > SWIPE_VELOCITY_PX_MS) {
+        dir = touchVelocity > 0 ? 1 : -1;
+      } else if (Math.abs(totalDelta) > SWIPE_DELTA_PX) {
+        dir = totalDelta > 0 ? 1 : -1;
       }
-      smoothScrollTo(tops[nextIdx]);
+
+      // Swiping down at the last project → release into footer.
+      if (dir > 0 && idx === tops.length - 1) return;
+
+      const targetIdx = Math.max(0, Math.min(tops.length - 1, idx + dir));
+      easedScrollTo(tops[targetIdx], 430);
     };
 
     const isPillDragging = () => (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging === true;
@@ -230,6 +290,7 @@ export default function Home() {
     const onScroll = () => {
       if (isSnapping) return;
       if (isPillDragging()) return;
+      if (touchActive) return; // touch snap handles its own commit
       scheduleIdleSnap();
     };
 
@@ -281,6 +342,7 @@ export default function Home() {
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("keydown", onKeyDown);
@@ -288,6 +350,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("keydown", onKeyDown);
@@ -301,21 +364,27 @@ export default function Home() {
   return (
     <div className="page">
       <Navbar sections={navSections} />
-      <main className="page__main">
-      <div ref={heroRef} className="home__hero-snap">
-        <Hero
-          title="Welcome."
-          subtitle="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautifully."
-          subsubtitle="Design Intern @ IBM"
+      <main id="main-content" className="page__main">
+        <div ref={heroRef} className="home__hero-snap">
+          <Hero
+            title="Welcome."
+            subtitle="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautifully."
+            tag="Design Intern @ IBM."
+          />
+        </div>
+        <EffectB projects={work} onSectionRef={handleSectionRef} />
+        <ProjectsNav
+          count={work.length}
+          sectionRefs={sectionRefs.current}
+          tones={work.map((w) => Boolean(w.heroIsLight))}
         />
-      </div>
-      <EffectB projects={work} onSectionRef={handleSectionRef} />
-      <ProjectsNav
-        count={work.length}
-        sectionRefs={sectionRefs.current}
-        tones={work.map((w) => Boolean(w.heroIsLight))}
-      />
-      <ProjectsNavMobile count={work.length} sectionRefs={sectionRefs.current} variant="light" />
+        {/* Hidden on mobile — the full-screen TikTok-style snap makes dots redundant. */}
+        <ProjectsNavMobile
+          count={work.length}
+          sectionRefs={sectionRefs.current}
+          variant="light"
+          className="projects-nav-m--home"
+        />
       </main>
       <div ref={footerRef} style={{ width: "100%" }}>
         <Footer />

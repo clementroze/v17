@@ -45,11 +45,25 @@
       media="(prefers-color-scheme: dark)"
     />
     <title>Clément Rozé</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preload the first project's hero image so the browser's preload scanner
+         can fetch it from the raw HTML, before React renders and discovers it.
+         Without this, the LCP image is only found after JS execution. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="image"
+      href="/images/ibm/home-hero.avif"
+      type="image/avif"
+      fetchpriority="high"
+    />
+    <!-- Inter is self-hosted (/fonts/inter-variable.woff2) — preloaded here so
+         the browser fetches it immediately from the initial HTML, eliminating
+         the Google Fonts 3-hop chain (HTML → fonts CSS → woff2). -->
+    <link
+      rel="preload"
+      as="font"
+      href="/fonts/inter-variable.woff2"
+      type="font/woff2"
+      crossorigin
     />
   </head>
   <body>

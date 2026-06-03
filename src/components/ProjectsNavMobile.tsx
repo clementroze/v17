@@ -10,6 +10,8 @@ type Props = {
   visible?: boolean;
   /** When true, ignore scroll thresholds and treat as always-visible (until `visible` flips). */
   alwaysVisible?: boolean;
+  /** Extra class name forwarded to the root <aside>. */
+  className?: string;
 };
 
 type Phase = "hidden" | "entering" | "exiting";
@@ -31,6 +33,7 @@ export default function ProjectsNavMobile({
   scrollOffset = 0,
   visible,
   alwaysVisible = false,
+  className,
 }: Props) {
   const initialPhase: Phase =
     visible === false ? "hidden" : alwaysVisible || visible === true ? "entering" : "hidden";
@@ -146,6 +149,8 @@ export default function ProjectsNavMobile({
     let targetScrollY = 0;
     let raf: number | null = null;
     let activePointerId: number | null = null;
+    // Which dot index was pressed — used to tap-jump when no drag movement occurs.
+    let tapIndex: number | null = null;
 
     const sectionPitchAvg = () =>
       sectionTops.length < 2
@@ -188,6 +193,20 @@ export default function ProjectsNavMobile({
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
       computeMetrics();
+      // Record which dot was pressed so a tap (no drag) can jump straight to it.
+      // touch-action:none prevents iOS from synthesizing click events, so we
+      // can't rely on onClick for touch — we handle the jump in release instead.
+      tapIndex = null;
+      const buttons = wrapRefs.current;
+      for (let i = 0; i < buttons.length; i++) {
+        const btn = buttons[i];
+        if (!btn) continue;
+        const r = btn.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+          tapIndex = i;
+          break;
+        }
+      }
       if (sectionTops.length < 2) return;
       dragging = true;
       dragMovedRef.current = false;
@@ -233,18 +252,24 @@ export default function ProjectsNavMobile({
       } catch {
         /* noop */
       }
-      // Snap to the nearest section.
-      const cur = targetScrollY;
-      let nearest = sectionTops[0];
-      let bestDist = Math.abs(cur - nearest);
-      for (let i = 1; i < sectionTops.length; i++) {
-        const d = Math.abs(cur - sectionTops[i]);
-        if (d < bestDist) {
-          nearest = sectionTops[i];
-          bestDist = d;
+      if (!dragMovedRef.current && tapIndex !== null && sectionRefs[tapIndex]?.current) {
+        // Clean tap on a dot — jump to that section directly.
+        const el = sectionRefs[tapIndex].current!;
+        targetScrollY = Math.max(0, el.getBoundingClientRect().top + window.scrollY - scrollOffset);
+      } else {
+        // After a drag, snap to the nearest section.
+        const cur = targetScrollY;
+        let nearest = sectionTops[0];
+        let bestDist = Math.abs(cur - nearest);
+        for (let i = 1; i < sectionTops.length; i++) {
+          const d = Math.abs(cur - sectionTops[i]);
+          if (d < bestDist) {
+            nearest = sectionTops[i];
+            bestDist = d;
+          }
         }
+        targetScrollY = Math.max(0, nearest - scrollOffset);
       }
-      targetScrollY = Math.max(0, nearest - scrollOffset);
       if (raf === null) raf = requestAnimationFrame(tick);
       // Suppress the click that follows a real drag so it doesn't also tap-jump.
       if (dragMovedRef.current) {
@@ -293,7 +318,7 @@ export default function ProjectsNavMobile({
   return (
     <aside
       key={runId}
-      className={`projects-nav-m${variantClass}${phaseClass}`}
+      className={`projects-nav-m${variantClass}${phaseClass}${className ? ` ${className}` : ""}`}
       aria-label="Section navigation"
       aria-hidden={phase !== "entering"}
     >

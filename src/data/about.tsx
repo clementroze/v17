@@ -197,6 +197,9 @@ export type BioSection = {
   heading: string;
   layout: BioLayout;
   images: BioImage[];
+  // On mobile the carousel shows individual images; set this to replace the
+  // whole section's images with one composite slide instead.
+  mobileImage?: string;
   content: React.ReactNode;
 };
 
@@ -209,6 +212,7 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       id: "origin",
       heading: "Where am I from?",
       layout: "scatter",
+      mobileImage: "/images/bio/all-flags.png",
       images: [
         {
           src: "/images/bio/us.png",

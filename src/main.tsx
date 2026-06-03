@@ -1,13 +1,16 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
 import "./styles.css";
 import { RouterProvider, useRouter } from "./lib/router";
 import { useKonami } from "./lib/useKonami";
 import Home from "./pages/Home";
-import About from "./pages/About";
-import Work from "./pages/Work";
-import CaseStudy from "./pages/CaseStudy";
-import Craft from "./pages/Craft";
+// Home is eager (it's the landing page — no extra round-trip on first paint).
+// The remaining routes are code-split so their JS isn't shipped in the homepage
+// bundle; each loads on navigation, hidden behind the column-wipe overlay.
+const About = lazy(() => import("./pages/About"));
+const Work = lazy(() => import("./pages/Work"));
+const CaseStudy = lazy(() => import("./pages/CaseStudy"));
+const Craft = lazy(() => import("./pages/Craft"));
 import { bySlug } from "./data/data";
 
 const LS_KEY = "konami-rainbow";
@@ -141,17 +144,21 @@ function App() {
 
   return (
     <>
-      {path === "/about" ? (
-        <About />
-      ) : path === "/work" ? (
-        <Work />
-      ) : path === "/craft" ? (
-        <Craft />
-      ) : caseMatch ? (
-        <CaseStudy slug={caseMatch[1]} />
-      ) : (
-        <Home />
-      )}
+      {/* fallback is null: route swaps happen mid-wipe (the overlay covers the
+          screen), so the brief lazy-chunk load is never visible. */}
+      <Suspense fallback={null}>
+        {path === "/about" ? (
+          <About />
+        ) : path === "/work" ? (
+          <Work />
+        ) : path === "/craft" ? (
+          <Craft />
+        ) : caseMatch ? (
+          <CaseStudy slug={caseMatch[1]} />
+        ) : (
+          <Home />
+        )}
+      </Suspense>
 
       {wipePhase !== "idle" && (
         <div

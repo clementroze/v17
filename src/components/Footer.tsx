@@ -74,10 +74,10 @@ function useCurrentTime() {
 
 export default function Footer() {
   const col0Ref = useReveal(0);
-  const col1Ref = useReveal(60);
-  const col2Ref = useReveal(120);
-  const archiveRef = useReveal<HTMLAnchorElement>(180);
-  const bottomRef = useReveal(240);
+  const col1Ref = useReveal(80);
+  const col2Ref = useReveal(160);
+  const archiveRef = useReveal<HTMLAnchorElement>(240);
+  const bottomRef = useReveal(300);
   const { local, localDaytime } = useCurrentTime();
   const [rainbowOn, setRainbowOn] = useState(() => document.documentElement.classList.contains("konami"));
 
@@ -160,7 +160,7 @@ export default function Footer() {
             <p className="footer__archive-title">Version 17</p>
             <div className="footer__archive-link">
               <p>View archive</p>
-              <img src={arrowWhite} alt="Arrow" />
+              <img src={arrowWhite} alt="" />
             </div>
           </div>
         </a>

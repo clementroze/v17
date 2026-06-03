@@ -93,7 +93,7 @@ export default function About() {
     <div className="page page--dark">
       <Navbar forceWhite activeLink="about" />
 
-      <main className="page__main">
+      <main id="main-content" className="page__main">
       <Hero title="Who am I?" subtitle="I design at the intersection of cultures, systems, and thoughtful detail." />
 
       {/* Content sections */}
@@ -203,6 +203,8 @@ export default function About() {
               <SectionLabel>Contact</SectionLabel>
               <div className="about-section-row__content">
                 <div className="about-more-row">
+                  {/* Résumé card scales up; the two contact cards slide in from
+                      opposite sides — each card gets a distinct reveal. */}
                   <Reveal>
                     <a
                       href="/Clement-Roze-Resume.pdf"
@@ -226,8 +228,8 @@ export default function About() {
                     </a>
                   </Reveal>
 
-                  <Reveal delay={80}>
-                    <div className="about-contact-col">
+                  <div className="about-contact-col">
+                    <Reveal delay={80}>
                       <a
                         href="https://www.linkedin.com/in/clementroze"
                         target="_blank"
@@ -239,14 +241,16 @@ export default function About() {
                         </div>
                         <p className="about-contact-label">Message me on LinkedIn</p>
                       </a>
+                    </Reveal>
+                    <Reveal delay={160}>
                       <a href="mailto:cpr58@cornell.edu" className="about-contact-link" target="_blank">
                         <div className="about-contact-card">
                           <img src={emailIcon} alt="" className="about-contact-icon" />
                         </div>
                         <p className="about-contact-label">Email me</p>
                       </a>
-                    </div>
-                  </Reveal>
+                    </Reveal>
+                  </div>
                 </div>
               </div>
             </div>

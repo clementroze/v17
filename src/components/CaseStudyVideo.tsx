@@ -58,9 +58,13 @@ const ExitFullscreenIcon = () => (
 type Props = {
   src: string;
   label?: string;
+  /** Known aspect ratio (width / height). When provided, the wrapper reserves a
+   *  correctly-sized box BEFORE the video's metadata loads — without it the
+   *  element is 0×0 until decode, which breaks the lightbox's open morph. */
+  aspectRatio?: number;
 };
 
-export default function CaseStudyVideo({ src, label }: Props) {
+export default function CaseStudyVideo({ src, label, aspectRatio }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(true);
@@ -225,6 +229,7 @@ export default function CaseStudyVideo({ src, label }: Props) {
       aria-label="Video player"
       tabIndex={0}
       onKeyDown={onKeyDown}
+      style={aspectRatio ? ({ aspectRatio: String(aspectRatio) } as React.CSSProperties) : undefined}
     >
       {fullscreen && label && (
         <div className="cs-video__label">{label}</div>

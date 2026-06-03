@@ -6,7 +6,6 @@ import arrowWhite from "../../assets/arrow.svg";
 import arrowBlack from "../../assets/arrow-black.svg";
 import Button from "../Button";
 import Picture from "../Picture";
-import { contrastText } from "../../lib/contrast";
 
 type Project = {
   number: string;
@@ -108,10 +107,7 @@ function ParallaxProject({
       if (showTimer) clearTimeout(showTimer);
       showTimer = setTimeout(() => {
         els.forEach((el, i) => {
-          setTimeout(
-            () => el.classList.add("effect-b__item--visible"),
-            STAGGER[i],
-          );
+          setTimeout(() => el.classList.add("effect-b__item--visible"), STAGGER[i]);
         });
       }, 16);
     };
@@ -145,14 +141,11 @@ function ParallaxProject({
   const section = (
     <div
       ref={(el) => {
-        (sectionRef as React.MutableRefObject<HTMLDivElement | null>).current =
-          el;
+        (sectionRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
         onSectionRef?.(el);
       }}
       className={`project effect-b__section${
-        expand
-          ? ` effect-b__section--reveal${revealed ? " effect-b__section--revealed" : ""}`
-          : ""
+        expand ? ` effect-b__section--reveal${revealed ? " effect-b__section--revealed" : ""}` : ""
       }`}
     >
       <div
@@ -187,36 +180,24 @@ function ParallaxProject({
             const contentClass = `project__content${
               project.heroIsLight ? " project__content--light" : ""
             }${project.comingSoon ? " project__content--disabled" : ""}`;
-            // The "See more" button is filled with the project's accent; its
-            // text/arrow ink is whichever of black/white stays legible on it.
-            const accentInk = contrastText(project.accent);
-            const style = {
-              "--accent": project.accent,
-              "--accent-ink": accentInk,
-            } as React.CSSProperties;
-            const accentArrow = accentInk === "#000" ? arrowBlack : arrowWhite;
+            const btnVariant = project.heroIsLight ? "light-gray" : "dark-gray";
+            const btnArrow = project.heroIsLight ? arrowBlack : arrowWhite;
             return (
-              <div className={contentClass} style={style}>
-                <h2
-                  ref={nameRef}
-                  className="project__name effect-b__item effect-b__item--name"
-                >
+              <div className={contentClass}>
+                <h2 ref={nameRef} className="project__name effect-b__item effect-b__item--name">
                   {project.name}
                 </h2>
-                <span
-                  ref={ctaRef}
-                  className="project__cta effect-b__item effect-b__item--cta"
-                >
+                <span ref={ctaRef} className="project__cta effect-b__item effect-b__item--cta">
                   {project.comingSoon ? (
-                    <Button variant="accent" disabled>
+                    <Button variant={btnVariant} disabled>
                       Coming soon
                     </Button>
                   ) : (
                     <Button
                       href={project.href}
-                      variant="accent"
-                      iconSrc={accentArrow}
-                      ariaLabel={`View ${project.name}`}
+                      variant={btnVariant}
+                      iconSrc={btnArrow}
+                      ariaLabel={`View ${project.name} case study`}
                     >
                       See more
                     </Button>

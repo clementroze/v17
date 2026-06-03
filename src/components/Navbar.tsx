@@ -199,6 +199,8 @@ export default function Navbar({
 
   return (
     <>
+      <a href="#main-content" className="skip-to-main">Skip to main content</a>
+
       <div className="navbar__blur-bg" aria-hidden />
 
       <nav

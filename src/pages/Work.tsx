@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback, Fragment } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
 import Hourglass from "../components/Hourglass";
 import arrowBlack from "../assets/arrow-black.svg";
-import { Reveal } from "../lib/reveal";
+import { Reveal, useReveal } from "../lib/reveal";
 import { Link } from "../lib/router";
 import Picture, { bgImageSet } from "../components/Picture";
 
@@ -38,19 +38,44 @@ function saveWorkScroll() {
   sessionStorage.setItem("work_scroll", String(window.scrollY));
 }
 
-function GridItem({ item, index }: { item: WorkItem; index: number }) {
-  const picCols = item.images.map((h, i) => (
-    <div key={i} className="work-grid__pic" style={{ aspectRatio: `${GRID_COL_WIDTH} / ${h}` }}>
-      {item.imageUrls[i] && <Picture src={item.imageUrls[i]} alt="" />}
+// A single image cell. Carries its own reveal so the row's cells animate in
+// independently instead of as one block.
+// `lead` marks the first pic of a row: on the mobile carousel it's the one that
+// rests inset by the left page padding (see .work-grid__pic--lead in the CSS).
+function GridPic({
+  src,
+  h,
+  delay,
+  lead = false,
+}: {
+  src?: string;
+  h: number;
+  delay: number;
+  lead?: boolean;
+}) {
+  // threshold 0 so the mobile carousel's peeking next pic reveals at rest (any
+  // visible sliver triggers it); fully off-screen slides still wait for scroll.
+  const ref = useReveal<HTMLDivElement>(delay, 0);
+  return (
+    <div
+      ref={ref}
+      className={`work-grid__pic${lead ? " work-grid__pic--lead" : ""} reveal`}
+      style={{ aspectRatio: `${GRID_COL_WIDTH} / ${h}` }}
+    >
+      {src && <Picture src={src} alt="" />}
     </div>
-  ));
+  );
+}
 
-  // The text column is the whole clickable surface (or a non-interactive div
-  // when the case study isn't live yet). The name/subtitle stay as a heading +
-  // paragraph; the old CTA button becomes an inline label + arrow that animate
-  // on hover. The link's aria-label mirrors the visible reading order — name,
-  // then the role/subtitle, then the "See more" action — so screen-reader users
-  // hear the subtitle (which the label would otherwise suppress) before the CTA.
+// The text column: the whole clickable surface (or a non-interactive div when
+// the case study isn't live yet). The name/subtitle stay as a heading +
+// paragraph; the old CTA button becomes an inline label + arrow that animate on
+// hover. The link's aria-label mirrors the visible reading order — name, then
+// the role/subtitle, then the "See more" action — so screen-reader users hear
+// the subtitle (which the label would otherwise suppress) before the CTA. Like
+// GridPic it owns its own reveal so it animates independently of the images.
+function GridText({ item, delay }: { item: WorkItem; delay: number }) {
+  const ref = useReveal<HTMLElement>(delay);
   const inner = (
     <>
       <div className="work-grid__text-top">
@@ -68,17 +93,22 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
     </>
   );
 
-  const textCol = item.comingSoon ? (
-    <div
-      className="work-grid__text work-grid__text--disabled"
-      style={{ "--accent": item.accent } as React.CSSProperties}
-    >
-      {inner}
-    </div>
-  ) : (
+  if (item.comingSoon) {
+    return (
+      <div
+        ref={ref as React.Ref<HTMLDivElement>}
+        className="work-grid__text work-grid__text--disabled reveal"
+        style={{ "--accent": item.accent } as React.CSSProperties}
+      >
+        {inner}
+      </div>
+    );
+  }
+  return (
     <Link
+      ref={ref as React.Ref<HTMLAnchorElement>}
       href={item.href}
-      className="work-grid__text"
+      className="work-grid__text reveal"
       aria-label={`${item.name}. ${item.subtitle}. See more`}
       style={{ "--accent": item.accent } as React.CSSProperties}
       onClick={saveWorkScroll}
@@ -86,25 +116,34 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
       {inner}
     </Link>
   );
+}
+
+function GridItem({ item, index }: { item: WorkItem; index: number }) {
+  // Build the row as descriptors first, splice the text column into place, then
+  // render — so each cell knows its final position (for the reveal direction and
+  // stagger) regardless of where the text lands among the images.
+  type Cell = { kind: "pic"; src?: string; h: number; lead: boolean } | { kind: "text" };
+  const cells: Cell[] = item.images.map((h, i) => ({ kind: "pic", h, src: item.imageUrls[i], lead: i === 0 }));
 
   // Where the text column sits among the images. Prefer the per-item
   // `textPosition`; otherwise fall back to the original rotating default
   // (0, 2, 3, 0, then repeating) keyed off the row index.
   const DEFAULT_POSITIONS = [0, 2, 3, 0];
   const rawPos = item.textPosition ?? DEFAULT_POSITIONS[index % DEFAULT_POSITIONS.length];
-  const textPos = Math.max(0, Math.min(picCols.length, rawPos));
-
-  const cells = [...picCols];
-  cells.splice(textPos, 0, textCol);
+  const textPos = Math.max(0, Math.min(item.images.length, rawPos));
+  cells.splice(textPos, 0, { kind: "text" });
 
   return (
-    <Reveal delay={index * 60}>
-      <div className="work-grid__row">
-        {cells.map((cell, i) => (
-          <Fragment key={i}>{cell}</Fragment>
-        ))}
-      </div>
-    </Reveal>
+    <div className="work-grid__row">
+      {cells.map((cell, i) => {
+        const delay = index * 60 + i * 70;
+        return cell.kind === "pic" ? (
+          <GridPic key={i} src={cell.src} h={cell.h} delay={delay} lead={cell.lead} />
+        ) : (
+          <GridText key={i} item={item} delay={delay} />
+        );
+      })}
+    </div>
   );
 }
 
@@ -112,17 +151,15 @@ function GridItem({ item, index }: { item: WorkItem; index: number }) {
 // GridItem layout (3 pics + 1 text col) so it visually rhymes with the
 // project rows; copy + accent are unique to mark it as a different kind of
 // link (a category, not a project).
-function SeeMoreGridRow({ index }: { index: number }) {
-  const picCols = SEE_MORE_GRID_IMAGES.map((src, i) => (
-    <div key={i} className="work-grid__pic" style={{ aspectRatio: `${GRID_COL_WIDTH} / 332` }}>
-      <Picture src={src} alt="" />
-    </div>
-  ));
-
-  const textCol = (
+// The "See more" text column, with its own reveal so it animates in separately
+// from the sampler images beside it (same pattern as GridText).
+function SeeMoreText({ delay }: { delay: number }) {
+  const ref = useReveal<HTMLAnchorElement>(delay);
+  return (
     <Link
+      ref={ref}
       href="/craft"
-      className="work-grid__text"
+      className="work-grid__text reveal"
       aria-label="See more of my craft and explorations"
       style={{ "--accent": "#000000" } as React.CSSProperties}
     >
@@ -136,16 +173,17 @@ function SeeMoreGridRow({ index }: { index: number }) {
       </span>
     </Link>
   );
+}
 
+function SeeMoreGridRow({ index }: { index: number }) {
+  const textIndex = SEE_MORE_GRID_IMAGES.length;
   return (
-    <Reveal delay={index * 60}>
-      <div className="work-grid__row">
-        {picCols.map((cell, i) => (
-          <Fragment key={i}>{cell}</Fragment>
-        ))}
-        {textCol}
-      </div>
-    </Reveal>
+    <div className="work-grid__row">
+      {SEE_MORE_GRID_IMAGES.map((src, i) => (
+        <GridPic key={i} src={src} h={332} delay={index * 60 + i * 70} lead={i === 0} />
+      ))}
+      <SeeMoreText delay={index * 60 + textIndex * 70} />
+    </div>
   );
 }
 
@@ -368,7 +406,7 @@ export default function Work() {
     <div className="page">
       <Navbar activeLink="work" />
 
-      <main className="page__main">
+      <main id="main-content" className="page__main">
       <Hero title="Work" subtitle="A closer look at the projects, decisions, and details behind my work." />
 
       {/* Main */}

@@ -3,10 +3,10 @@ import { Reveal } from "../lib/reveal";
 type HeroProps = {
   title: string;
   subtitle: string;
-  subsubtitle?: string;
+  tag?: string;
 };
 
-export default function Hero({ title, subtitle, subsubtitle }: HeroProps) {
+export default function Hero({ title, subtitle, tag }: HeroProps) {
   return (
     <div className="container-wrapper">
       <div className="container">
@@ -23,10 +23,10 @@ export default function Hero({ title, subtitle, subsubtitle }: HeroProps) {
             <div className="hero__left" />
             <div className="hero__right">
               <Reveal delay={80}>
-                <p className="hero__subtitle">{subtitle}</p>
-              </Reveal>
-              <Reveal delay={160}>
-                <p className="hero__subsubtitle">{subsubtitle}</p>
+                <p className="hero__subtitle">
+                  {subtitle}
+                  {tag && <> <span className="hero__tag">{tag}</span></>}
+                </p>
               </Reveal>
             </div>
           </div>

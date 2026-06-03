@@ -106,7 +106,11 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
   const sectionFirstSlide: number[] = [];
   sections.forEach((s, si) => {
     sectionFirstSlide[si] = flatImages.length;
-    s.images.forEach((img) => flatImages.push({ src: img.src, sectionIndex: si }));
+    if (isMobile && s.mobileImage) {
+      flatImages.push({ src: s.mobileImage, sectionIndex: si });
+    } else {
+      s.images.forEach((img) => flatImages.push({ src: img.src, sectionIndex: si }));
+    }
   });
 
   const cancelTransition = () => {
@@ -393,8 +397,15 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
       const sec = sectionRefs.current[activeIndex];
       if (body && sec) {
         const delta = sec.getBoundingClientRect().top - body.getBoundingClientRect().top;
-        const target = body.scrollTop + delta - (body.clientHeight - sec.offsetHeight) / 2;
-        body.scrollTo({ top: target, behavior: "smooth" });
+        // On mobile the carousel drives this sync, so we want the section heading
+        // to appear at the top of the text pane (not centered). Subtract only the
+        // body's top padding so the h3 sits flush at the content area top.
+        // On desktop centering is kept (the image stage is tall enough to show the
+        // whole section, so centering feels more natural).
+        const offset = isMobile
+          ? parseFloat(getComputedStyle(body).paddingTop) || 0
+          : (body.clientHeight - sec.offsetHeight) / 2;
+        body.scrollTo({ top: body.scrollTop + delta - offset, behavior: "smooth" });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

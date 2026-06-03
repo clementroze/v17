@@ -65,7 +65,7 @@ The shell — a deep navy #003047 — wraps the entire application and contains 
 
 The main section uses two tints of beige — a warmer #FAF3EC for the sidebar and a near-white #FFFCF9 for the content — to quietly separate navigation from work without resorting to hard borders or heavy contrast.
 
-Finally, interactive elements like text fields, buttons, and the chat composer use pure white (#FFFFFF) to lift off the beige canvas.
+Finally, interactive elements like text fields, buttons, and the chat composer use pure white #FFFFFF to lift off the beige canvas.
 
 ![The redesigned workspace: a navy shell and beige sidebar around a white chat showing a Brown v. Board summary with key facts.](/images/gcai/messaging.png) Messaging with the AI
 
@@ -93,7 +93,7 @@ The account menu is where the user manages their profile, settings, and organiza
 
 When users work through long, document-heavy chats, their context window – the amount of information the AI can hold in memory at once — starts to fill up. GC AI surfaces this transparently through a usage indicator in the chat composer, showing a live percentage and a breakdown.
 
-The indicator tracks two context tiers: normal (up to 200K tokens) and extended (up to 1M). It's displayed as a segmented bar where green (#74A75A) and purple (#B721B7) fill in as the chat grows. When things get critical, the bar shifts to amber (#DE8703) and red (#D16268), and the status label updates to match. Color carries the signal, but for accessibility, I added icons and explicit text labels to back it up so the indicator works for everyone.
+The indicator tracks two context tiers: normal (up to 200K tokens) and extended (up to 1M). It's displayed as a segmented bar where green #74A75A and purple #B721B7 fill in as the chat grows. When things get critical, the bar shifts to amber #DE8703 and red #D16268, and the status label updates to match. Color carries the signal, but for accessibility, I added icons and explicit text labels to back it up so the indicator works for everyone.
 
 ![/images/gcai/context-1.png "Close-up of the composer showing a small 5.1% context-usage pill beside the send button." | /images/gcai/context-2.png "The expanded context popover at 5.1%, a green normal-context segment, labeled Context available." | /images/gcai/context-3.png "The popover at 19.2% with a fuller green bar and an amber Normal context nearly full warning."] Default context indicator | Using normal context | Normal context nearly full
 

@@ -1,12 +1,13 @@
-import { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
-import type { CraftItem } from '../data/craft';
-import CaseStudyVideo from './CaseStudyVideo';
-import Picture from './Picture';
+import { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
+import type { CraftItem } from "../data/craft";
+import CaseStudyVideo from "./CaseStudyVideo";
+import Picture from "./Picture";
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const MORPH_IN_MS = 520;
+const isVideoSrc = (src?: string | null) => Boolean(src && /\.(mp4|mov|webm|ogg)$/i.test(src));
 const MORPH_OUT_MS = 380;
 // How much accumulated same-direction wheel intent it takes to dismiss the
 // lightbox. Tuned so casual scrolling within a tall screenshot doesn't
@@ -73,7 +74,7 @@ type Props = {
   onIndexChange: (i: number) => void;
 };
 
-type Phase = 'origin' | 'center' | 'idle' | 'closing';
+type Phase = "origin" | "center" | "idle" | "closing";
 
 type Rect = { top: number; left: number; width: number; height: number };
 
@@ -82,14 +83,7 @@ function measure(el: HTMLElement): Rect {
   return { top: r.top, left: r.left, width: r.width, height: r.height };
 }
 
-export default function CraftLightbox({
-  items,
-  index,
-  aspectMap,
-  getOriginEl,
-  onClose,
-  onIndexChange,
-}: Props) {
+export default function CraftLightbox({ items, index, aspectMap, getOriginEl, onClose, onIndexChange }: Props) {
   // Compute initial framing synchronously from the current item's already-
   // measured aspect (if the grid resolved one). Falls back to zoom=1, and the
   // image's onLoad below will catch it up once the bitmap decodes. Doing this
@@ -101,7 +95,7 @@ export default function CraftLightbox({
     const a = measured ?? items[index]?.aspect ?? 0;
     return computeInitialFraming(a);
   })();
-  const [phase, setPhase] = useState<Phase>(() => (getOriginEl(index) ? 'origin' : 'idle'));
+  const [phase, setPhase] = useState<Phase>(() => (getOriginEl(index) ? "origin" : "idle"));
   const [mounted, setMounted] = useState(false);
   const [dir, setDir] = useState(0);
   const [animKey, setAnimKey] = useState(0);
@@ -123,10 +117,7 @@ export default function CraftLightbox({
   // Effective max zoom — the user can always step up to at least 2× the
   // initial zoom even when the initial is already > 3.
   const [zoomMax, setZoomMax] = useState(
-    Math.max(
-      ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1],
-      initialFraming.zoom * 2,
-    ),
+    Math.max(ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1], initialFraming.zoom * 2),
   );
   // Pan offset (px) applied alongside zoom when zoomed in. Seeded so the TOP
   // of the image aligns with the top of the card on tall images.
@@ -194,17 +185,22 @@ export default function CraftLightbox({
 
   // Initial morph: pin to origin synchronously after first paint.
   useLayoutEffect(() => {
-    if (phase !== 'origin') return;
+    if (phase !== "origin") return;
     const t = computeOriginTransform();
-    if (t) setOriginTransform(t);
+    if (t) {
+      setOriginTransform(t);
+    } else {
+      // Card has no measurable size — skip morph, CSS fade-in handles entrance.
+      setPhase("idle");
+    }
   }, [phase, computeOriginTransform]);
 
   // After origin paints, advance to center on next frame to trigger transition.
   useEffect(() => {
-    if (phase !== 'origin' || originTransform === null) return;
+    if (phase !== "origin" || originTransform === null) return;
     let r2 = 0;
     const r1 = requestAnimationFrame(() => {
-      r2 = requestAnimationFrame(() => setPhase('center'));
+      r2 = requestAnimationFrame(() => setPhase("center"));
     });
     return () => {
       cancelAnimationFrame(r1);
@@ -214,18 +210,18 @@ export default function CraftLightbox({
 
   // When the centering transition ends, mark idle.
   useEffect(() => {
-    if (phase !== 'center') return;
+    if (phase !== "center") return;
     const card = cardRef.current;
     if (!card) return;
     const onEnd = (e: TransitionEvent) => {
-      if (e.target !== card || e.propertyName !== 'transform') return;
-      setPhase('idle');
-      card.removeEventListener('transitionend', onEnd);
+      if (e.target !== card || e.propertyName !== "transform") return;
+      setPhase("idle");
+      card.removeEventListener("transitionend", onEnd);
     };
-    card.addEventListener('transitionend', onEnd);
-    const t = window.setTimeout(() => setPhase('idle'), MORPH_IN_MS + 80);
+    card.addEventListener("transitionend", onEnd);
+    const t = window.setTimeout(() => setPhase("idle"), MORPH_IN_MS + 80);
     return () => {
-      card.removeEventListener('transitionend', onEnd);
+      card.removeEventListener("transitionend", onEnd);
       clearTimeout(t);
     };
   }, [phase]);
@@ -244,7 +240,7 @@ export default function CraftLightbox({
     const sourceEl = getOriginEl(indexRef.current);
     if (!card || !sourceEl) {
       setMounted(false);
-      setPhase('closing');
+      setPhase("closing");
       window.setTimeout(onClose, 240);
       return;
     }
@@ -255,7 +251,7 @@ export default function CraftLightbox({
     const naturalH = card.offsetHeight;
     if (naturalW === 0 || naturalH === 0) {
       setMounted(false);
-      setPhase('closing');
+      setPhase("closing");
       window.setTimeout(onClose, 240);
       return;
     }
@@ -283,13 +279,13 @@ export default function CraftLightbox({
     const startTransformStr = `translate(${start.dx}px, ${start.dy}px) scale(${start.scale})`;
     setClosingStartTransform(startTransformStr);
     setMounted(false);
-    setPhase('closing');
+    setPhase("closing");
 
     // Also write it imperatively right now so there's no flicker if React
     // hasn't committed the re-render yet.
-    card.style.transformOrigin = 'top left';
-    card.style.transition = 'none';
-    card.style.willChange = 'transform';
+    card.style.transformOrigin = "top left";
+    card.style.transition = "none";
+    card.style.willChange = "transform";
     card.style.transform = startTransformStr;
 
     // Easing — iOS-style smooth deceleration
@@ -341,7 +337,7 @@ export default function CraftLightbox({
       setPan({ x: 0, y: 0 });
       onIndexChange(next);
     },
-    [index, items.length, onIndexChange]
+    [index, items.length, onIndexChange],
   );
 
   // Fallback path: when the parent didn't yet have an aspect for this item
@@ -425,7 +421,7 @@ export default function CraftLightbox({
   // is solely for drag-to-pan once the image is already zoomed in.
   const onCardPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      if (e.button !== 0 && e.pointerType === "mouse") return;
       // Always keep a click on the card from bubbling to the backdrop (which
       // would close the lightbox), but only start a pan gesture when zoomed.
       e.stopPropagation();
@@ -452,22 +448,22 @@ export default function CraftLightbox({
       const onUp = () => {
         dragRef.current.active = false;
         setIsDragging(false);
-        window.removeEventListener('pointermove', onMove);
-        window.removeEventListener('pointerup', onUp);
-        window.removeEventListener('pointercancel', onUp);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onUp);
       };
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
     },
-    [zoom, pan.x, pan.y, clampPan]
+    [zoom, pan.x, pan.y, clampPan],
   );
 
   // Briefly flash the hover/pressed state on a nav button (for arrow-key feedback)
   const pulseNavButton = useCallback((btn: HTMLButtonElement | null) => {
     if (!btn) return;
-    btn.classList.add('is-pressed');
-    window.setTimeout(() => btn.classList.remove('is-pressed'), 220);
+    btn.classList.add("is-pressed");
+    window.setTimeout(() => btn.classList.remove("is-pressed"), 220);
   }, []);
 
   // Disable horizontal browser back-swipe while the lightbox is open. macOS
@@ -478,8 +474,8 @@ export default function CraftLightbox({
     const body = document.body;
     const prevHtml = html.style.overscrollBehaviorX;
     const prevBody = body.style.overscrollBehaviorX;
-    html.style.overscrollBehaviorX = 'none';
-    body.style.overscrollBehaviorX = 'none';
+    html.style.overscrollBehaviorX = "none";
+    body.style.overscrollBehaviorX = "none";
     return () => {
       html.style.overscrollBehaviorX = prevHtml;
       body.style.overscrollBehaviorX = prevBody;
@@ -689,9 +685,9 @@ export default function CraftLightbox({
       // go, the rAF kicks in and eases everything back to 0.
       scheduleRelease();
     };
-    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener("wheel", onWheel, { passive: false });
     return () => {
-      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener("wheel", onWheel);
       cancelRelease();
     };
   }, [close, clampPan, go, pulseNavButton]);
@@ -699,25 +695,23 @@ export default function CraftLightbox({
   // Keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         closedByEscRef.current = true;
         close();
-      }
-      else if (e.key === 'ArrowRight') {
+      } else if (e.key === "ArrowRight") {
         pulseNavButton(nextBtnRef.current);
         go(1);
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === "ArrowLeft") {
         pulseNavButton(prevBtnRef.current);
         go(-1);
-      }
-      else if (e.key === '+' || e.key === '=') zoomIn();
-      else if (e.key === '-' || e.key === '_') zoomOut();
-      else if (e.key === 'r' || e.key === 'R') resetZoom();
-      else if (e.key === 'Tab') {
+      } else if (e.key === "+" || e.key === "=") zoomIn();
+      else if (e.key === "-" || e.key === "_") zoomOut();
+      else if (e.key === "r" || e.key === "R") resetZoom();
+      else if (e.key === "Tab") {
         const root = rootRef.current;
         if (!root) return;
         const focusables = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-          (el) => !el.hasAttribute('disabled') && el.offsetParent !== null
+          (el) => !el.hasAttribute("disabled") && el.offsetParent !== null,
         );
         if (focusables.length === 0) {
           e.preventDefault();
@@ -739,8 +733,8 @@ export default function CraftLightbox({
         }
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [close, go, zoomIn, zoomOut, resetZoom, pulseNavButton]);
 
   // Focus mgmt
@@ -786,29 +780,29 @@ export default function CraftLightbox({
       return `translate(${tx}px, ${ty}px) scale(${z})`;
     };
 
-    if (phase === 'origin' && originTransform) {
+    if (phase === "origin" && originTransform) {
       return {
-        transformOrigin: 'top left',
+        transformOrigin: "top left",
         transform: originTransform,
-        transition: 'none',
-        willChange: 'transform',
+        transition: "none",
+        willChange: "transform",
       };
     }
-    if (phase === 'center') {
+    if (phase === "center") {
       // Animate from origin (top-left anchored thumb position) to the final
       // framed transform (pan/zoom expressed in top-left coordinates).
       return {
-        transformOrigin: 'top left',
+        transformOrigin: "top left",
         transform: framedTransform(pan.x, pan.y, zoom),
         transition: `transform ${MORPH_IN_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
-        willChange: 'transform',
+        willChange: "transform",
         // The card's scale(zoom) would also scale its border-radius, making the
         // corners look rounder when zoomed. Divide the authored radius by zoom
         // so the rendered radius stays a constant --radius-img at any zoom.
         borderRadius: `calc(var(--radius-img) / ${zoom})`,
       };
     }
-    if (phase === 'idle') {
+    if (phase === "idle") {
       // Same expression as 'center' — no origin or basis change between the
       // two phases, just whether there's a transition wrapping the change.
       // Dismiss drift is added to pan.y so the card tugs in the direction
@@ -819,17 +813,15 @@ export default function CraftLightbox({
       // because the lighter 'transform 200ms ...' kicks in once drift is 0.
       const live = isDragging || dismissDrift !== 0;
       return {
-        transformOrigin: 'top left',
+        transformOrigin: "top left",
         transform: framedTransform(pan.x, pan.y + dismissDrift, zoom),
-        transition: live
-          ? 'transform 80ms linear'
-          : 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+        transition: live ? "transform 80ms linear" : "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
         // Keep the rendered corner radius constant regardless of zoom — the
         // card's scale(zoom) would otherwise enlarge the border-radius too.
         borderRadius: `calc(var(--radius-img) / ${zoom})`,
       };
     }
-    if (phase === 'closing' && closingStartTransform) {
+    if (phase === "closing" && closingStartTransform) {
       // Locked to the starting transform so React doesn't fight with the
       // rAF that's mutating style.transform every frame. The imperative
       // writes win because they happen between React commits. Box-shadow
@@ -837,35 +829,33 @@ export default function CraftLightbox({
       // the source — otherwise the shadow follows the card the whole way
       // and snaps off when the lightbox unmounts.
       return {
-        transformOrigin: 'top left',
+        transformOrigin: "top left",
         transform: closingStartTransform,
         transition: `box-shadow ${MORPH_OUT_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
-        boxShadow: 'none',
-        willChange: 'transform',
+        boxShadow: "none",
+        willChange: "transform",
       };
     }
     return {};
   })();
 
   const cardAnimClass =
-    phase === 'idle' && dir !== 0
+    phase === "idle" && dir !== 0
       ? dir > 0
-        ? 'craft-lightbox__card--next'
-        : 'craft-lightbox__card--prev'
-      : 'craft-lightbox__card--morph';
+        ? "craft-lightbox__card--next"
+        : "craft-lightbox__card--prev"
+      : "craft-lightbox__card--morph";
 
   // Backdrop opacity multiplier from scroll progress (1 = full, 0 = gone)
   const backdropStyle: React.CSSProperties = {
     // Tie the backdrop opacity to scroll-dismiss progress for a continuous feel
-    '--lb-scroll-progress': scrollProgress,
+    "--lb-scroll-progress": scrollProgress,
   } as React.CSSProperties;
 
   return (
     <div
       ref={rootRef}
-      className={`craft-lightbox${mounted ? ' is-open' : ''}${
-        phase === 'closing' ? ' is-closing' : ''
-      }`}
+      className={`craft-lightbox${mounted ? " is-open" : ""}${phase === "closing" ? " is-closing" : ""}`}
       style={backdropStyle}
       onClick={close}
       role="dialog"
@@ -876,7 +866,7 @@ export default function CraftLightbox({
         <div
           key={index}
           className={`craft-lightbox__meta-inner craft-lightbox__meta-inner--${
-            dir > 0 ? 'next' : dir < 0 ? 'prev' : 'enter'
+            dir > 0 ? "next" : dir < 0 ? "prev" : "enter"
           }`}
         >
           <div className="craft-lightbox__label-row">
@@ -894,9 +884,7 @@ export default function CraftLightbox({
                 className="craft-lightbox__link"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="craft-lightbox__link-label">
-                  {item.linkLabel ?? 'Visit'}
-                </span>
+                <span className="craft-lightbox__link-label">{item.linkLabel ?? "Visit"}</span>
                 <svg
                   className="craft-lightbox__link-arrow"
                   width="18"
@@ -908,7 +896,7 @@ export default function CraftLightbox({
                   <path
                     d="M2.5 6H9.5M9.5 6L6 2.5M9.5 6L6 9.5"
                     stroke="currentColor"
-                    strokeWidth="1.4"
+                    strokeWidth="1"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
@@ -979,7 +967,13 @@ export default function CraftLightbox({
         }}
       >
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-          <path d="M13.5 4L6.5 11L13.5 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M13.5 4L6.5 11L13.5 18"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
 
@@ -994,7 +988,13 @@ export default function CraftLightbox({
         }}
       >
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-          <path d="M8.5 4L15.5 11L8.5 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M8.5 4L15.5 11L8.5 18"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
 
@@ -1002,11 +1002,7 @@ export default function CraftLightbox({
         ref={cardRef}
         key={animKey}
         className={`craft-lightbox__card ${cardAnimClass} ${
-          isDragging
-            ? 'craft-lightbox__card--grabbing'
-            : zoom > 1
-            ? 'craft-lightbox__card--pannable'
-            : ''
+          isDragging ? "craft-lightbox__card--grabbing" : zoom > 1 ? "craft-lightbox__card--pannable" : ""
         }`}
         style={cardStyle}
         onPointerDown={onCardPointerDown}
@@ -1017,15 +1013,16 @@ export default function CraftLightbox({
         }}
       >
         {item.src ? (
-          /\.(mp4|mov|webm|ogg)$/i.test(item.src) ? (
-            <CaseStudyVideo src={item.src} label={item.label} />
-          ) : (
-            <Picture
+          isVideoSrc(item.src) ? (
+            <CaseStudyVideo
               src={item.src}
-              alt={item.alt ?? item.label}
-              className="craft-lightbox__img"
-              onLoad={onImgLoad}
+              label={item.label}
+              // Feed the known aspect so the card has a real width on first
+              // paint — otherwise the 0×0 video breaks the open morph.
+              aspectRatio={(item.id ? aspectMap?.[item.id] : undefined) ?? item.aspect}
             />
+          ) : (
+            <Picture src={item.src} alt={item.alt ?? item.label} className="craft-lightbox__img" onLoad={onImgLoad} />
           )
         ) : (
           <div className="craft-lightbox__placeholder" />

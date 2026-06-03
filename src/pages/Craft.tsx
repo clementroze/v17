@@ -159,7 +159,7 @@ export default function Craft() {
     <div className="page page--craft">
       <Navbar activeLink="craft" />
 
-      <main className="page__main">
+      <main id="main-content" className="page__main">
       <Hero title="Craft" subtitle="A collection of side projects, explorations, and small details." />
 
       {/* Masonry grid — columns derived from the single ordered CRAFT_ITEMS list */}

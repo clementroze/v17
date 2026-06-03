@@ -545,7 +545,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
   if (!data) {
     return (
       <div className="page cs-not-found">
-        <main className="page__main">
+        <main id="main-content" className="page__main">
         <p className="cs-not-found__message">Case study "{slug}" not found.</p>
         <Link href={backHref} className="cs-not-found__back">
           ← {backLabel}
@@ -683,7 +683,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
       }
     >
       <Navbar watchShowRef={heroRef} activeLink="work" />
-      <main className="page__main">
+      <main id="main-content" className="page__main">
       {sectionCount > 0 && (
         <>
           <ProjectsNav
