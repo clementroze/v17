@@ -4,7 +4,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { bySlug } from './src/data/data';
 import { parseCase } from './src/lib/parseCase';
-import { caseStudyJsonLdScript, firstYear } from './src/lib/caseStudySchema';
+import { caseStudyJsonLdScript, firstYear, SITE_ORIGIN } from './src/lib/caseStudySchema';
+
+// Top-level public routes the SPA serves (besides the case studies, which are
+// derived from the markdown files below). Used to build the sitemap.
+const TOP_LEVEL_ROUTES = ['/', '/about', '/work', '/craft'];
+
+// Read the case-study slugs from the markdown registry (single source of truth,
+// shared with the runtime via import.meta.glob in src/lib/cases.ts). Drives both
+// the prerender and the sitemap so the published URL list never drifts from the
+// actual case studies.
+function caseStudySlugs(workSrc: string): string[] {
+  return fs
+    .readdirSync(workSrc)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => f.replace(/\.md$/, ''))
+    .sort();
+}
 
 // ── Case-study schema prerender ──────────────────────────────────────────────
 // After the bundle is written, emit a static HTML file per /work/<slug> route
@@ -29,10 +45,7 @@ function prerenderCaseStudySchema(): Plugin {
       if (!fs.existsSync(indexPath) || !fs.existsSync(workSrc)) return;
 
       const indexHtml = fs.readFileSync(indexPath, 'utf8');
-      const slugs = fs
-        .readdirSync(workSrc)
-        .filter((f) => f.endsWith('.md'))
-        .map((f) => f.replace(/\.md$/, ''));
+      const slugs = caseStudySlugs(workSrc);
 
       for (const slug of slugs) {
         const { meta } = parseCase(fs.readFileSync(path.join(workSrc, `${slug}.md`), 'utf8'));
@@ -50,8 +63,41 @@ function prerenderCaseStudySchema(): Plugin {
         fs.writeFileSync(path.join(workDir, `${slug}.html`), html);
         fs.writeFileSync(path.join(workDir, slug, 'index.html'), html);
       }
+
+      writeCrawlerFiles(dist, slugs);
     },
   };
+}
+
+// ── Crawlability files ───────────────────────────────────────────────────────
+// Emit sitemap.xml and robots.txt into dist. Both are generated (not
+// hand-maintained) so the list of canonical URLs stays in sync with the
+// case-study registry automatically — add or remove a markdown file and the
+// next build updates the sitemap to match.
+function writeCrawlerFiles(dist: string, slugs: string[]) {
+  const lastmod = new Date().toISOString().slice(0, 10);
+  const routes = [...TOP_LEVEL_ROUTES, ...slugs.map((s) => `/work/${s}`)];
+
+  const sitemap =
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    routes
+      .map(
+        (route) =>
+          `  <url>\n` +
+          `    <loc>${SITE_ORIGIN}${route}</loc>\n` +
+          `    <lastmod>${lastmod}</lastmod>\n` +
+          `  </url>`,
+      )
+      .join('\n') +
+    `\n</urlset>\n`;
+  fs.writeFileSync(path.join(dist, 'sitemap.xml'), sitemap);
+
+  const robots =
+    `User-agent: *\n` +
+    `Allow: /\n\n` +
+    `Sitemap: ${SITE_ORIGIN}/sitemap.xml\n`;
+  fs.writeFileSync(path.join(dist, 'robots.txt'), robots);
 }
 
 export default defineConfig({

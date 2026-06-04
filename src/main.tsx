@@ -11,7 +11,9 @@ const About = lazy(() => import("./pages/About"));
 const Work = lazy(() => import("./pages/Work"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy"));
 const Craft = lazy(() => import("./pages/Craft"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 import { bySlug } from "./data/data";
+import { caseExists } from "./lib/cases";
 
 const LS_KEY = "konami-rainbow";
 const RAINBOW_COLS = [
@@ -36,7 +38,8 @@ function pageTitle(path: string): string {
   if (path === "/about") return `${SITE_NAME} • About`;
   if (path === "/work") return `${SITE_NAME} • Work`;
   if (path === "/craft") return `${SITE_NAME} • Craft`;
-  return SITE_NAME;
+  if (path === "/") return SITE_NAME;
+  return `${SITE_NAME} • Not found`;
 }
 
 const STAGGER_MS = 55;
@@ -47,7 +50,10 @@ const REVEAL_MS = COL_ANIM_MS + (RAINBOW_COLS.length - 1) * STAGGER_MS + 40;
 type WipePhase = "idle" | "covering" | "revealing";
 
 function App() {
-  const { path } = useRouter();
+  const { path: rawPath } = useRouter();
+  // Normalize a trailing slash (e.g. "/about/" -> "/about") so slash variants of
+  // known routes aren't misclassified as not-found (which would noindex them).
+  const path = rawPath === "/" ? "/" : rawPath.replace(/\/+$/, "");
   const [wipePhase, setWipePhase] = React.useState<WipePhase>("idle");
   const [wipeRainbow, setWipeRainbow] = React.useState(true);
   const [konamiOn, setKonamiOn] = React.useState(false);
@@ -142,6 +148,31 @@ function App() {
   }, [path]);
 
   const caseMatch = path.match(/^\/work\/([^/]+)\/?$/);
+  const isNotFound = caseMatch
+    ? !caseExists(caseMatch[1])
+    : !["/", "/about", "/work", "/craft"].includes(path);
+
+  // Soft-404 mitigation: this is a static SPA where every unmatched path falls
+  // through to 404.html (a copy of index.html) and is served with a 200, so we
+  // can't return a real 404 status from the host. Instead, when the resolved
+  // route is a not-found (unknown path or a /work/<slug> with no case study),
+  // add <meta name="robots" content="noindex"> so crawlers don't index typo or
+  // expired URLs. Removed again on valid routes to keep them indexable.
+  React.useEffect(() => {
+    const id = "robots-noindex";
+    const existing = document.getElementById(id);
+    if (isNotFound) {
+      if (!existing) {
+        const m = document.createElement("meta");
+        m.id = id;
+        m.setAttribute("name", "robots");
+        m.setAttribute("content", "noindex");
+        document.head.appendChild(m);
+      }
+    } else if (existing) {
+      existing.remove();
+    }
+  }, [isNotFound]);
 
   return (
     <>
@@ -156,8 +187,10 @@ function App() {
           <Craft />
         ) : caseMatch ? (
           <CaseStudy slug={caseMatch[1]} />
-        ) : (
+        ) : path === "/" ? (
           <Home />
+        ) : (
+          <NotFound />
         )}
       </Suspense>
 

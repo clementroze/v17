@@ -1,0 +1,1 @@
+- [Replit Static SPA SEO/routing](replit-static-seo.md) — no settable rewrites, `_redirects` ignored, `404.html` served as 200 (real 404 impossible); use runtime noindex + generated sitemap.

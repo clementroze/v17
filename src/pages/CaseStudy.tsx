@@ -8,7 +8,8 @@ import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
-import { parseCase, CaseStudy as CaseStudyData, Block, Col } from "../lib/parseCase";
+import { type CaseStudy as CaseStudyData, Block, Col } from "../lib/parseCase";
+import { loadCase } from "../lib/cases";
 import { Reveal } from "../lib/reveal";
 import { contrastText } from "../lib/contrast";
 import CraftLightbox from "../components/CraftLightbox";
@@ -85,17 +86,6 @@ function renderInlineLinks(text: string): React.ReactNode {
       );
     return part;
   });
-}
-
-const mdFiles = import.meta.glob("../work/*.md", {
-  as: "raw",
-  eager: true,
-}) as Record<string, string>;
-
-function loadCase(slug: string): CaseStudyData | null {
-  const key = `../work/${slug}.md`;
-  if (!(key in mdFiles)) return null;
-  return parseCase(mdFiles[key]);
 }
 
 // Matches the video extensions handled by CaseStudyVideo — videos are excluded
