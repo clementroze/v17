@@ -199,7 +199,7 @@ function ParallaxProject({
                       iconSrc={btnArrow}
                       ariaLabel={`View ${project.name} case study`}
                     >
-                      See more
+                      See case study
                     </Button>
                   )}
                 </span>
