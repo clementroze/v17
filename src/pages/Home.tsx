@@ -368,7 +368,7 @@ export default function Home() {
         <div ref={heroRef} className="home__hero-snap">
           <Hero
             title="Welcome."
-            subtitle="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautifully."
+            subtitle="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautiful."
             tag="Design Intern @ IBM."
           />
         </div>

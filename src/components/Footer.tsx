@@ -81,9 +81,20 @@ export default function Footer() {
   const { local, localDaytime } = useCurrentTime();
   const [rainbowOn, setRainbowOn] = useState(() => document.documentElement.classList.contains("konami"));
 
+  // Source of truth is the `html.konami` class (owned by main.tsx). Observe it so
+  // the label stays correct no matter how rainbow mode is toggled — footer button,
+  // the toast's own dismiss, Esc, or the Konami keyboard code.
+  useEffect(() => {
+    const html = document.documentElement;
+    const sync = () => setRainbowOn(html.classList.contains("konami"));
+    const observer = new MutationObserver(sync);
+    observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+    sync(); // reconcile any change between initial render and effect mount
+    return () => observer.disconnect();
+  }, []);
+
   const toggleRainbow = () => {
     window.dispatchEvent(new Event("toggle-rainbow"));
-    setRainbowOn((r) => !r);
   };
 
   return (

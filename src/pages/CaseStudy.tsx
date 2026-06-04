@@ -8,12 +8,7 @@ import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
-import {
-  parseCase,
-  CaseStudy as CaseStudyData,
-  Block,
-  Col,
-} from "../lib/parseCase";
+import { parseCase, CaseStudy as CaseStudyData, Block, Col } from "../lib/parseCase";
 import { Reveal } from "../lib/reveal";
 import { contrastText } from "../lib/contrast";
 import CraftLightbox from "../components/CraftLightbox";
@@ -21,7 +16,6 @@ import Picture, { bgImageSet } from "../components/Picture";
 import type { CraftItem } from "../data/craft";
 import work from "../data/work";
 import { bySlug } from "../data/data";
-
 
 // Turn heading text into a URL-fragment id, e.g. "Loading states" →
 // "loading-states". Used so in-page `[label](#anchor)` links can target a
@@ -75,13 +69,7 @@ function renderInlineLinks(text: string): React.ReactNode {
         );
       }
       return (
-        <a
-          key={i}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cs-link"
-        >
+        <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="cs-link">
           {link[1]}
         </a>
       );
@@ -90,11 +78,7 @@ function renderInlineLinks(text: string): React.ReactNode {
     if (hex)
       return (
         <code key={i} className="cs-hex">
-          <span
-            className="cs-hex__swatch"
-            style={{ backgroundColor: part }}
-            aria-hidden="true"
-          />
+          <span className="cs-hex__swatch" style={{ backgroundColor: part }} aria-hidden="true" />
           {part}
         </code>
       );
@@ -163,12 +147,7 @@ function collectCaseImages(blocks: Block[]): {
 }
 
 // ── body block renderer ───────────────────────────────────────────────────────
-function renderBlock(
-  block: Block,
-  idx: number,
-  prevBlock?: Block,
-  lb?: Lightbox,
-): React.ReactNode {
+function renderBlock(block: Block, idx: number, prevBlock?: Block, lb?: Lightbox): React.ReactNode {
   switch (block.type) {
     case "section":
       return (
@@ -191,9 +170,7 @@ function renderBlock(
     case "quote":
       return (
         <Reveal key={idx} delay={40}>
-          <blockquote className="cs-quote">
-            {renderInlineLinks(block.text)}
-          </blockquote>
+          <blockquote className="cs-quote">{renderInlineLinks(block.text)}</blockquote>
         </Reveal>
       );
     case "hmw":
@@ -208,19 +185,11 @@ function renderBlock(
       const afterImage = prevBlock?.type === "images";
       return (
         <Reveal key={idx}>
-          <div
-            className={`cs-cols${afterImage ? " cs-cols--after-image" : ""}`}
-          >
+          <div className={`cs-cols${afterImage ? " cs-cols--after-image" : ""}`}>
             {block.columns.map((col: Col, j: number) => (
               <div key={j} className="cs-cols__col">
-                {col.heading && (
-                  <h3 className="cs-cols__heading">
-                    {renderInlineLinks(col.heading)}
-                  </h3>
-                )}
-                {col.body && (
-                  <p className="cs-cols__body">{renderInlineLinks(col.body)}</p>
-                )}
+                {col.heading && <h3 className="cs-cols__heading">{renderInlineLinks(col.heading)}</h3>}
+                {col.body && <p className="cs-cols__body">{renderInlineLinks(col.body)}</p>}
               </div>
             ))}
           </div>
@@ -248,9 +217,7 @@ function renderBlock(
         <Reveal key={idx}>
           <div
             className={`cs-images cs-images--${block.srcs.length}`}
-            style={
-              block.width ? { maxWidth: block.width, width: "100%" } : undefined
-            }
+            style={block.width ? { maxWidth: block.width, width: "100%" } : undefined}
           >
             {block.srcs.map((src, i) => {
               const isVideo = VIDEO_RE.test(src);
@@ -259,33 +226,22 @@ function renderBlock(
                 <figure key={i} className="cs-figure">
                   {src && isVideo ? (
                     <div className="cs-images__pic">
-                      <CaseStudyVideo
-                        src={src}
-                        label={block.captions?.[i] ?? block.alts?.[i]}
-                      />
+                      <CaseStudyVideo src={src} label={block.captions?.[i] ?? block.alts?.[i]} />
                     </div>
                   ) : src && lb && flatIdx !== null ? (
                     <button
                       type="button"
                       className="cs-images__pic cs-images__pic--zoomable"
                       ref={(el) => lb.registerEl(flatIdx, el)}
-                      aria-label={`Expand image${
-                        block.captions?.[i] ? `: ${block.captions[i]}` : ""
-                      }`}
+                      aria-label={`Expand image${block.captions?.[i] ? `: ${block.captions[i]}` : ""}`}
                       onClick={() => lb.onOpen(flatIdx)}
                     >
                       <Picture src={src} alt={block.alts?.[i] ?? ""} />
                     </button>
                   ) : (
-                    <div className="cs-images__pic">
-                      {src && <Picture src={src} alt={block.alts?.[i] ?? ""} />}
-                    </div>
+                    <div className="cs-images__pic">{src && <Picture src={src} alt={block.alts?.[i] ?? ""} />}</div>
                   )}
-                  {block.captions?.[i] && (
-                    <figcaption className="cs-figcaption">
-                      {block.captions[i]}
-                    </figcaption>
-                  )}
+                  {block.captions?.[i] && <figcaption className="cs-figcaption">{block.captions[i]}</figcaption>}
                 </figure>
               );
             })}
@@ -312,8 +268,7 @@ function renderBody(
 
     if (block.type === "section") {
       const thisSectionIdx = sectionIdx++;
-      const titleRef = (el: HTMLHeadingElement | null) =>
-        setSectionRef?.(thisSectionIdx, el);
+      const titleRef = (el: HTMLHeadingElement | null) => setSectionRef?.(thisSectionIdx, el);
       const bodyBlocks: Block[] = [];
       i++;
       while (i < blocks.length && blocks[i].type !== "section") {
@@ -324,9 +279,7 @@ function renderBody(
       // Partition into alternating runs: inline (paragraphs/lists) and images.
       // Each run is rendered in order: inline runs go in a cs-section row,
       // image runs go full-width between rows.
-      type Run =
-        | { kind: "inline"; items: Block[] }
-        | { kind: "image"; block: Block };
+      type Run = { kind: "inline"; items: Block[] } | { kind: "image"; block: Block };
       const runs: Run[] = [];
       for (const b of bodyBlocks) {
         if (b.type === "images" || b.type === "hmw" || b.type === "cols") {
@@ -354,9 +307,7 @@ function renderBody(
                   <h2 ref={titleRef} className="cs-section__title">
                     {block.title}
                   </h2>
-                  <div className="cs-section__body">
-                    {run.items.map((b, j) => renderInlineBlock(b, j))}
-                  </div>
+                  <div className="cs-section__body">{run.items.map((b, j) => renderInlineBlock(b, j))}</div>
                 </section>
               </Reveal>,
             );
@@ -365,9 +316,7 @@ function renderBody(
               <Reveal key={`section-${i}-${r}`}>
                 <section className="cs-section cs-section--no-border">
                   <div className="cs-section__title" />
-                  <div className="cs-section__body">
-                    {run.items.map((b, j) => renderInlineBlock(b, j))}
-                  </div>
+                  <div className="cs-section__body">{run.items.map((b, j) => renderInlineBlock(b, j))}</div>
                 </section>
               </Reveal>,
             );
@@ -415,9 +364,7 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
   if (block.type === "quote") {
     return (
       <Reveal key={idx} delay={idx * 50}>
-        <blockquote className="cs-quote">
-          {renderInlineLinks(block.text)}
-        </blockquote>
+        <blockquote className="cs-quote">{renderInlineLinks(block.text)}</blockquote>
       </Reveal>
     );
   }
@@ -508,16 +455,12 @@ function NavPreview({ items }: { items: typeof work }) {
     setActiveSlug(null);
   };
 
-  const activeItem = activeSlug
-    ? items.find((w) => w.slug === activeSlug)
-    : null;
+  const activeItem = activeSlug ? items.find((w) => w.slug === activeSlug) : null;
 
   // The item whose background is painted. It lags `activeItem` on the way out so
   // the preview fades out showing its image rather than snapping to an empty box
   // the instant the cursor leaves. Updated only while an item is active.
-  const [displayItem, setDisplayItem] = useState<(typeof items)[number] | null>(
-    null,
-  );
+  const [displayItem, setDisplayItem] = useState<(typeof items)[number] | null>(null);
   useEffect(() => {
     if (activeItem) setDisplayItem(activeItem);
   }, [activeItem]);
@@ -546,10 +489,10 @@ export default function CaseStudy({ slug }: { slug: string }) {
     return (
       <div className="page cs-not-found">
         <main id="main-content" className="page__main">
-        <p className="cs-not-found__message">Case study "{slug}" not found.</p>
-        <Link href={backHref} className="cs-not-found__back">
-          ← {backLabel}
-        </Link>
+          <p className="cs-not-found__message">Case study "{slug}" not found.</p>
+          <Link href={backHref} className="cs-not-found__back">
+            ← {backLabel}
+          </Link>
         </main>
       </div>
     );
@@ -575,8 +518,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
   const workItem = work.find((w) => w.slug === slug);
   // Meta "About" links use the light variant of the case's text accent,
   // defaulting to its `accent` color (the case study page is light mode).
-  const metaLinkColor =
-    workItem?.textAccentColor?.light ?? workItem?.accent;
+  const metaLinkColor = workItem?.textAccentColor?.light ?? workItem?.accent;
   // "Year" comes from the global registry (shared with About), not frontmatter.
   const entityDate = bySlug(slug)?.date ?? "";
   // Hero background + cover image both follow the slug convention, served from
@@ -589,9 +531,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
   const nextItem = work[(currentIdx + 1) % work.length];
 
   const docSectionTitles = blocks
-    .filter(
-      (b): b is Extract<Block, { type: "section" }> => b.type === "section",
-    )
+    .filter((b): b is Extract<Block, { type: "section" }> => b.type === "section")
     .map((b) => b.title);
   // The pill nav gets one extra leading step for the meta/info block — labelled
   // "Info" — that scrolls to `cs-meta` instead of an h2.
@@ -603,10 +543,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
   // but the prop type wants HTMLDivElement so we cast at the boundary.
   // Index 0 is the meta block (`metaRef`); indices 1..N are the section h2 refs.
   const docSectionTitleRefs = useRef<React.RefObject<HTMLDivElement>[]>(
-    Array.from(
-      { length: docSectionCount },
-      () => ({ current: null }) as React.RefObject<HTMLDivElement>,
-    ),
+    Array.from({ length: docSectionCount }, () => ({ current: null }) as React.RefObject<HTMLDivElement>),
   );
   if (docSectionTitleRefs.current.length !== docSectionCount) {
     docSectionTitleRefs.current = Array.from(
@@ -614,23 +551,16 @@ export default function CaseStudy({ slug }: { slug: string }) {
       () => ({ current: null }) as React.RefObject<HTMLDivElement>,
     );
   }
-  const setSectionTitleRef = useCallback(
-    (idx: number, el: HTMLHeadingElement | null) => {
-      const ref = docSectionTitleRefs.current[
-        idx
-      ] as React.MutableRefObject<HTMLDivElement | null>;
-      if (ref) ref.current = el as unknown as HTMLDivElement | null;
-    },
-    [],
-  );
+  const setSectionTitleRef = useCallback((idx: number, el: HTMLHeadingElement | null) => {
+    const ref = docSectionTitleRefs.current[idx] as React.MutableRefObject<HTMLDivElement | null>;
+    if (ref) ref.current = el as unknown as HTMLDivElement | null;
+  }, []);
   const sectionTitleRefs = [metaRef, ...docSectionTitleRefs.current];
 
   // "View final designs" button (opt-in via `finalDesigns:` frontmatter). The
   // value matches a `## ` section heading; clicking scrolls to that section,
   // clearing the sticky navbar with the same offset the pill nav uses.
-  const finalDesignsIdx = meta.finalDesigns
-    ? docSectionTitles.findIndex((t) => t === meta.finalDesigns)
-    : -1;
+  const finalDesignsIdx = meta.finalDesigns ? docSectionTitles.findIndex((t) => t === meta.finalDesigns) : -1;
   const hasFinalDesigns = finalDesignsIdx !== -1;
   const scrollToFinalDesigns = useCallback(() => {
     const el = docSectionTitleRefs.current[finalDesignsIdx]?.current;
@@ -658,9 +588,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
       // cards overlap with the rail, instead of only when they reach the
       // bottom edge.
       const csNav = csNavRef.current;
-      const beforeCsNav = csNav
-        ? csNav.getBoundingClientRect().top > vh * 0.9
-        : true;
+      const beforeCsNav = csNav ? csNav.getBoundingClientRect().top > vh * 0.9 : true;
 
       const shouldShow = pastMeta && beforeCsNav;
       setNavVisible((cur) => (cur === shouldShow ? cur : shouldShow));
@@ -684,203 +612,182 @@ export default function CaseStudy({ slug }: { slug: string }) {
     >
       <Navbar watchShowRef={heroRef} activeLink="work" />
       <main id="main-content" className="page__main">
-      {sectionCount > 0 && (
-        <>
-          <ProjectsNav
-            count={sectionCount}
-            sectionRefs={sectionTitleRefs}
-            variant="dark"
-            alwaysVisible
-            visible={navVisible}
-            snapOnRelease={false}
-            labels={sectionTitles}
-            scrollOffset={110}
-          />
-          <ProjectsNavMobile
-            count={sectionCount}
-            sectionRefs={sectionTitleRefs}
-            variant="dark"
-            alwaysVisible
-            visible={navVisible}
-            scrollOffset={88}
-          />
-        </>
-      )}
-
-      {/* ── Hero block ────────────────────────────────────────────── */}
-      <div className="cs-hero-wrap">
-        <div ref={heroRef} className="cs-hero">
-          {heroBg && <Picture src={heroBg} alt="" className="cs-hero__img" />}
-
-          {/* Title block anchored to bottom */}
-          <div className="container-wrapper cs-hero__bottom">
-            <div className="container">
-              <div className="cs-hero__text">
-                <Link href={backHref} className="cs-hero__back">
-                  <img
-                    src={arrowWhite}
-                    alt=""
-                    className="cs-hero__back-arrow"
-                  />
-                  {backLabel}
-                </Link>
-                <h1 className="cs-hero__title">{meta.title}</h1>
-                <p className="cs-hero__subtitle">{meta.subtitle}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Cover image (overlaps hero bottom) ──────────────────── */}
-        <div className="container-wrapper cs-cover-wrap">
-          <div className="container">
-            <div
-              className="cs-cover"
-              style={coverBg ? { backgroundImage: bgImageSet(coverBg) } : {}}
+        {sectionCount > 0 && (
+          <>
+            <ProjectsNav
+              count={sectionCount}
+              sectionRefs={sectionTitleRefs}
+              variant="dark"
+              alwaysVisible
+              visible={navVisible}
+              snapOnRelease={false}
+              labels={sectionTitles}
+              scrollOffset={110}
             />
-          </div>
-        </div>
-      </div>
+            <ProjectsNavMobile
+              count={sectionCount}
+              sectionRefs={sectionTitleRefs}
+              variant="dark"
+              alwaysVisible
+              visible={navVisible}
+              scrollOffset={88}
+            />
+          </>
+        )}
 
-      {/* ── Body ──────────────────────────────────────────────────── */}
-      <div className="container-wrapper">
-        <div className="container">
-          <div className="cs-body">
-            {/* Meta block */}
-            <Reveal>
-              <div ref={metaRef} className="cs-meta">
-                <div className="cs-meta__left">
-                  <div className="cs-meta__col">
-                    <div className="cs-meta__row">
-                      <p className="cs-meta__label">Year</p>
-                      <p className="cs-meta__value">{entityDate}</p>
-                    </div>
-                    <div className="cs-meta__row">
-                      <p className="cs-meta__label">Role</p>
-                      <p className="cs-meta__value cs-role">{meta.role}</p>
-                    </div>
-                  </div>
-                  <div className="cs-meta__col">
-                    <p className="cs-meta__label">Type</p>
-                    <p className="cs-meta__value">{meta.type}</p>
-                  </div>
-                </div>
-                <div className="cs-meta__about">
-                  <p className="cs-meta__label">About</p>
-                  {meta.about.map((p, i) => (
-                    <p key={i} className="cs-meta__value">
-                      {renderInlineLinks(p)}
-                    </p>
-                  ))}
-                  {hasFinalDesigns && (
-                    <div className="cs-meta__cta cs-meta__cta--down">
-                      <Button
-                        variant="light-gray"
-                        iconSrc={arrowBlack}
-                        onClick={scrollToFinalDesigns}
-                      >
-                        View final designs
-                      </Button>
-                    </div>
-                  )}
+        {/* ── Hero block ────────────────────────────────────────────── */}
+        <div className="cs-hero-wrap">
+          <div ref={heroRef} className="cs-hero">
+            {heroBg && <Picture src={heroBg} alt="" className="cs-hero__img" />}
+
+            {/* Title block anchored to bottom */}
+            <div className="container-wrapper cs-hero__bottom">
+              <div className="container">
+                <div className="cs-hero__text">
+                  <Link href={backHref} className="cs-hero__back">
+                    <img src={arrowWhite} alt="" className="cs-hero__back-arrow" />
+                    <span className="label">{backLabel}</span>
+                  </Link>
+                  <h1 className="cs-hero__title">{meta.title}</h1>
+                  <p className="cs-hero__subtitle">{meta.subtitle}</p>
                 </div>
               </div>
-            </Reveal>
+            </div>
+          </div>
 
-            {/* Sections */}
-            {renderBody(blocks, setSectionTitleRef, {
-              indexMap: lbIndexMap,
-              registerEl: registerLbEl,
-              onOpen: openLightbox,
-            })}
-
-            {/* Prev / Next nav */}
-            <div
-              ref={(el) => {
-                (csNavRef as React.MutableRefObject<HTMLDivElement | null>).current =
-                  el;
-                (
-                  nav.navRef as React.MutableRefObject<HTMLDivElement | null>
-                ).current = el;
-              }}
-              className="cs-nav"
-              onMouseMove={nav.onMouseMove}
-            >
-              {prevItem.comingSoon ? (
-                <div
-                  className="cs-nav__card cs-nav__card--prev cs-nav__card--disabled"
-                  style={{ "--accent": prevItem.accent } as React.CSSProperties}
-                >
-                  <span className="cs-nav__name">{prevItem.name}</span>
-                  <span className="cs-nav__meta">
-                    <span className="cs-nav__label">Coming soon</span>
-                  </span>
-                </div>
-              ) : (
-                <Link
-                  href={prevItem.href}
-                  className="cs-nav__card cs-nav__card--prev"
-                  style={{ "--accent": prevItem.accent } as React.CSSProperties}
-                  onMouseEnter={(e) => nav.handleEnter(prevItem.slug, "prev", e)}
-                  onMouseLeave={nav.handleLeave}
-                >
-                  <span className="cs-nav__name">{prevItem.name}</span>
-                  <span className="cs-nav__meta">
-                    <img
-                      src={arrowBlack}
-                      alt=""
-                      className="cs-nav__arrow cs-nav__arrow--left"
-                    />
-                    <span className="cs-nav__label">Previous</span>
-                  </span>
-                </Link>
-              )}
-              {nextItem.comingSoon ? (
-                <div
-                  className="cs-nav__card cs-nav__card--next cs-nav__card--disabled"
-                  style={{ "--accent": nextItem.accent } as React.CSSProperties}
-                >
-                  <span className="cs-nav__name">{nextItem.name}</span>
-                  <span className="cs-nav__meta">
-                    <span className="cs-nav__label">Coming soon</span>
-                  </span>
-                </div>
-              ) : (
-                <Link
-                  href={nextItem.href}
-                  className="cs-nav__card cs-nav__card--next"
-                  style={{ "--accent": nextItem.accent } as React.CSSProperties}
-                  onMouseEnter={(e) => nav.handleEnter(nextItem.slug, "next", e)}
-                  onMouseLeave={nav.handleLeave}
-                >
-                  <span className="cs-nav__name">{nextItem.name}</span>
-                  <span className="cs-nav__meta">
-                    <span className="cs-nav__label">Next</span>
-                    <img src={arrowBlack} alt="" className="cs-nav__arrow" />
-                  </span>
-                </Link>
-              )}
-
-              {/* Floating preview */}
-              <div
-                ref={nav.previewRef}
-                className={`work-list__preview${nav.activeItem ? " work-list__preview--visible" : ""}`}
-                style={
-                  nav.displayItem
-                    ? {
-                        backgroundColor: nav.displayItem.accent,
-                        backgroundImage: nav.displayItem.previewSrc
-                          ? `url(${nav.displayItem.previewSrc})`
-                          : "none",
-                      }
-                    : {}
-                }
-              />
+          {/* ── Cover image (overlaps hero bottom) ──────────────────── */}
+          <div className="container-wrapper cs-cover-wrap">
+            <div className="container">
+              <div className="cs-cover" style={coverBg ? { backgroundImage: bgImageSet(coverBg) } : {}} />
             </div>
           </div>
         </div>
-      </div>
 
+        {/* ── Body ──────────────────────────────────────────────────── */}
+        <div className="container-wrapper">
+          <div className="container">
+            <div className="cs-body">
+              {/* Meta block */}
+              <Reveal>
+                <div ref={metaRef} className="cs-meta">
+                  <div className="cs-meta__left">
+                    <div className="cs-meta__col">
+                      <div className="cs-meta__row">
+                        <p className="cs-meta__label">Year</p>
+                        <p className="cs-meta__value">{entityDate}</p>
+                      </div>
+                      <div className="cs-meta__row">
+                        <p className="cs-meta__label">Role</p>
+                        <p className="cs-meta__value cs-role">{meta.role}</p>
+                      </div>
+                    </div>
+                    <div className="cs-meta__col">
+                      <p className="cs-meta__label">Type</p>
+                      <p className="cs-meta__value">{meta.type}</p>
+                    </div>
+                  </div>
+                  <div className="cs-meta__about">
+                    <p className="cs-meta__label">About</p>
+                    {meta.about.map((p, i) => (
+                      <p key={i} className="cs-meta__value">
+                        {renderInlineLinks(p)}
+                      </p>
+                    ))}
+                    {hasFinalDesigns && (
+                      <div className="cs-meta__cta cs-meta__cta--down">
+                        <Button variant="light-gray" iconSrc={arrowBlack} onClick={scrollToFinalDesigns}>
+                          View final designs
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* Sections */}
+              {renderBody(blocks, setSectionTitleRef, {
+                indexMap: lbIndexMap,
+                registerEl: registerLbEl,
+                onOpen: openLightbox,
+              })}
+
+              {/* Prev / Next nav */}
+              <div
+                ref={(el) => {
+                  (csNavRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+                  (nav.navRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+                }}
+                className="cs-nav"
+                onMouseMove={nav.onMouseMove}
+              >
+                {prevItem.comingSoon ? (
+                  <div
+                    className="cs-nav__card cs-nav__card--prev cs-nav__card--disabled"
+                    style={{ "--accent": prevItem.accent } as React.CSSProperties}
+                  >
+                    <span className="cs-nav__name">{prevItem.name}</span>
+                    <span className="cs-nav__meta">
+                      <span className="cs-nav__label">Coming soon</span>
+                    </span>
+                  </div>
+                ) : (
+                  <Link
+                    href={prevItem.href}
+                    className="cs-nav__card cs-nav__card--prev"
+                    style={{ "--accent": prevItem.accent } as React.CSSProperties}
+                    onMouseEnter={(e) => nav.handleEnter(prevItem.slug, "prev", e)}
+                    onMouseLeave={nav.handleLeave}
+                  >
+                    <span className="cs-nav__name">{prevItem.name}</span>
+                    <span className="cs-nav__meta">
+                      <img src={arrowBlack} alt="" className="cs-nav__arrow cs-nav__arrow--left" />
+                      <span className="cs-nav__label">Previous</span>
+                    </span>
+                  </Link>
+                )}
+                {nextItem.comingSoon ? (
+                  <div
+                    className="cs-nav__card cs-nav__card--next cs-nav__card--disabled"
+                    style={{ "--accent": nextItem.accent } as React.CSSProperties}
+                  >
+                    <span className="cs-nav__name">{nextItem.name}</span>
+                    <span className="cs-nav__meta">
+                      <span className="cs-nav__label">Coming soon</span>
+                    </span>
+                  </div>
+                ) : (
+                  <Link
+                    href={nextItem.href}
+                    className="cs-nav__card cs-nav__card--next"
+                    style={{ "--accent": nextItem.accent } as React.CSSProperties}
+                    onMouseEnter={(e) => nav.handleEnter(nextItem.slug, "next", e)}
+                    onMouseLeave={nav.handleLeave}
+                  >
+                    <span className="cs-nav__name">{nextItem.name}</span>
+                    <span className="cs-nav__meta">
+                      <span className="cs-nav__label">Next</span>
+                      <img src={arrowBlack} alt="" className="cs-nav__arrow" />
+                    </span>
+                  </Link>
+                )}
+
+                {/* Floating preview */}
+                <div
+                  ref={nav.previewRef}
+                  className={`work-list__preview${nav.activeItem ? " work-list__preview--visible" : ""}`}
+                  style={
+                    nav.displayItem
+                      ? {
+                          backgroundColor: nav.displayItem.accent,
+                          backgroundImage: nav.displayItem.previewSrc ? `url(${nav.displayItem.previewSrc})` : "none",
+                        }
+                      : {}
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
       <Footer />
 

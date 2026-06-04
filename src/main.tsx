@@ -87,16 +87,8 @@ function App() {
     timerRef.current = setTimeout(() => {
       document.documentElement.classList.toggle("konami", targetOn);
       document.documentElement.classList.remove("konami-exiting");
-      setKonamiOn(targetOn);
-      if (targetOn) {
-        // Mount toast in entering phase, then settle to idle after the
-        // entrance animation finishes so the resting state is stable.
-        setKonamiPhase("entering");
-        phaseTimerRef.current = setTimeout(
-          () => setKonamiPhase("idle"),
-          720,
-        );
-      } else {
+      if (!targetOn) {
+        setKonamiOn(false);
         setKonamiPhase("idle");
       }
       try {
@@ -105,6 +97,15 @@ function App() {
       setWipePhase("revealing");
       timerRef.current = setTimeout(() => {
         setWipePhase("idle");
+        if (targetOn) {
+          // Mount toast only after the reveal columns finish, then settle to idle.
+          setKonamiOn(true);
+          setKonamiPhase("entering");
+          phaseTimerRef.current = setTimeout(
+            () => setKonamiPhase("idle"),
+            720,
+          );
+        }
       }, REVEAL_MS);
     }, COVER_MS);
   }, []);

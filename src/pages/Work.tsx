@@ -42,17 +42,7 @@ function saveWorkScroll() {
 // independently instead of as one block.
 // `lead` marks the first pic of a row: on the mobile carousel it's the one that
 // rests inset by the left page padding (see .work-grid__pic--lead in the CSS).
-function GridPic({
-  src,
-  h,
-  delay,
-  lead = false,
-}: {
-  src?: string;
-  h: number;
-  delay: number;
-  lead?: boolean;
-}) {
+function GridPic({ src, h, delay, lead = false }: { src?: string; h: number; delay: number; lead?: boolean }) {
   // threshold 0 so the mobile carousel's peeking next pic reveals at rest (any
   // visible sliver triggers it); fully off-screen slides still wait for scroll.
   const ref = useReveal<HTMLDivElement>(delay, 0);
@@ -407,81 +397,80 @@ export default function Work() {
       <Navbar activeLink="work" />
 
       <main id="main-content" className="page__main">
-      <Hero title="Work" subtitle="A closer look at the projects, decisions, and details behind my work." />
+        <Hero title="Work" subtitle="A closer look at the projects, decisions, and details behind my work." />
 
-      {/* Main */}
-      <div className="container-wrapper">
-        <div className="container">
-          <div className="work-main">
-            {/* Header row */}
-            <div className="work-main__header">
-              <span className="work-main__label">Selected work</span>
-              <div
-                className="work-main__toggle"
-                role="radiogroup"
-                aria-label="View"
-                onKeyDown={(e) => {
-                  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                    e.preventDefault();
-                    setViewPersisted("grid", true);
-                  }
-                  if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-                    e.preventDefault();
-                    setViewPersisted("list", true);
-                  }
-                }}
-              >
-                <button
-                  ref={gridBtnRef}
-                  role="radio"
-                  aria-checked={view === "grid"}
-                  tabIndex={view === "grid" ? 0 : -1}
-                  className={`work-main__toggle-btn work-main__toggle-btn--grid${view === "grid" ? " work-main__toggle-btn--active" : ""}`}
-                  onClick={() => setViewPersisted("grid")}
+        {/* Main */}
+        <div className="container-wrapper">
+          <div className="container">
+            <div className="work-main">
+              {/* Header row */}
+              <div className="work-main__header">
+                <span className="work-main__label">Selected work</span>
+                <div
+                  className="work-main__toggle"
+                  role="radiogroup"
+                  aria-label="View"
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setViewPersisted("grid", true);
+                    }
+                    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setViewPersisted("list", true);
+                    }
+                  }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <rect x="0" y="0" width="6" height="6" rx="1" fill="currentColor" />
-                    <rect x="8" y="0" width="6" height="6" rx="1" fill="currentColor" />
-                    <rect x="0" y="8" width="6" height="6" rx="1" fill="currentColor" />
-                    <rect x="8" y="8" width="6" height="6" rx="1" fill="currentColor" />
-                  </svg>
-                  Grid
-                </button>
-                <button
-                  ref={listBtnRef}
-                  role="radio"
-                  aria-checked={view === "list"}
-                  tabIndex={view === "list" ? 0 : -1}
-                  className={`work-main__toggle-btn work-main__toggle-btn--list${view === "list" ? " work-main__toggle-btn--active" : ""}`}
-                  onClick={() => setViewPersisted("list")}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <rect x="0" y="1" width="14" height="2" rx="1" fill="currentColor" />
-                    <rect x="0" y="6" width="14" height="2" rx="1" fill="currentColor" />
-                    <rect x="0" y="11" width="14" height="2" rx="1" fill="currentColor" />
-                  </svg>
-                  List
-                </button>
+                  <button
+                    ref={gridBtnRef}
+                    role="radio"
+                    aria-checked={view === "grid"}
+                    tabIndex={view === "grid" ? 0 : -1}
+                    className={`work-main__toggle-btn work-main__toggle-btn--grid${view === "grid" ? " work-main__toggle-btn--active" : ""}`}
+                    onClick={() => setViewPersisted("grid")}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <rect x="0" y="0" width="6" height="6" rx="1" fill="currentColor" />
+                      <rect x="8" y="0" width="6" height="6" rx="1" fill="currentColor" />
+                      <rect x="0" y="8" width="6" height="6" rx="1" fill="currentColor" />
+                      <rect x="8" y="8" width="6" height="6" rx="1" fill="currentColor" />
+                    </svg>
+                    <span className="label">Grid</span>
+                  </button>
+                  <button
+                    ref={listBtnRef}
+                    role="radio"
+                    aria-checked={view === "list"}
+                    tabIndex={view === "list" ? 0 : -1}
+                    className={`work-main__toggle-btn work-main__toggle-btn--list${view === "list" ? " work-main__toggle-btn--active" : ""}`}
+                    onClick={() => setViewPersisted("list")}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <rect x="0" y="1" width="14" height="2" rx="1" fill="currentColor" />
+                      <rect x="0" y="6" width="14" height="2" rx="1" fill="currentColor" />
+                      <rect x="0" y="11" width="14" height="2" rx="1" fill="currentColor" />
+                    </svg>
+                    <span className="label">List</span>
+                  </button>
+                </div>
               </div>
+              {/* <div ref={dividerRef} className="work-main__divider" /> */}
+
+              {/* Grid view */}
+              {view === "grid" && (
+                <div className="work-grid">
+                  {WORK_ITEMS.map((item, i) => (
+                    <GridItem key={item.name} item={item} index={i} />
+                  ))}
+                  <SeeMoreGridRow index={WORK_ITEMS.length} />
+                </div>
+              )}
+
+              {/* List view */}
+              {view === "list" && <WorkList items={WORK_ITEMS} dividerRef={dividerRef} />}
             </div>
-            {/* <div ref={dividerRef} className="work-main__divider" /> */}
-
-            {/* Grid view */}
-            {view === "grid" && (
-              <div className="work-grid">
-                {WORK_ITEMS.map((item, i) => (
-                  <GridItem key={item.name} item={item} index={i} />
-                ))}
-                <SeeMoreGridRow index={WORK_ITEMS.length} />
-              </div>
-            )}
-
-            {/* List view */}
-            {view === "list" && <WorkList items={WORK_ITEMS} dividerRef={dividerRef} />}
           </div>
         </div>
-      </div>
-
       </main>
       <Footer />
     </div>

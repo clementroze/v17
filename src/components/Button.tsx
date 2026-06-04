@@ -1,8 +1,8 @@
-import { forwardRef } from 'react';
-import { Link } from '../lib/router';
-import Hourglass from './Hourglass';
+import { forwardRef } from "react";
+import { Link } from "../lib/router";
+import Hourglass from "./Hourglass";
 
-type ButtonVariant = 'dark-gray' | 'light-gray' | 'accent';
+type ButtonVariant = "dark-gray" | "light-gray" | "accent";
 
 type ButtonProps = {
   children: React.ReactNode;
@@ -13,34 +13,34 @@ type ButtonProps = {
   iconAlt?: string;
   /** Inline glyph rendered instead of an image icon. Spins on hover / while
    *  expanded — 'plus' for the About "More" trigger, 'minus' for "Close". */
-  icon?: 'plus' | 'minus';
+  icon?: "plus" | "minus";
   disabled?: boolean;
   onClick?: () => void;
   ariaLabel?: string;
-  ariaHaspopup?: React.AriaAttributes['aria-haspopup'];
+  ariaHaspopup?: React.AriaAttributes["aria-haspopup"];
   ariaExpanded?: boolean;
 };
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
-  children,
-  variant = 'dark-gray',
-  fullWidth = false,
-  href,
-  iconSrc,
-  iconAlt = '',
-  icon,
-  disabled = false,
-  onClick,
-  ariaLabel,
-  ariaHaspopup,
-  ariaExpanded,
-}, ref) {
-  const classes = [
-    'btn',
-    `btn--${variant}`,
-    fullWidth ? 'btn--full-width' : '',
-    disabled ? 'btn--disabled' : '',
-  ].filter(Boolean).join(' ');
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    children,
+    variant = "dark-gray",
+    fullWidth = false,
+    href,
+    iconSrc,
+    iconAlt = "",
+    icon,
+    disabled = false,
+    onClick,
+    ariaLabel,
+    ariaHaspopup,
+    ariaExpanded,
+  },
+  ref,
+) {
+  const classes = ["btn", `btn--${variant}`, fullWidth ? "btn--full-width" : "", disabled ? "btn--disabled" : ""]
+    .filter(Boolean)
+    .join(" ");
 
   let trailing: React.ReactNode = null;
   if (disabled) {
@@ -51,7 +51,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
       <span className="btn__glyph" aria-hidden="true">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <line className="btn__glyph-bar" x1="5" y1="12" x2="19" y2="12" />
-          {icon === 'plus' && <line className="btn__glyph-bar" x1="12" y1="5" x2="12" y2="19" />}
+          {icon === "plus" && <line className="btn__glyph-bar" x1="12" y1="5" x2="12" y2="19" />}
         </svg>
       </span>
     );
@@ -61,20 +61,47 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
 
   const content = (
     <>
-      <span>{children}</span>
+      <span className="label">{children}</span>
       {trailing}
     </>
   );
 
   if (href && !disabled) {
-    const isInternal = href.startsWith('/');
+    const isInternal = href.startsWith("/");
     if (isInternal) {
-      return <Link href={href} className={classes} aria-label={ariaLabel} onClick={onClick ? () => onClick() : undefined}>{content}</Link>;
+      return (
+        <Link href={href} className={classes} aria-label={ariaLabel} onClick={onClick ? () => onClick() : undefined}>
+          {content}
+        </Link>
+      );
     }
-    return <a href={href} className={classes} aria-label={ariaLabel} target="_blank" rel="noopener noreferrer" onClick={onClick ? () => onClick() : undefined}>{content}</a>;
+    return (
+      <a
+        href={href}
+        className={classes}
+        aria-label={ariaLabel}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick ? () => onClick() : undefined}
+      >
+        {content}
+      </a>
+    );
   }
 
-  return <button ref={ref} className={classes} aria-label={ariaLabel} aria-haspopup={ariaHaspopup} aria-expanded={ariaExpanded} disabled={disabled} onClick={onClick}>{content}</button>;
+  return (
+    <button
+      ref={ref}
+      className={classes}
+      aria-label={ariaLabel}
+      aria-haspopup={ariaHaspopup}
+      aria-expanded={ariaExpanded}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {content}
+    </button>
+  );
 });
 
 export default Button;

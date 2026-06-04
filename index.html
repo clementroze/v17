@@ -32,39 +32,28 @@
       content="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautiful. Selected work, case studies, and craft."
     />
     <meta name="twitter:image" content="https://clementroze.com/og.png" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="/favicon-light.svg"
-      media="(prefers-color-scheme: light)"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="/favicon-dark.svg"
-      media="(prefers-color-scheme: dark)"
-    />
+    <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)" />
     <title>Clément Rozé</title>
     <!-- Preload the first project's hero image so the browser's preload scanner
          can fetch it from the raw HTML, before React renders and discovers it.
          Without this, the LCP image is only found after JS execution. -->
-    <link
-      rel="preload"
-      as="image"
-      href="/images/ibm/home-hero.avif"
-      type="image/avif"
-      fetchpriority="high"
-    />
-    <!-- Inter is self-hosted (/fonts/inter-variable.woff2) — preloaded here so
-         the browser fetches it immediately from the initial HTML, eliminating
-         the Google Fonts 3-hop chain (HTML → fonts CSS → woff2). -->
-    <link
-      rel="preload"
-      as="font"
-      href="/fonts/inter-variable.woff2"
-      type="font/woff2"
-      crossorigin
-    />
+    <link rel="preload" as="image" href="/images/ibm/home-hero.avif" type="image/avif" fetchpriority="high" />
+    <!--
+      @license
+      MyFonts Webfont Build ID 3867246, 2020-12-16T11:57:38-0500
+
+      The fonts listed in this notice are subject to the End User License
+      Agreement(s) entered into by the website owner. All other parties are
+      explicitly restricted from using the Licensed Webfonts(s).
+
+      Webfont: Neue Helvetica Pro 55 Roman by Linotype
+      Webfont: Neue Helvetica Pro 65 Medium by Linotype
+
+      © 2026 MyFonts Inc.
+    -->
+    <link rel="preload" as="font" href="/fonts/NeueHelveticaPro55Roman/font.woff2" type="font/woff2" crossorigin />
+    <link rel="preload" as="font" href="/fonts/NeueHelveticaPro65Medium/font.woff2" type="font/woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>
