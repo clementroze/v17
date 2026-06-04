@@ -28,7 +28,7 @@ const RAINBOW_COLS = [
 const SITE_NAME = "Clément Rozé";
 
 function pageTitle(path: string): string {
-  const caseMatch = path.match(/^\/work\/(.+)$/);
+  const caseMatch = path.match(/^\/work\/([^/]+)\/?$/);
   if (caseMatch) {
     const name = bySlug(caseMatch[1])?.name ?? caseMatch[1];
     return `${SITE_NAME} • ${name}`;
@@ -141,7 +141,7 @@ function App() {
     document.title = pageTitle(path);
   }, [path]);
 
-  const caseMatch = path.match(/^\/work\/(.+)$/);
+  const caseMatch = path.match(/^\/work\/([^/]+)\/?$/);
 
   return (
     <>

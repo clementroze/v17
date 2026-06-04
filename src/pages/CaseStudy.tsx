@@ -16,6 +16,7 @@ import Picture, { bgImageSet } from "../components/Picture";
 import type { CraftItem } from "../data/craft";
 import work from "../data/work";
 import { bySlug } from "../data/data";
+import { caseStudyJsonLd, firstYear, CASE_STUDY_SCHEMA_ATTR } from "../lib/caseStudySchema";
 
 // Turn heading text into a URL-fragment id, e.g. "Loading states" →
 // "loading-states". Used so in-page `[label](#anchor)` links can target a
@@ -95,57 +96,6 @@ function loadCase(slug: string): CaseStudyData | null {
   const key = `../work/${slug}.md`;
   if (!(key in mdFiles)) return null;
   return parseCase(mdFiles[key]);
-}
-
-// Canonical origin used in structured data, even while served from the v17.*
-// staging host (matches the <link rel="canonical"> in index.html).
-const SITE_ORIGIN = "https://clementroze.com";
-
-// Pull the first 4-digit year out of a registry date string like "2024 - 26",
-// "Summer 2025", or "Fall 2025". Returns undefined when none is present, so the
-// schema simply omits `datePublished` rather than emitting an invalid value.
-function firstYear(date: string): string | undefined {
-  const m = date.match(/\b(?:19|20)\d{2}\b/);
-  return m ? m[0] : undefined;
-}
-
-// Build the per-case-study JSON-LD: a CreativeWork describing the project plus a
-// BreadcrumbList (Home → Work → project), wrapped in one @graph so a single
-// <script> covers both. The author/website point back to the site-wide Person
-// and WebSite nodes declared in index.html via their @id.
-function caseStudyJsonLd(opts: {
-  slug: string;
-  title: string;
-  description: string;
-  image: string;
-  year?: string;
-}) {
-  const url = `${SITE_ORIGIN}/work/${opts.slug}`;
-  const creativeWork: Record<string, unknown> = {
-    "@type": "CreativeWork",
-    "@id": `${url}#creativework`,
-    name: opts.title,
-    headline: opts.title,
-    url,
-    image: `${SITE_ORIGIN}${opts.image}`,
-    author: { "@id": `${SITE_ORIGIN}/#person` },
-    creator: { "@id": `${SITE_ORIGIN}/#person` },
-    isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
-    inLanguage: "en",
-  };
-  if (opts.description) creativeWork.description = opts.description;
-  if (opts.year) creativeWork.datePublished = opts.year;
-
-  const breadcrumb = {
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_ORIGIN}/` },
-      { "@type": "ListItem", position: 2, name: "Work", item: `${SITE_ORIGIN}/work` },
-      { "@type": "ListItem", position: 3, name: opts.title, item: url },
-    ],
-  };
-
-  return { "@context": "https://schema.org", "@graph": [creativeWork, breadcrumb] };
 }
 
 // Matches the video extensions handled by CaseStudyVideo — videos are excluded
@@ -649,14 +599,20 @@ export default function CaseStudy({ slug }: { slug: string }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Inject per-case-study JSON-LD (CreativeWork + BreadcrumbList) while this
-  // page is mounted. Site-wide WebSite + Person schema lives in index.html; this
-  // adds the route-level entity and removes it on unmount / slug change so only
-  // the current case study's schema is ever present in <head>.
+  // Keep per-case-study JSON-LD (CreativeWork + BreadcrumbList) correct in the
+  // <head>. The primary copy is prerendered into each /work/<slug> route's
+  // initial HTML at build time (see vite.config.ts) so crawlers/AI get it
+  // without running JS. This effect handles the SPA layer: it removes any
+  // prerendered/previous case-study schema and emits exactly one block for the
+  // CURRENT slug, so client-side navigation between case studies stays accurate
+  // and no duplicates accumulate.
   useEffect(() => {
+    document
+      .querySelectorAll(`script[${CASE_STUDY_SCHEMA_ATTR}]`)
+      .forEach((s) => s.remove());
     const el = document.createElement("script");
     el.type = "application/ld+json";
-    el.setAttribute("data-case-study-schema", slug);
+    el.setAttribute(CASE_STUDY_SCHEMA_ATTR, slug);
     el.textContent = JSON.stringify(
       caseStudyJsonLd({
         slug,
