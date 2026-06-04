@@ -10,6 +10,14 @@ const mdFiles = import.meta.glob("../work/*.md", {
   eager: true,
 }) as Record<string, string>;
 
+// Sorted list of every case-study slug, derived from the markdown registry.
+// Shared by the build-time prerender (to enumerate /work/<slug> routes) and the
+// sitemap so the published URL list never drifts from the actual case studies.
+export const caseSlugs: string[] = Object.keys(mdFiles)
+  .map((k) => k.match(/\.\.\/work\/(.+)\.md$/)?.[1] ?? "")
+  .filter(Boolean)
+  .sort();
+
 export function caseExists(slug: string): boolean {
   return `../work/${slug}.md` in mdFiles;
 }

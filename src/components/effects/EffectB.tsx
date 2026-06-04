@@ -24,7 +24,8 @@ type Project = {
 // Resting inset margin of the first project before it expands to full-bleed.
 // Tighter on mobile (16px) so the card uses more of the narrow screen; 64px on
 // larger viewports.
-const marginStart = () => (window.innerWidth <= 768 ? 16 : 64);
+const marginStart = () =>
+  typeof window !== "undefined" && window.innerWidth <= 768 ? 16 : 64;
 const RADIUS_START = 32;
 const EXPAND_ZONE = 0.5;
 

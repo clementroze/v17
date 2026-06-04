@@ -3,15 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- ROUTE_META_START : default values are the homepage's. The build
+         (scripts/prerender.mjs) replaces everything between these markers with
+         route-specific metadata so deep pages get their own title, description,
+         canonical, and social tags instead of inheriting the homepage's. These
+         defaults are what `npm run dev` serves and what the SPA shell (404.html)
+         falls back to; the client then applies the correct route metadata. The
+         canonical points at the final domain even while served from v17.* staging. -->
+    <title>Clément Rozé</title>
     <meta
       name="description"
       content="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautiful. Selected work, case studies, and craft."
     />
-
-    <!-- Canonical points at the final domain even while served from v17.* staging. -->
     <link rel="canonical" href="https://clementroze.com/" />
-
-    <!-- Open Graph (LinkedIn, Facebook, iMessage, Slack…) -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://clementroze.com/" />
     <meta property="og:title" content="Clément Rozé" />
@@ -23,8 +27,6 @@
     <meta property="og:image:width" content="1538" />
     <meta property="og:image:height" content="811" />
     <meta property="og:image:alt" content="Clément Rozé — portfolio" />
-
-    <!-- Twitter / X large card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Clément Rozé" />
     <meta
@@ -32,9 +34,11 @@
       content="Clément Rozé designs and builds web experiences that are accessible, intentional, and beautiful. Selected work, case studies, and craft."
     />
     <meta name="twitter:image" content="https://clementroze.com/og.png" />
+    <!-- ROUTE_META_END -->
+
+    <!-- Favicons (static across routes; theme-aware). -->
     <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)" />
-    <title>Clément Rozé</title>
     <!-- Preload the first project's hero image so the browser's preload scanner
          can fetch it from the raw HTML, before React renders and discovers it.
          Without this, the LCP image is only found after JS execution. -->

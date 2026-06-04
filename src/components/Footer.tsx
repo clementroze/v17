@@ -79,7 +79,11 @@ export default function Footer() {
   const archiveRef = useReveal<HTMLAnchorElement>(240);
   const bottomRef = useReveal(300);
   const { local, localDaytime } = useCurrentTime();
-  const [rainbowOn, setRainbowOn] = useState(() => document.documentElement.classList.contains("konami"));
+  const [rainbowOn, setRainbowOn] = useState(
+    () =>
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("konami"),
+  );
 
   // Source of truth is the `html.konami` class (owned by main.tsx). Observe it so
   // the label stays correct no matter how rainbow mode is toggled — footer button,

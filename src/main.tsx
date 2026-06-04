@@ -12,8 +12,7 @@ const Work = lazy(() => import("./pages/Work"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy"));
 const Craft = lazy(() => import("./pages/Craft"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-import { bySlug } from "./data/data";
-import { caseExists } from "./lib/cases";
+import { applyMeta, resolveRouteMeta } from "./lib/routeMeta";
 
 const LS_KEY = "konami-rainbow";
 const RAINBOW_COLS = [
@@ -24,24 +23,6 @@ const RAINBOW_COLS = [
   "#0088ff",
   "#8800ff",
 ];
-// ── Document title per route ─────────────────────────────────────────────────
-// Base name shown alone on the homepage; other routes append " • <Page>".
-// Case studies resolve the project's canonical name from the slug registry.
-const SITE_NAME = "Clément Rozé";
-
-function pageTitle(path: string): string {
-  const caseMatch = path.match(/^\/work\/([^/]+)\/?$/);
-  if (caseMatch) {
-    const name = bySlug(caseMatch[1])?.name ?? caseMatch[1];
-    return `${SITE_NAME} • ${name}`;
-  }
-  if (path === "/about") return `${SITE_NAME} • About`;
-  if (path === "/work") return `${SITE_NAME} • Work`;
-  if (path === "/craft") return `${SITE_NAME} • Craft`;
-  if (path === "/") return SITE_NAME;
-  return `${SITE_NAME} • Not found`;
-}
-
 const STAGGER_MS = 55;
 const COL_ANIM_MS = 480;
 const COVER_MS = COL_ANIM_MS + (RAINBOW_COLS.length - 1) * STAGGER_MS + 40;
@@ -143,36 +124,19 @@ function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [triggerWipe]);
 
+  // Apply route-specific metadata (title, description, canonical, Open Graph,
+  // Twitter, and a robots noindex for not-found routes) on first paint and on
+  // every client-side navigation. This keeps JS-capable crawlers and the SPA in
+  // sync with the per-route metadata that scripts/prerender.mjs bakes into each
+  // route's static HTML — and corrects it even when the static host serves the
+  // homepage shell (404.html) for an extensionless deep URL. The not-found
+  // noindex is a soft-404 mitigation: this static SPA serves every unmatched
+  // path as 200, so unknown/typo URLs are marked noindex rather than indexed.
   React.useEffect(() => {
-    document.title = pageTitle(path);
+    applyMeta(resolveRouteMeta(path));
   }, [path]);
 
   const caseMatch = path.match(/^\/work\/([^/]+)\/?$/);
-  const isNotFound = caseMatch
-    ? !caseExists(caseMatch[1])
-    : !["/", "/about", "/work", "/craft"].includes(path);
-
-  // Soft-404 mitigation: this is a static SPA where every unmatched path falls
-  // through to 404.html (a copy of index.html) and is served with a 200, so we
-  // can't return a real 404 status from the host. Instead, when the resolved
-  // route is a not-found (unknown path or a /work/<slug> with no case study),
-  // add <meta name="robots" content="noindex"> so crawlers don't index typo or
-  // expired URLs. Removed again on valid routes to keep them indexable.
-  React.useEffect(() => {
-    const id = "robots-noindex";
-    const existing = document.getElementById(id);
-    if (isNotFound) {
-      if (!existing) {
-        const m = document.createElement("meta");
-        m.id = id;
-        m.setAttribute("name", "robots");
-        m.setAttribute("content", "noindex");
-        document.head.appendChild(m);
-      }
-    } else if (existing) {
-      existing.remove();
-    }
-  }, [isNotFound]);
 
   return (
     <>

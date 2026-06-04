@@ -74,8 +74,22 @@ function isKonami() {
 
 // ── provider ──────────────────────────────────────────────────────────────────
 
-export function RouterProvider({ children }: { children: React.ReactNode }) {
-  const [path, setPath]             = useState(() => window.location.pathname);
+export function RouterProvider({
+  children,
+  initialPath,
+}: {
+  children: React.ReactNode;
+  // When provided (build-time prerender / SSR), the router starts at this path
+  // instead of reading window.location — which doesn't exist in Node.
+  initialPath?: string;
+}) {
+  const [path, setPath]             = useState(() =>
+    initialPath !== undefined
+      ? initialPath
+      : typeof window !== 'undefined'
+        ? window.location.pathname
+        : '/',
+  );
   const [previousPath, setPreviousPath] = useState<string | null>(null);
   const [phase, setPhase]           = useState<Phase>('idle');
   const [colColor, setColColor]     = useState('#000');
