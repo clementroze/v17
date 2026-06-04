@@ -54,6 +54,40 @@
     -->
     <link rel="preload" as="font" href="/fonts/NeueHelveticaPro55Roman/font.woff2" type="font/woff2" crossorigin />
     <link rel="preload" as="font" href="/fonts/NeueHelveticaPro65Medium/font.woff2" type="font/woff2" crossorigin />
+
+    <!-- Site-wide structured data (JSON-LD). Lives in the initial HTML so search
+         engines and AI systems get the WebSite + Person context without running
+         JS. Per-case-study schema is added by the React page at runtime. The
+         canonical domain is used even while served from the v17.* staging host. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://clementroze.com/#website",
+            "url": "https://clementroze.com/",
+            "name": "Clément Rozé",
+            "description": "Clément Rozé designs and builds web experiences that are accessible, intentional, and beautiful. Selected work, case studies, and craft.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://clementroze.com/#person" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://clementroze.com/#person",
+            "name": "Clément Rozé",
+            "url": "https://clementroze.com/",
+            "jobTitle": "Designer & Developer",
+            "description": "Designer and developer crafting accessible, intentional, and beautiful web experiences.",
+            "email": "mailto:cpr58@cornell.edu",
+            "sameAs": [
+              "https://www.linkedin.com/in/clementroze",
+              "https://x.com/TheBookie0"
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
