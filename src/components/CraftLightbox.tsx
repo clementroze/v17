@@ -43,7 +43,7 @@ function computeInitialFraming(aspect: number): { zoom: number; panY: number } {
   }
   const vh = window.innerHeight;
   const vw = window.innerWidth;
-  const renderedH = 0.85 * vh; // matches .craft-lightbox__img { height: 85vh }
+  const renderedH = 0.85 * vh; // matches .craft-lightbox__img { max-height: 85vh }
   const renderedW = aspect * renderedH;
   // Target ~70% of the available viewport width (which itself has a 64px
   // gutter on each side). Tuned by eye — filling the full width felt too
@@ -1007,9 +1007,10 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
         style={cardStyle}
         onPointerDown={onCardPointerDown}
         onClick={(e) => {
-          // Stop a click on the card from bubbling to the backdrop, which would
-          // close the lightbox. Zoom is controlled only by the top-right buttons.
           e.stopPropagation();
+          if (dragRef.current.moved || isVideoSrc(item.src)) return;
+          if (zoom > ZOOM_MIN + 0.01) zoomOut();
+          else close();
         }}
       >
         {item.src ? (

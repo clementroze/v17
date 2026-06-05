@@ -2,6 +2,7 @@
 slug: google
 title: Google
 subtitle: Designing and evaluating user experiences to engage college-age users with Google products.
+homeDescription: UX research and design for college-age Google users.
 role: Lead Designer & PM of 6 consultants
 type: DCC Collaboration
 about:

@@ -86,6 +86,11 @@ a {
   color: inherit;
 }
 
+h2,
+h3 {
+  font-weight: var(--weight-body);
+}
+
 .page--dark::selection,
 footer::selection {
   background: var(--white) !important;
@@ -199,9 +204,6 @@ footer::selection {
 .work-grid__name,
 .cs-not-found__message,
 .cs-hero__title,
-.cs-heading,
-.cs-section__title,
-.cs-hmw,
 .bio-modal__title,
 .bio-modal__body h3 {
   font-weight: var(--weight-heading);
@@ -676,7 +678,7 @@ footer::selection {
   z-index: 1;
 }
 
-.btn > span.label {
+.btn span.label {
   padding-top: 2px;
 }
 
@@ -1058,9 +1060,15 @@ footer::selection {
   cursor: default;
 }
 
-.project__name {
+.project__name-group {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project__name {
   font-size: 32px;
   letter-spacing: var(--tracking-heading);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -1071,6 +1079,22 @@ footer::selection {
 
 .project__content--light .project__name {
   color: var(--black);
+  text-shadow: none;
+}
+
+.project__description {
+  font-size: 24px;
+  letter-spacing: var(--tracking-heading);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  /* font-weight: var(--weight-heading); */
+  color: var(--white-muted);
+  line-height: var(--leading-heading);
+  opacity: 0.5;
+  margin: 0;
+}
+
+.project__content--light .project__description {
+  color: var(--black-muted);
   text-shadow: none;
 }
 
@@ -2195,8 +2219,7 @@ html.konami .projects-nav-m__pill {
    (top hairline + spacing) and sits left-aligned like the rest of the column. */
 .bio-modal__footer {
   margin-top: 64px;
-  padding-top: 84px;
-  border-top: 1px solid var(--white-faint);
+
   display: flex;
 }
 
@@ -2717,7 +2740,6 @@ figure.bio-visual__item {
 
 .about-contact-link:hover .about-contact-card {
   background: #262626;
-  transform: translateY(-2px);
 }
 
 .about-contact-label {
@@ -2739,6 +2761,81 @@ figure.bio-visual__item {
 
 .about-resume-link:hover .about-resume-label {
   color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Email card: single pane with two pill buttons inside ─────────────────── */
+.about-email-wrap {
+  cursor: default;
+}
+
+.about-email-card {
+  gap: 17px;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+/* Pill buttons */
+/* Button overrides for the two email pills */
+.about-email-pill.btn {
+  color: var(--white-muted);
+  justify-content: center;
+  width: 140px;
+}
+
+.about-email-pill.btn .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Copy / check icon crossfade with blur */
+.about-email-icon-wrap {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.about-email-svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transition:
+    opacity 200ms ease,
+    filter 200ms ease,
+    transform 200ms ease;
+}
+
+.icon-copy {
+  opacity: 1;
+  filter: blur(0px);
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.icon-check {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translate(-50%, -50%) scale(0.7);
+}
+
+.about-email-pill--copied .icon-copy {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translate(-50%, -50%) scale(0.7);
+}
+
+.about-email-pill--copied .icon-check {
+  opacity: 1;
+  filter: blur(0px);
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.about-open-arrow {
+  transition: transform 200ms ease;
+}
+
+.about-email-pill:hover .about-open-arrow {
+  transform: translate(2px, -2px);
 }
 
 /* Outer wrapper hugs the card exactly — its bottom edge sits at the card's
@@ -2881,6 +2978,7 @@ figure.bio-visual__item {
   font-size: 20px;
   line-height: var(--leading-body);
   white-space: nowrap;
+  letter-spacing: var(--tracking);
 }
 
 .accordion-row__role {
@@ -2889,6 +2987,7 @@ figure.bio-visual__item {
   font-size: 16px;
   line-height: var(--leading-body);
   color: var(--white-muted);
+  letter-spacing: var(--tracking);
 }
 
 .accordion-row__period {
@@ -3893,7 +3992,7 @@ figure.bio-visual__item {
 }
 
 .cs-quote {
-  border-left: 2px solid var(--black);
+  border-left: 2px solid var(--black-faint);
   padding-left: 12px;
   font-size: 20px;
   font-style: italic;
@@ -4487,7 +4586,7 @@ button.cs-images__pic:focus-visible {
   flex-shrink: 0;
   border: none;
   padding: 0;
-  cursor: pointer;
+  cursor: zoom-in;
   font: inherit;
   color: inherit;
   display: block;
@@ -4613,7 +4712,7 @@ button.cs-images__pic:focus-visible {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-size: 16px;
   color: var(--white-muted);
   text-decoration: none;
@@ -4634,6 +4733,7 @@ button.cs-images__pic:focus-visible {
 .craft-lightbox__link-arrow {
   flex-shrink: 0;
   transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  padding-bottom: 4px;
 }
 
 .craft-lightbox__link:hover .craft-lightbox__link-arrow,
@@ -4644,7 +4744,7 @@ button.cs-images__pic:focus-visible {
 .craft-lightbox__date {
   margin: 0;
   color: var(--white-muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 /* ── Meta swap animation (on prev/next) ──
@@ -4837,14 +4937,14 @@ button.cs-images__pic:focus-visible {
   display: block;
   border-radius: var(--radius-img);
   overflow: hidden;
-  background: var(--white-faint);
-  box-shadow: 0 30px 80px var(--black-scrim);
+  /* box-shadow: 0 30px 80px var(--black-scrim); */
   max-width: calc(100vw - 128px);
   max-height: 85vh;
   line-height: 0;
+  cursor: zoom-out;
 }
 
-/* Drag-to-pan cursor on the image (only while zoomed in via the buttons) */
+/* Drag-to-pan cursor — overrides zoom-out when zoomed in */
 .craft-lightbox__card--pannable {
   cursor: grab;
 }
@@ -4865,11 +4965,10 @@ button.cs-images__pic:focus-visible {
 
 .craft-lightbox__img {
   display: block;
-  height: 75vh;
+  height: auto;
   max-height: 85vh;
   max-width: calc(100vw - 128px);
   width: auto;
-  object-fit: contain;
 }
 
 .craft-lightbox__placeholder {
@@ -5158,7 +5257,8 @@ button.cs-images__pic:focus-visible {
     padding-left: 4px;
     padding-right: 4px;
   }
-  .project__name {
+  .project__name,
+  .project__description {
     font-size: clamp(28px, 6vw, 44px);
   }
   .project__cta {
@@ -5288,6 +5388,7 @@ button.cs-images__pic:focus-visible {
   .about-contact-col {
     height: auto;
     width: 100%;
+    flex-direction: row;
     min-width: 0;
   }
   .about-contact-card {
@@ -5619,7 +5720,8 @@ button.cs-images__pic:focus-visible {
     padding-left: 4px;
     padding-right: 4px;
   }
-  .project__name {
+  .project__name,
+  .project__description {
     font-size: clamp(26px, 7vw, 34px);
   }
   .project__cta {

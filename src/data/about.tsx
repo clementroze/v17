@@ -18,7 +18,7 @@ export const workExperience: AccordionRowProps[] = [
     slug: "frog",
     description: [
       "As a Design Intern at frog, I spent the summer in Paris collaborating with a cross-functional team to build Egypt’s first B2C mobile trading platform for grain.",
-      "I mapped out complex trading workflows, partnered with experts, and designed  “wheel-inspired” interface to make market data and transactions accessible for first-time users.",
+      "I mapped out complex trading workflows, partnered with experts, and designed  a “wheel-inspired” interface to make market data and transactions accessible for first-time users.",
     ],
   },
   {

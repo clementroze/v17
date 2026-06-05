@@ -2,6 +2,7 @@
 slug: microsoft
 title: Microsoft
 subtitle: Copilot-powered B2B sales tools designed for Gen Z buyers.
+homeDescription: AI-powered B2B tools for Gen Z buyers.
 role: Lead Designer & PM of 6 consultants
 type: DCC Collaboration
 about:
@@ -12,7 +13,7 @@ finalDesigns: Final flow & high-fidelity mockups
 
 ## Intro
 
-This semester, we partnered with a team at Microsoft to explore how Copilot can better serve the next generation of B2B buyers.
+In Spring 2024, we partnered with a team at Microsoft to explore how Copilot can better serve the next generation of B2B buyers.
 
 Some are now stepping into roles as B2B buyers, yet the tools they're expected to use often reflect outdated workflows.
 
@@ -51,19 +52,19 @@ The feature I designed fit into the Discovery flow of the buyer. Specifically, I
 
 The features we designed fit as a Copilot extension on the browser.
 
-![Low-fi wireframe of a product page with highlighted text and floating comment popovers, plus a button to find alternative products.](/images/microsoft/lowfi.png) LABEL HERE
+![Low-fi sketch of a product page with highlighted text and floating comment popovers, plus a button to find alternative products.](/images/microsoft/lowfi.png) Low-fi sketch of the product page
 
 The first version of this feature actually looked very different than what I ended up with. In this version, users would be able to highlight information directly on the product page and add comments with their thoughts.
 
 However, this approach had some usability challenges: activating the highlighting feature was unintuitive, and the interaction as a whole felt too complex for a quick task.
 
-![A scraped product-feature table with thumbs-up and thumbs-down controls on each attribute, beside a list of alternative products.](/images/microsoft/iteration.png) LABEL HERE
+![A scraped product-feature table with thumbs-up and thumbs-down controls on each attribute, beside a list of alternative products.](/images/microsoft/iteration.png) Mid-fi wireframe where users can like or dislike attributes of the product
 
 My next iteration consisted in scraping and compiling the features from the webpage and adding them to an organized table. Buyers would then be able to either “thumbs up” or “thumbs down” specific attributes of the product, which would help Copilot determine alternative products.
 
 ## Making buyer input more intuitive and customizable
 
-I had to change the “Thumbs up” and “thumbs down” mechanism.
+I had to change the “Thumbs up” and “thumbs down” mechanism. While simple, it limited buyers to binary feedback and didn't capture the specific criteria driving their decisions.
 
 ![/images/microsoft/interaction.png "Copilot extension showing the feature table with thumbs-up and thumbs-down buttons on each row." | /images/microsoft/binary.png "The same table using plus and minus buttons on each row instead of thumbs." | /images/microsoft/natural.png "The table with an editable Adjust criteria text box open on one row, asking what would make the product a better fit."]
 
@@ -82,8 +83,6 @@ I explored plus/minus symbols to signal “increase” or “decrease,” which 
 ---
 
 ### Natural
-
-Body text here
 
 ### Enabling natural expression
 

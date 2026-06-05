@@ -2,6 +2,7 @@
 slug: gcai
 title: General Counsel AI
 subtitle: Building the design foundation for an AI legal platform.
+homeDescription: Design foundation for an AI legal platform.
 role: Lead Product Designer
 type: Product design, Brand identity, Design systems, Prototyping
 about:

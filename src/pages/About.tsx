@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -14,7 +14,6 @@ import resumeThumbnail from "../assets/resume-thumbnail.png";
 import resumeThumbnailAvif from "../assets/resume-thumbnail.avif";
 import resumeThumbnailWebp from "../assets/resume-thumbnail.webp";
 import linkedinIcon from "../assets/linkedin-icon.svg";
-import emailIcon from "../assets/email-icon.svg";
 import { workExperience, freelancing, collaborations, activities, infoParagraphs } from "../data/about";
 
 // ─── section label reveal ─────────────────────────────────────────────────────
@@ -49,6 +48,16 @@ export default function About() {
   const bioTriggerRef = useRef<HTMLButtonElement>(null);
   const toggleBio = () => setBioOpen((o) => !o);
   const closeBio = () => setBioOpen(false);
+
+  const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleCopyEmail = useCallback(() => {
+    navigator.clipboard.writeText("cpr58@cornell.edu").then(() => {
+      setCopied(true);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+    });
+  }, []);
 
   // "design clubs" link inside the modal: open the DCC + DTI accordions, close
   // the modal, then (once it unmounts and the scroll lock lifts) scroll the
@@ -94,177 +103,227 @@ export default function About() {
       <Navbar forceWhite activeLink="about" />
 
       <main id="main-content" className="page__main">
-      <Hero title="Who am I?" subtitle="I design at the intersection of cultures, systems, and thoughtful detail." />
+        <Hero title="Who am I?" subtitle="I design at the intersection of cultures, systems, and thoughtful detail." />
 
-      {/* Content sections */}
-      <div className="container-wrapper">
-        <div className="container">
-          <div className="about-sections">
-            {/* Picture */}
-            <div className="about-section-row">
-              <SectionLabel>Picture</SectionLabel>
-              <div className="about-section-row__content">
-                <Reveal>
-                  <div className="about-photo-wrap">
-                    <picture>
-                      <source srcSet={profilePhotoAvif} type="image/avif" />
-                      <source srcSet={profilePhotoWebp} type="image/webp" />
-                      <img src={profilePhoto} alt="Picture of Clément Rozé" className="about-photo" />
-                    </picture>
-                  </div>
-                </Reveal>
-              </div>
-            </div>
-
-            {/* Information */}
-            <div className="about-section-row">
-              <SectionLabel>Bio</SectionLabel>
-              <div className="about-section-row__content about-info-text">
-                {infoParagraphs.map((text, i) => (
-                  <Reveal key={i} delay={i * 70}>
-                    <p>{text}</p>
-                  </Reveal>
-                ))}
-                <Reveal delay={infoParagraphs.length * 70}>
-                  <div className="about-info-more-wrap">
-                    <Button
-                      ref={bioTriggerRef}
-                      variant="dark-gray"
-                      icon="plus"
-                      onClick={toggleBio}
-                      ariaHaspopup="dialog"
-                      ariaExpanded={bioOpen}
-                    >
-                      More
-                    </Button>
-                  </div>
-                </Reveal>
-              </div>
-            </div>
-
-            {/* Work experience */}
-            <div className="about-section-row">
-              <SectionLabel>Work experience</SectionLabel>
-              <div className="about-section-row__content">
-                <div className="about-accordion-list">
-                  {workExperience.map((item, i) => (
-                    <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Freelancing */}
-            <div className="about-section-row">
-              <SectionLabel>Freelancing</SectionLabel>
-              <div className="about-section-row__content">
-                <div className="about-accordion-list">
-                  {freelancing.map((item, i) => (
-                    <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Collaborations */}
-            <div className="about-section-row">
-              <SectionLabel>Collaborations</SectionLabel>
-              <div className="about-section-row__content">
-                <div className="about-accordion-list">
-                  {collaborations.map((item, i) => (
-                    <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Activities */}
-            <div className="about-section-row" ref={activitiesRef}>
-              <SectionLabel>Activities</SectionLabel>
-              <div className="about-section-row__content">
-                <div className="about-accordion-list">
-                  {activities.map((item, i) => (
-                    <Reveal key={item.slug} delay={i * 60}>
-                      <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Resume */}
-            <div className="about-section-row">
-              <SectionLabel>Contact</SectionLabel>
-              <div className="about-section-row__content">
-                <div className="about-more-row">
-                  {/* Résumé card scales up; the two contact cards slide in from
-                      opposite sides — each card gets a distinct reveal. */}
+        {/* Content sections */}
+        <div className="container-wrapper">
+          <div className="container">
+            <div className="about-sections">
+              {/* Picture */}
+              <div className="about-section-row">
+                <SectionLabel>Picture</SectionLabel>
+                <div className="about-section-row__content">
                   <Reveal>
-                    <a
-                      href="/Clement-Roze-Resume.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="about-resume-link"
-                      aria-label="View full résumé (opens in new tab)"
-                    >
-                      <div className="about-resume-clip">
-                        <div className="about-resume-card">
-                          <div className="about-resume-thumbnail-wrap">
-                            <picture>
-                              <source srcSet={resumeThumbnailAvif} type="image/avif" />
-                              <source srcSet={resumeThumbnailWebp} type="image/webp" />
-                              <img src={resumeThumbnail} alt="Résumé preview" className="about-resume-thumbnail" />
-                            </picture>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="about-resume-label">View my full résumé</p>
-                    </a>
+                    <div className="about-photo-wrap">
+                      <picture>
+                        <source srcSet={profilePhotoAvif} type="image/avif" />
+                        <source srcSet={profilePhotoWebp} type="image/webp" />
+                        <img src={profilePhoto} alt="Picture of Clément Rozé" className="about-photo" />
+                      </picture>
+                    </div>
                   </Reveal>
+                </div>
+              </div>
 
-                  <div className="about-contact-col">
-                    <Reveal delay={80}>
+              {/* Information */}
+              <div className="about-section-row">
+                <SectionLabel>Bio</SectionLabel>
+                <div className="about-section-row__content about-info-text">
+                  {infoParagraphs.map((text, i) => (
+                    <Reveal key={i} delay={i * 70}>
+                      <p>{text}</p>
+                    </Reveal>
+                  ))}
+                  <Reveal delay={infoParagraphs.length * 70}>
+                    <div className="about-info-more-wrap">
+                      <Button
+                        ref={bioTriggerRef}
+                        variant="dark-gray"
+                        icon="plus"
+                        onClick={toggleBio}
+                        ariaHaspopup="dialog"
+                        ariaExpanded={bioOpen}
+                      >
+                        More
+                      </Button>
+                    </div>
+                  </Reveal>
+                </div>
+              </div>
+
+              {/* Work experience */}
+              <div className="about-section-row">
+                <SectionLabel>Work experience</SectionLabel>
+                <div className="about-section-row__content">
+                  <div className="about-accordion-list">
+                    {workExperience.map((item, i) => (
+                      <Reveal key={item.slug} delay={i * 60}>
+                        <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
+                      </Reveal>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Freelancing */}
+              <div className="about-section-row">
+                <SectionLabel>Freelancing</SectionLabel>
+                <div className="about-section-row__content">
+                  <div className="about-accordion-list">
+                    {freelancing.map((item, i) => (
+                      <Reveal key={item.slug} delay={i * 60}>
+                        <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
+                      </Reveal>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Collaborations */}
+              <div className="about-section-row">
+                <SectionLabel>Collaborations</SectionLabel>
+                <div className="about-section-row__content">
+                  <div className="about-accordion-list">
+                    {collaborations.map((item, i) => (
+                      <Reveal key={item.slug} delay={i * 60}>
+                        <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
+                      </Reveal>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Activities */}
+              <div className="about-section-row" ref={activitiesRef}>
+                <SectionLabel>Activities</SectionLabel>
+                <div className="about-section-row__content">
+                  <div className="about-accordion-list">
+                    {activities.map((item, i) => (
+                      <Reveal key={item.slug} delay={i * 60}>
+                        <AccordionRow {...item} defaultOpen={openSlugs.includes(item.slug)} />
+                      </Reveal>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Resume */}
+              <div className="about-section-row">
+                <SectionLabel>Contact</SectionLabel>
+                <div className="about-section-row__content">
+                  <div className="about-more-row">
+                    {/* Résumé card scales up; the two contact cards slide in from
+                      opposite sides — each card gets a distinct reveal. */}
+                    <Reveal>
                       <a
-                        href="https://www.linkedin.com/in/clementroze"
+                        href="/Clement-Roze-Resume.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="about-contact-link"
+                        className="about-resume-link"
+                        aria-label="View full résumé (opens in new tab)"
                       >
-                        <div className="about-contact-card">
-                          <img src={linkedinIcon} alt="" className="about-contact-icon" />
+                        <div className="about-resume-clip">
+                          <div className="about-resume-card">
+                            <div className="about-resume-thumbnail-wrap">
+                              <picture>
+                                <source srcSet={resumeThumbnailAvif} type="image/avif" />
+                                <source srcSet={resumeThumbnailWebp} type="image/webp" />
+                                <img src={resumeThumbnail} alt="Résumé preview" className="about-resume-thumbnail" />
+                              </picture>
+                            </div>
+                          </div>
                         </div>
-                        <p className="about-contact-label">Message me on LinkedIn</p>
+                        <p className="about-resume-label">View my full résumé</p>
                       </a>
                     </Reveal>
-                    <Reveal delay={160}>
-                      <a href="mailto:cpr58@cornell.edu" className="about-contact-link" target="_blank">
-                        <div className="about-contact-card">
-                          <img src={emailIcon} alt="" className="about-contact-icon" />
+
+                    <div className="about-contact-col">
+                      <Reveal delay={80}>
+                        <a
+                          href="https://www.linkedin.com/in/clementroze"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="about-contact-link"
+                        >
+                          <div className="about-contact-card">
+                            <img src={linkedinIcon} alt="" className="about-contact-icon" />
+                          </div>
+                          <p className="about-contact-label">Message me on LinkedIn</p>
+                        </a>
+                      </Reveal>
+                      <Reveal delay={160}>
+                        <div className="about-contact-link about-email-wrap">
+                          <div className="about-contact-card about-email-card">
+                            <Button
+                              className={`about-email-pill${copied ? " about-email-pill--copied" : ""}`}
+                              onClick={handleCopyEmail}
+                            >
+                              <div className="about-email-icon-wrap">
+                                <svg
+                                  className="about-email-svg icon-copy"
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg>
+                                <svg
+                                  className="about-email-svg icon-check"
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              </div>
+                              <span className="label">Copy email</span>
+                            </Button>
+                            <Button href="mailto:cpr58@cornell.edu" className="about-email-pill">
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                              >
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <g className="about-open-arrow">
+                                  <polyline points="15 3 21 3 21 9" />
+                                  <line x1="10" y1="14" x2="21" y2="3" />
+                                </g>
+                              </svg>
+                              <span className="label">Open</span>
+                            </Button>
+                          </div>
+                          <p className="about-contact-label">Email me</p>
                         </div>
-                        <p className="about-contact-label">Email me</p>
-                      </a>
-                    </Reveal>
+                      </Reveal>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
       </main>
-      <BioModal
-        open={bioOpen}
-        onClose={closeBio}
-        onOpenDesignClubs={openDesignClubs}
-        triggerRef={bioTriggerRef}
-      />
+      <BioModal open={bioOpen} onClose={closeBio} onOpenDesignClubs={openDesignClubs} triggerRef={bioTriggerRef} />
 
       <Footer />
     </div>

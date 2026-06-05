@@ -31,11 +31,41 @@ const c = (filename: string) => `/craft/${filename}`;
 // `id` is generated automatically from the position, so you never have to set
 // or keep it unique yourself.
 const ITEMS: Omit<CraftItem, "id">[] = [
-  { src: c("ebb-insights.png"), label: "Ebb & Flow (design-a-thon project) Insights page", date: "2026" },
-  { src: c("ebb-river.mov"), label: "Ebb & Flow (design-a-thon project) river visualization", date: "2026" },
-  { src: c("ebb-home.png"), label: "Ebb & Flow (design-a-thon project) account selection page", date: "2026" },
-  { src: c("ebb-login.mov"), label: "Ebb & Flow (design-a-thon project) login animation", date: "2026" },
-  { src: c("ebb-settings.png"), label: "Ebb & Flow (design-a-thon project) Settings page", date: "2026" },
+  {
+    src: c("ebb-insights.png"),
+    label: "Ebb & Flow (design-a-thon project) Insights page",
+    date: "2026",
+    link: "https://devpost.com/software/ebb-and-flow",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("ebb-river.mov"),
+    label: "Ebb & Flow (design-a-thon project) river visualization",
+    date: "2026",
+    link: "https://devpost.com/software/ebb-and-flow",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("ebb-home.png"),
+    label: "Ebb & Flow (design-a-thon project) account selection page",
+    date: "2026",
+    link: "https://devpost.com/software/ebb-and-flow",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("ebb-login.mov"),
+    label: "Ebb & Flow (design-a-thon project) login animation",
+    date: "2026",
+    link: "https://devpost.com/software/ebb-and-flow",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("ebb-settings.png"),
+    label: "Ebb & Flow (design-a-thon project) Settings page",
+    date: "2026",
+    link: "https://devpost.com/software/ebb-and-flow",
+    linkLabel: "View on Devpost",
+  },
 
   {
     src: c("iwater-pair.png"),
@@ -129,6 +159,20 @@ const ITEMS: Omit<CraftItem, "id">[] = [
     link: "https://www.roblox.com/games/12144402492/Deadline",
     linkLabel: "Play Deadline",
   },
+  {
+    src: c("deadline-site.png"),
+    label: "Deadline website",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
+    src: c("deadline-jobs.png"),
+    label: "Deadline website job board",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
 
   {
     src: c("erased.png"),
@@ -150,18 +194,98 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   { src: c("hyperform-login.png"), label: "Hyperform login", date: "2023" },
   { src: c("hyperform-listing.png"), label: "Hyperform listing flow", date: "2023" },
 
-  { src: c("souvenir-nav.png"), label: "Souvenir button components", date: "2025" },
-  { src: c("souvenir-trio.png"), label: "Souvenir trio", date: "2025" },
-  { src: c("souvenir-duo.png"), label: "Souvenir duo", date: "2025" },
-  { src: c("souvenir-buttons.png"), label: "Souvenir more buttons", date: "2025" },
-  { src: c("souvenir-login.png"), label: "Souvenir login", date: "2025" },
-  { src: c("souvenir-cam.png"), label: "Souvenir camera", date: "2025" },
-  { src: c("souvenir-list.png"), label: "Souvenir homepage", date: "2025" },
+  {
+    src: c("souvenir-nav.png"),
+    label: "Souvenir button components",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("souvenir-trio.png"),
+    label: "Souvenir trio",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("souvenir-duo.png"),
+    label: "Souvenir duo",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("souvenir-buttons.png"),
+    label: "Souvenir more buttons",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("souvenir-login.png"),
+    label: "Souvenir login",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("souvenir-cam.png"),
+    label: "Souvenir camera",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
+  {
+    src: c("souvenir-list.png"),
+    label: "Souvenir homepage",
+    date: "2025",
+    link: "https://devpost.com/software/placeholder-project-name-lha0e2",
+    linkLabel: "View on Devpost",
+  },
 
-  { src: c("dti-cta.png"), label: "DTI footer", date: "2025" },
-  { src: c("dti-team.png"), label: "DTI team hero section", date: "2025" },
-  { src: c("dti-role.png"), label: "DTI roles section", date: "2025" },
-  { src: c("dti-404.png"), label: "DTI 404 page", date: "2025" },
+  {
+    src: c("dti-cta.png"),
+    label: "DTI footer",
+    date: "2025",
+    link: "https://cornelldti.org/",
+    linkLabel: "View website",
+  },
+  {
+    src: c("dti-team.png"),
+    label: "DTI team hero section",
+    date: "2025",
+    link: "https://cornelldti.org/",
+    linkLabel: "View website",
+  },
+  {
+    src: c("dti-role.png"),
+    label: "DTI roles section",
+    date: "2025",
+    link: "https://cornelldti.org/",
+    linkLabel: "View website",
+  },
+  {
+    src: c("dti-404.png"),
+    label: "DTI 404 page",
+    date: "2025",
+    link: "https://cornelldti.org/",
+    linkLabel: "View website",
+  },
+  {
+    src: c("dti-system.png"),
+    label: "DTI design system",
+    date: "2025",
+    link: "https://cornelldti.org/",
+    linkLabel: "View website",
+  },
+  {
+    src: c("dti-layout.png"),
+    label: "DTI design system layout utilities",
+    date: "2025",
+    link: "https://cornelldti.org/",
+    linkLabel: "View website",
+  },
 
   { src: c("roze-team.png"), label: "Dr. Roze team page", date: "2024" },
   { src: c("roze-slide1.png"), label: "Roze BioHealth branding slide", date: "2024" },
@@ -177,17 +301,41 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   { src: c("replit-community.png"), label: "Replit community marketing page", date: "2024" },
   { src: c("replit-stay.png"), label: "Replit community marketing page", date: "2024" },
 
-  { src: c("ebr.png"), label: "Electric Buffalo Records", date: "2026" ,  
-       link: "https://www.electricbuffalorecords.com/",
- linkLabel: "Visit website",},
-  { src: c("wvbr-home.png"), label: "Cornell Media Guild home", date: "2025" ,   link: "https://www.electricbuffalorecords.com/",
- linkLabel: "Visit website",},
-  { src: c("wvbr-shows.png"), label: "Cornell Media Guild shows", date: "2025" ,   link: "https://www.electricbuffalorecords.com/",
- linkLabel: "Visit website",},
-  { src: c("wvbr-support.png"), label: "Cornell Media Guild donate", date: "2025" ,   link: "https://www.electricbuffalorecords.com/",
- linkLabel: "Visit website",},
-  { src: c("wvbr-about.png"), label: "Cornell Media Guild about dialog", date: "2025" ,   link: "https://www.electricbuffalorecords.com/",
- linkLabel: "Visit website",},
+  {
+    src: c("ebr.png"),
+    label: "Electric Buffalo Records",
+    date: "2026",
+    link: "https://www.electricbuffalorecords.com/",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("wvbr-home.png"),
+    label: "Cornell Media Guild home",
+    date: "2025",
+    link: "https://cornellmediaguild.org/",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("wvbr-shows.png"),
+    label: "Cornell Media Guild shows",
+    date: "2025",
+    link: "https://cornellmediaguild.org/specialty-shows",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("wvbr-support.png"),
+    label: "Cornell Media Guild donate",
+    date: "2025",
+    link: "https://cornellmediaguild.org/donate",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("wvbr-about.png"),
+    label: "Cornell Media Guild about dialog",
+    date: "2025",
+    link: "https://cornellmediaguild.org/executive-board",
+    linkLabel: "Visit website",
+  },
 
   { src: c("monarcha.png"), label: "Monarcha website", date: "2025" },
 ];
@@ -201,10 +349,7 @@ export const CRAFT_ITEMS: CraftItem[] = ITEMS.map((item, i) => ({
 // Deal the ordered items out across `columnCount` masonry columns, round-robin
 // (item 0 → col 0, item 1 → col 1, … wrapping around). With one column you get
 // the flat order back, so mobile and the lightbox stay in sync with the grid.
-export function distributeIntoColumns(
-  items: CraftItem[],
-  columnCount: number,
-): CraftItem[][] {
+export function distributeIntoColumns(items: CraftItem[], columnCount: number): CraftItem[][] {
   const cols: CraftItem[][] = Array.from({ length: columnCount }, () => []);
   items.forEach((item, i) => {
     cols[i % columnCount].push(item);

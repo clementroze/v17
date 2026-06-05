@@ -25,10 +25,15 @@ const SRC_EXT = new Set([".png", ".jpg", ".jpeg"]);
 // Full-bleed heroes get the larger retina cap; everything else is content.
 const HERO_NAMES = new Set(["home-hero", "cs-hero", "cover"]);
 
-const AVIF = { quality: 60, effort: 4 };
-const WEBP = { quality: 82, effort: 5 };
+const AVIF = { quality: 80, effort: 4 };
+const AVIF_TALL = { quality: 90, effort: 4 }; // higher quality for tall images shown zoomed-in
+const WEBP = { quality: 90, effort: 5 };
+const WEBP_TALL = { quality: 95, effort: 5 };
 const HERO_MAX = 3840; // retina width for ~1888 CSS-px full-bleed display
 const CONTENT_MAX = 2000; // longest side for in-body / grid / bio / craft / asset images
+const TALL_WIDTH_MAX = 1600; // width cap for tall images (h/w > 1.4) — prevents over-shrinking
+// Matches the lightbox auto-zoom threshold in CraftLightbox.tsx
+const TALL_ASPECT_RATIO = 1.4; // h/w above which an image is considered "tall"
 
 const filter = process.argv[2] || null;
 
@@ -63,17 +68,28 @@ async function main() {
       const origSize = (await stat(file)).size;
       origTotal += origSize;
 
-      const cap = isHero ? HERO_MAX : CONTENT_MAX;
-      // Heroes cap by width; content caps the longest side (fit:inside).
-      const resize = isHero
-        ? { width: cap, withoutEnlargement: true }
-        : { width: cap, height: cap, fit: "inside", withoutEnlargement: true };
+      // Detect tall images (h/w > TALL_ASPECT_RATIO) so we cap by width instead
+      // of longest side — otherwise a 900×3000 image shrinks to ~600px wide, which
+      // looks blurry when the lightbox zooms in to fill the viewport width.
+      const meta = await sharp(file).metadata();
+      const isTall = !isHero && meta.width && meta.height && (meta.height / meta.width) > TALL_ASPECT_RATIO;
 
+      let resize;
+      if (isHero) {
+        resize = { width: HERO_MAX, withoutEnlargement: true };
+      } else if (isTall) {
+        resize = { width: TALL_WIDTH_MAX, withoutEnlargement: true };
+      } else {
+        resize = { width: CONTENT_MAX, height: CONTENT_MAX, fit: "inside", withoutEnlargement: true };
+      }
+
+      const avifOpts = isTall ? AVIF_TALL : AVIF;
+      const webpOpts = isTall ? WEBP_TALL : WEBP;
       const base = sharp(file).rotate().resize(resize);
       const avifPath = join(dir, `${name}.avif`);
       const webpPath = join(dir, `${name}.webp`);
-      await base.clone().avif(AVIF).toFile(avifPath);
-      await base.clone().webp(WEBP).toFile(webpPath);
+      await base.clone().avif(avifOpts).toFile(avifPath);
+      await base.clone().webp(webpOpts).toFile(webpPath);
 
       const avifSize = (await stat(avifPath)).size;
       avifTotal += avifSize;

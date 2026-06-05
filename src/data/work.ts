@@ -23,6 +23,17 @@ function mdSubtitle(slug: string): string | null {
   return line ? line[1].trim() : null;
 }
 
+// Pull the `homeDescription:` value from a slug's .md frontmatter. Returns
+// null when there's no .md file or no homeDescription line.
+function mdHomeDescription(slug: string): string | null {
+  const raw = mdFiles[`../work/${slug}.md`];
+  if (!raw) return null;
+  const fm = raw.match(/^---\n([\s\S]*?)\n---/);
+  if (!fm) return null;
+  const line = fm[1].match(/^homeDescription:[ \t]*(.+)$/m);
+  return line ? line[1].trim() : null;
+}
+
 /**
  * Work-page layout + per-surface copy for a portfolio project. Identity
  * (name, role, accent, textAccentColor, href) comes from the registry in
@@ -53,6 +64,13 @@ type WorkSource = {
    * where the text always comes first.
    */
   textPosition?: number;
+  /**
+   * Short description shown below the project name on the homepage hero section.
+   * For projects with a case-study .md, prefer setting `homeDescription:` in the
+   * frontmatter instead — the md value takes precedence. Use this field only for
+   * projects without a .md file (e.g. IBM, which is "coming soon").
+   */
+  homeDescription?: string;
 };
 
 /**
@@ -71,6 +89,7 @@ export type WorkItem = WorkSource & {
   href: string;
   number: string;
   comingSoon: boolean;
+  homeDescription?: string;
 };
 
 const sources: WorkSource[] = [
@@ -80,6 +99,7 @@ const sources: WorkSource[] = [
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/ibm/grid-1.png", "/images/ibm/grid-2.png", "/images/ibm/grid-3.png"],
+    homeDescription: "IMS Enterprise Design",
   },
   {
     slug: "google",
@@ -128,6 +148,9 @@ const work: WorkItem[] = sources.map((s, i) => {
     // Tagline pulled from the case-study .md frontmatter; entries without a
     // .md yet (ibm) fall back to "Coming soon.".
     subtitle: mdSubtitle(s.slug) ?? "",
+    // Description shown below the project name on the homepage hero. .md
+    // frontmatter takes precedence; falls back to the source-level field.
+    homeDescription: mdHomeDescription(s.slug) ?? s.homeDescription,
     // Homepage hero, by slug convention (see comment at top of file).
     homeImageSrc: `/images/${s.slug}/home-hero.png`,
     name: entity.name,

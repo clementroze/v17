@@ -19,6 +19,8 @@ type Project = {
   /** True when the hero image is light-toned → use dark border/CTA for contrast. */
   heroIsLight?: boolean;
   comingSoon?: boolean;
+  /** Short description shown below the project name. Editable via `homeDescription:` in the case-study .md frontmatter. */
+  homeDescription?: string;
 };
 
 // Resting inset margin of the first project before it expands to full-bleed.
@@ -44,6 +46,7 @@ function ParallaxProject({
   const innerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLSpanElement>(null);
   const [revealed, setRevealed] = useState(false);
 
@@ -72,10 +75,13 @@ function ParallaxProject({
     const inner = innerRef.current;
     const img = imgRef.current;
     const name = nameRef.current;
+    const desc = project.homeDescription ? descRef.current : null;
     const cta = ctaRef.current; // "Coming soon" label on coming-soon entries, else "See more" CTA
     if (!section || !inner || !img || !name) return;
 
-    const els: HTMLElement[] = cta ? [name, cta] : [name];
+    const revealEls: Array<[HTMLElement, number]> = [[name, 0]];
+    if (desc) revealEls.push([desc, 60]);
+    if (cta) revealEls.push([cta, desc ? 160 : 120]);
 
     // ── Parallax + expand ─────────────────────────────────────────────────────
     const onScroll = () => {
@@ -100,15 +106,13 @@ function ParallaxProject({
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let isVisible = false;
 
-    const STAGGER = [0, 120]; // ms delay per element (name, cta)
-
     const show = () => {
       if (isVisible) return;
       isVisible = true;
       if (showTimer) clearTimeout(showTimer);
       showTimer = setTimeout(() => {
-        els.forEach((el, i) => {
-          setTimeout(() => el.classList.add("effect-b__item--visible"), STAGGER[i]);
+        revealEls.forEach(([el, delay]) => {
+          setTimeout(() => el.classList.add("effect-b__item--visible"), delay);
         });
       }, 16);
     };
@@ -185,9 +189,16 @@ function ParallaxProject({
             const btnArrow = project.heroIsLight ? arrowBlack : arrowWhite;
             return (
               <div className={contentClass}>
-                <h2 ref={nameRef} className="project__name effect-b__item effect-b__item--name">
-                  {project.name}
-                </h2>
+                <div className="project__name-group">
+                  <h2 ref={nameRef} className="project__name effect-b__item effect-b__item--name">
+                    {project.name}
+                  </h2>
+                  {project.homeDescription && (
+                    <p ref={descRef} className="project__description effect-b__item effect-b__item--description">
+                      {project.homeDescription}
+                    </p>
+                  )}
+                </div>
                 <span ref={ctaRef} className="project__cta effect-b__item effect-b__item--cta">
                   {project.comingSoon ? (
                     <Button variant={btnVariant} disabled>

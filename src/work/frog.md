@@ -2,11 +2,12 @@
 slug: frog
 title: frog
 subtitle: Designing the next-generation mobile commodity trading platform.
+homeDescription: Next-gen mobile commodity trading platform.
 role: Design Intern
 type: Research, UX design, Prototyping, Client presentation
 about:
   - [frog](https://www.frog.co) is a design agency renowned for its innovative approach to creating meaningful experiences that advance both people and planet.
-  - This summer, I had the unique opportunity of working with a grain trading company to design the first B2C, mobile trading platform.
+  - Last summer, working from the Paris studio, I had the unique opportunity to work with a grain trading company to design the first B2C, mobile trading platform.
   - I collaborated across design and business teams to deliver a mid-fidelity, highly functional prototype showcasing this mobile platform.
 finalDesigns: Designing the next-generation trading model
 ---

@@ -2,6 +2,7 @@
 slug: replit
 title: Replit
 subtitle: Fostering polish, revamping design systems, building marketing pages.
+homeDescription: Polish, design systems, and marketing pages.
 role: Product Design & Marketing Intern
 type: Product Design, Marketing, Front-end development
 about:
