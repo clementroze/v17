@@ -58,6 +58,8 @@ html {
 
 body {
   font-family: "Helvetica Neue", sans-serif;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking);
   background: var(--white);
   color: var(--black);
   min-height: 100vh;
@@ -184,6 +186,29 @@ footer::selection {
 }
 
 /* =============================================
+   TYPOGRAPHY DEFAULTS
+   ============================================= */
+
+/* body already sets weight-body + tracking (see above). These are the elements
+   that step up to heading weight + heading tracking. Keeping both properties here
+   means changing --weight-heading or --tracking-heading in :root updates every
+   heading surface at once. Individual rules below keep only their own unique
+   properties (font-size, line-height, color, etc.). */
+.hero__title,
+.project__name,
+.work-grid__name,
+.cs-not-found__message,
+.cs-hero__title,
+.cs-heading,
+.cs-section__title,
+.cs-hmw,
+.bio-modal__title,
+.bio-modal__body h3 {
+  font-weight: var(--weight-heading);
+  letter-spacing: var(--tracking-heading);
+}
+
+/* =============================================
    LAYOUT
    ============================================= */
 
@@ -214,7 +239,7 @@ footer::selection {
   background: var(--black);
   color: var(--white);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--weight-heading);
   border-radius: 6px;
   text-decoration: none;
   /* Hidden offscreen until focused */
@@ -290,8 +315,6 @@ footer::selection {
 
 .navbar__link {
   font-size: 14px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   padding: 16px 8px;
   cursor: pointer;
   white-space: nowrap;
@@ -494,7 +517,6 @@ footer::selection {
 
 .menu-overlay__link {
   font-size: clamp(48px, 12vw, 80px);
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   color: var(--white);
   opacity: 0.25;
@@ -590,8 +612,6 @@ footer::selection {
 
 .hero__title {
   font-size: 64px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   white-space: nowrap;
   line-height: var(--leading-heading);
   color: inherit;
@@ -599,7 +619,6 @@ footer::selection {
 
 .hero__subtitle {
   font-size: 32px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: 130%;
   width: min(688px, 100%);
@@ -627,7 +646,6 @@ footer::selection {
   border-radius: 999px; /* pill */
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   white-space: nowrap;
   cursor: pointer;
@@ -898,6 +916,22 @@ footer::selection {
   --btn-hover-fill: rgba(0, 0, 0, 0.1);
 }
 
+/* Spinning rainbow gradient border on hover — used on the rainbow toggle in
+   the NotFound page. The border is always 2px transparent so no layout shift
+   occurs on hover. box-sizing: border-box (global) keeps height at 36px.
+   The ::before fill wipe still works because it only covers the inset padding
+   area; the 2px border layer sits outside that and stays visible. */
+.btn--rainbow-hover {
+  border: 2px solid transparent;
+}
+
+.btn--rainbow-hover:hover {
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--konami-angle), #ff0040, #ff8800, #ffee00, #00cc44, #0088ff, #8800ff, #ff0040) border-box;
+  animation: konami-border-spin 2s linear infinite;
+}
+
 .btn--full-width {
   width: 100%;
 }
@@ -1091,15 +1125,11 @@ footer::selection {
 
 .footer__col-title {
   font-size: 14px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
 }
 
 .footer__col-item {
   font-size: 14px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   color: var(--white-muted);
   line-height: var(--leading-heading);
   transition: collor 120ms ease-out;
@@ -1124,7 +1154,6 @@ footer::selection {
   font-family: inherit;
   font-size: 14px;
   font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   opacity: 0.6;
   background: none;
   border: none;
@@ -1227,8 +1256,6 @@ footer::selection {
 
 .footer__archive-title {
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   color: var(--white);
   line-height: var(--leading-heading);
 }
@@ -1242,8 +1269,6 @@ footer::selection {
 
 .footer__archive-link p {
   font-size: 14px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   color: var(--white);
   white-space: nowrap;
   line-height: var(--leading-heading);
@@ -1271,8 +1296,6 @@ footer::selection {
   border-top: 1px solid var(--white-faint);
   color: var(--white);
   font-size: 12px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
 }
 
 .footer__bottom p {
@@ -1466,7 +1489,7 @@ html.konami canvas {
   animation: konami-border-spin 2s linear infinite;
   font-family: var(--font) !important;
   font-size: 13px;
-  font-weight: var(--weight-body);
+  font-weight: var(--weight-body); /* button element — overrides UA bold */
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   z-index: 99999;
@@ -1943,7 +1966,6 @@ html.konami .projects-nav-m__pill {
 .about-section-row__label {
   margin: 0;
   font-size: 32px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--white);
@@ -1988,7 +2010,6 @@ html.konami .projects-nav-m__pill {
 
 .about-info-text p {
   font-size: 24px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--white-muted);
@@ -2101,8 +2122,6 @@ html.konami .projects-nav-m__pill {
 
 .bio-modal__title {
   font-size: 32px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--white);
 }
@@ -2183,8 +2202,6 @@ html.konami .projects-nav-m__pill {
 
 .bio-modal__body h3 {
   font-size: 24px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--white);
 }
@@ -2192,7 +2209,6 @@ html.konami .projects-nav-m__pill {
 .bio-modal__body p,
 .bio-modal__body li {
   font-size: 18px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--white-muted);
@@ -2707,7 +2723,6 @@ figure.bio-visual__item {
 .about-contact-label {
   color: var(--white-muted);
   margin-top: 12px;
-  letter-spacing: var(--tracking);
   transition: color 200ms ease;
 }
 
@@ -2719,7 +2734,6 @@ figure.bio-visual__item {
 .about-resume-label {
   color: var(--white-muted);
   margin-top: 12px;
-  letter-spacing: var(--tracking);
   transition: color 200ms ease;
 }
 
@@ -2865,8 +2879,6 @@ figure.bio-visual__item {
 
 .accordion-row__company {
   font-size: 20px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   white-space: nowrap;
 }
@@ -2875,8 +2887,6 @@ figure.bio-visual__item {
   flex: 1 0 0;
   min-width: 0;
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--white-muted);
 }
@@ -2889,8 +2899,6 @@ figure.bio-visual__item {
   justify-content: flex-end;
   gap: 6px;
   font-size: 20px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   opacity: 0.5;
 }
@@ -2995,8 +3003,6 @@ figure.bio-visual__item {
 
 .accordion-row__description {
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--white-muted);
   padding-left: 16px;
@@ -3060,8 +3066,6 @@ figure.bio-visual__item {
 
 .work-main__label {
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
   color: var(--black);
 }
@@ -3077,8 +3081,7 @@ figure.bio-visual__item {
   border: none;
   padding: 0;
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
+  font-weight: var(--weight-body); /* button element — overrides UA bold */
   line-height: var(--leading-heading);
   color: var(--black);
   cursor: pointer;
@@ -3294,8 +3297,6 @@ figure.bio-visual__item {
   display: block;
   margin: 0;
   font-size: 32px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
   transition: color 200ms ease;
@@ -3310,7 +3311,6 @@ figure.bio-visual__item {
   display: block;
   margin-top: 4px;
   font-size: 20px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--black);
@@ -3327,9 +3327,7 @@ figure.bio-visual__item {
 
 .work-grid__cta-label {
   font-size: 16px;
-  font-weight: var(--weight-body);
   color: var(--black-scrim);
-  letter-spacing: var(--tracking);
   transition: color 160ms ease-out;
   padding-top: 2px;
 }
@@ -3422,7 +3420,6 @@ figure.bio-visual__item {
   flex: 1 0 0;
   min-width: 0;
   font-size: 48px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
@@ -3437,7 +3434,6 @@ figure.bio-visual__item {
   flex: 1 0 0;
   min-width: 0;
   font-size: 24px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
@@ -3472,8 +3468,6 @@ figure.bio-visual__item {
 
 .work-list__coming-soon {
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   color: var(--black-muted);
 }
 
@@ -3517,11 +3511,54 @@ figure.bio-visual__item {
 .cs-not-found {
   padding: 128px 24px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+  align-items: flex-start;
+  min-height: 600px;
+}
+
+.cs-not-found__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .cs-not-found__message {
-  font-size: 24px;
-  color: var(--black-faint);
+  font-size: 32px;
+  width: fit-content;
+}
+
+.cs-not-found .link {
+  --link-accent-color: var(--focus-ring);
+  color: var(--link-accent-color);
+  text-decoration: none;
+  background-image:
+    linear-gradient(var(--link-accent-color), var(--link-accent-color)),
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
+  background-repeat: no-repeat;
+  background-position:
+    0 100%,
+    0 100%;
+  background-size:
+    0% 1px,
+    100% 1px;
+  transition: background-size 320ms cubic-bezier(0.76, 0, 0.24, 1);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-bottom: 2px;
+}
+
+.cs-not-found .link:hover,
+.cs-not-found .link:focus-visible {
+  background-size:
+    100% 1px,
+    100% 1px;
 }
 
 .cs-not-found__back {
@@ -3602,7 +3639,6 @@ figure.bio-visual__item {
   align-items: center;
   gap: 6px;
   font-size: 20px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   color: var(--white);
   opacity: 0.5;
@@ -3633,15 +3669,12 @@ figure.bio-visual__item {
 
 .cs-hero__title {
   font-size: 64px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   color: var(--white);
   line-height: var(--leading-heading);
 }
 
 .cs-hero__subtitle {
   font-size: 32px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   color: var(--white-muted);
   line-height: var(--leading-heading);
@@ -3682,8 +3715,6 @@ figure.bio-visual__item {
   gap: 24px;
   align-items: flex-start;
   font-size: 20px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   width: 100%;
 }
 
@@ -3782,8 +3813,6 @@ figure.bio-visual__item {
 
 .cs-hmw {
   font-size: 32px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--black);
   text-align: center;
@@ -3812,15 +3841,12 @@ figure.bio-visual__item {
 .cs-cols__heading {
   font-size: 20px;
   font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-heading);
   color: var(--black);
 }
 
 .cs-cols__body {
   font-size: 16px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black-muted);
 }
@@ -3833,8 +3859,6 @@ figure.bio-visual__item {
 .cs-section__title {
   flex: 0 0 50%;
   font-size: 32px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
 }
@@ -3863,8 +3887,6 @@ figure.bio-visual__item {
 
 .cs-heading {
   font-size: 24px;
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
   color: var(--black);
   width: 100%;
@@ -3874,9 +3896,7 @@ figure.bio-visual__item {
   border-left: 2px solid var(--black);
   padding-left: 12px;
   font-size: 20px;
-  font-weight: var(--weight-body);
   font-style: italic;
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black);
   width: 100%;
@@ -3884,8 +3904,6 @@ figure.bio-visual__item {
 
 .cs-paragraph {
   font-size: 20px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black);
   width: 100%;
@@ -3903,8 +3921,6 @@ figure.bio-visual__item {
 
 .cs-list li {
   font-size: 20px;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   line-height: var(--leading-body);
   color: var(--black);
 }
@@ -3956,7 +3972,6 @@ figure.bio-visual__item {
   gap: 6px;
   font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
   font-size: 0.85em;
-  font-weight: var(--weight-body);
   letter-spacing: 0;
   color: var(--black);
   background: rgba(0 0 0 / 5%);
@@ -3997,7 +4012,6 @@ figure.bio-visual__item {
 .cs-figcaption {
   font-size: 16px;
   color: var(--black-muted);
-  letter-spacing: var(--tracking);
 }
 
 /* margin-top pulls image rows closer to the body text / other image row above
@@ -4107,7 +4121,6 @@ button.cs-images__pic:focus-visible {
   padding: 28px 32px;
   text-align: left;
   font-size: 16px;
-  letter-spacing: var(--tracking);
   color: #fff;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
@@ -4315,7 +4328,6 @@ button.cs-images__pic:focus-visible {
   flex: 0 0 auto;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: var(--tracking);
   color: #fff;
   white-space: nowrap;
   text-shadow: 0 0 20px #000;
@@ -4391,7 +4403,6 @@ button.cs-images__pic:focus-visible {
 
 .cs-nav__name {
   font-size: 36px;
-  font-weight: var(--weight-body);
   letter-spacing: var(--tracking-heading);
   transition: color 200ms ease;
 }
@@ -4408,9 +4419,7 @@ button.cs-images__pic:focus-visible {
 
 .cs-nav__label {
   font-size: 20px;
-  font-weight: var(--weight-body);
   color: var(--black-scrim);
-  letter-spacing: var(--tracking);
   transition: color 160ms ease-out;
 }
 
@@ -4594,8 +4603,6 @@ button.cs-images__pic:focus-visible {
 
 .craft-lightbox__label {
   margin: 0;
-  font-weight: var(--weight-body);
-  letter-spacing: var(--tracking);
   font-size: 16px;
 }
 
@@ -4608,7 +4615,6 @@ button.cs-images__pic:focus-visible {
   align-items: center;
   gap: 6px;
   font-size: 16px;
-  letter-spacing: var(--tracking);
   color: var(--white-muted);
   text-decoration: none;
   border-radius: 4px;
@@ -4639,7 +4645,6 @@ button.cs-images__pic:focus-visible {
   margin: 0;
   color: var(--white-muted);
   font-size: 12px;
-  letter-spacing: var(--tracking);
 }
 
 /* ── Meta swap animation (on prev/next) ──
@@ -5120,14 +5125,12 @@ button.cs-images__pic:focus-visible {
   .hero__title {
     font-size: clamp(36px, 9vw, 56px);
     white-space: normal;
-    letter-spacing: var(--tracking-heading);
     line-height: var(--leading-heading);
     word-break: break-word;
   }
   .hero__subtitle {
     font-size: var(--m-subtitle);
     width: 100%;
-    letter-spacing: var(--tracking);
     /* line-height: var(--leading-heading); */
   }
 
@@ -5157,7 +5160,6 @@ button.cs-images__pic:focus-visible {
   }
   .project__name {
     font-size: clamp(28px, 6vw, 44px);
-    letter-spacing: var(--tracking-heading);
   }
   .project__cta {
     font-size: 15px;
@@ -5296,7 +5298,6 @@ button.cs-images__pic:focus-visible {
   }
   .about-section-row__label {
     font-size: var(--m-label);
-    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
     opacity: 0.5;
   }
@@ -5305,7 +5306,6 @@ button.cs-images__pic:focus-visible {
   }
   .about-info-text p {
     font-size: var(--m-text);
-    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .about-info-more-wrap {
@@ -5388,11 +5388,9 @@ button.cs-images__pic:focus-visible {
   }
   .cs-hero__title {
     font-size: clamp(32px, 7.5vw, 48px);
-    letter-spacing: var(--tracking-heading);
   }
   .cs-hero__subtitle {
     font-size: var(--m-subtitle);
-    letter-spacing: var(--tracking);
   }
   .cs-hero__back {
     font-size: var(--m-label);
@@ -5425,7 +5423,6 @@ button.cs-images__pic:focus-visible {
     align-items: stretch;
     gap: 24px;
     font-size: var(--m-text);
-    letter-spacing: var(--tracking);
   }
   .cs-meta__left {
     width: 100%;
@@ -5493,12 +5490,10 @@ button.cs-images__pic:focus-visible {
   }
   .cs-paragraph {
     font-size: var(--m-text);
-    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .cs-list li {
     font-size: var(--m-text);
-    letter-spacing: var(--tracking);
     line-height: var(--leading-body);
   }
   .cs-quote {
@@ -5607,7 +5602,6 @@ button.cs-images__pic:focus-visible {
   }
   .hero__title {
     font-size: clamp(34px, 11vw, 44px);
-    letter-spacing: var(--tracking-heading);
     line-height: var(--leading-heading);
   }
   /* subtitle inherits --m-subtitle from ≤768 (consistent across phones) */
@@ -5627,7 +5621,6 @@ button.cs-images__pic:focus-visible {
   }
   .project__name {
     font-size: clamp(26px, 7vw, 34px);
-    letter-spacing: var(--tracking-heading);
   }
   .project__cta {
     font-size: 13px;
@@ -5822,7 +5815,6 @@ button.cs-images__pic:focus-visible {
   }
   .hero__title {
     font-size: clamp(28px, 11vw, 36px);
-    letter-spacing: var(--tracking-heading);
   }
   .hero__subtitle {
     font-size: 17px;

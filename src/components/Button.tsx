@@ -8,6 +8,7 @@ type ButtonProps = {
   children: React.ReactNode;
   variant?: ButtonVariant;
   fullWidth?: boolean;
+  className?: string;
   href?: string;
   iconSrc?: string;
   iconAlt?: string;
@@ -26,6 +27,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     children,
     variant = "dark-gray",
     fullWidth = false,
+    className,
     href,
     iconSrc,
     iconAlt = "",
@@ -38,7 +40,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   },
   ref,
 ) {
-  const classes = ["btn", `btn--${variant}`, fullWidth ? "btn--full-width" : "", disabled ? "btn--disabled" : ""]
+  const classes = ["btn", `btn--${variant}`, fullWidth ? "btn--full-width" : "", disabled ? "btn--disabled" : "", className ?? ""]
     .filter(Boolean)
     .join(" ");
 
