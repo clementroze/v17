@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useMemo } from "react";
+import { useRef, useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Footer from "../components/Footer";
@@ -8,6 +8,9 @@ import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import work from "../data/work";
 
 export default function Home() {
+  const [bannerIn, setBannerIn] = useState(false);
+  const [navPushed, setNavPushed] = useState(false);
+  const bannerShownRef = useRef(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<React.RefObject<HTMLDivElement>[]>(
@@ -31,6 +34,24 @@ export default function Home() {
   );
 
   useEffect(() => {
+    const t = setTimeout(() => {
+      bannerShownRef.current = true;
+      setBannerIn(true);
+      setNavPushed(true);
+    }, 900);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (!bannerShownRef.current) return;
+      setNavPushed(window.scrollY < 40);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
     const projectTops = (): number[] =>
       sectionRefs.current
         .map((r) => (r.current ? Math.round(r.current.getBoundingClientRect().top + window.scrollY) : null))
@@ -39,8 +60,7 @@ export default function Home() {
     // Snap targets include the hero so scrolling from the homepage snaps into the first project.
     // Footer is NOT a snap target — past the last project the page scrolls freely.
     const snapTops = (): number[] => {
-      const tops: number[] = [];
-      if (heroRef.current) tops.push(Math.round(heroRef.current.getBoundingClientRect().top + window.scrollY));
+      const tops: number[] = [0]; // top of page: banner + hero both in view
       tops.push(...projectTops());
       return tops;
     };
@@ -133,6 +153,8 @@ export default function Home() {
     const inSnapZone = (y: number): boolean => {
       const r = snapRange();
       if (!r) return false;
+      // Allow free scroll to y=0 (banner area) — don't snap back from the top.
+      if (y < 4) return false;
       return y >= r.min - 1 && y <= r.max + 1;
     };
 
@@ -362,7 +384,14 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="page">
+    <div className={`page${navPushed ? " page--banner-in" : ""}`}>
+      <div className="v17-banner" aria-label="Site announcement">
+        Welcome to Version 17 of clementroze.com, released June 5th 2026. If anything looks off or breaks,{" "}
+        <a href="mailto:cpr58@cornell.edu" className="v17-banner__link">
+          please let me know
+        </a>{" "}
+        :)
+      </div>
       <Navbar sections={navSections} />
       <main id="main-content" className="page__main">
         <div ref={heroRef} className="home__hero-snap">

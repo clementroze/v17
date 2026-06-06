@@ -89,7 +89,7 @@ function ParallaxProject({
       const vh = window.innerHeight;
       const mid = vh / 2 - rect.top - rect.height / 2;
       const range = vh / 2 + rect.height / 2;
-      img.style.transform = `translateY(${(mid / range) * rect.height * 0.28}px)`;
+      img.style.transform = `translateY(${(mid / range) * rect.height * 0.65}px)`;
       if (expand) {
         const t = Math.min(1, Math.max(0, 1 - rect.top / (EXPAND_ZONE * vh)));
         const m = marginStart();

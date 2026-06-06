@@ -269,6 +269,7 @@ footer::selection {
   right: 0;
   z-index: 100;
   pointer-events: none;
+  transition: top 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Gradient blur fade behind navbar — layered blur with mask fade */
@@ -1014,8 +1015,8 @@ footer::selection {
 .project__inner:has(.project__content--light) {
   background: linear-gradient(
     to top,
-    rgba(255, 255, 255, 0.75) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.7) 80%,
     rgba(255, 255, 255, 0) 100%
   );
 }
@@ -1069,7 +1070,7 @@ footer::selection {
 }
 
 .project__name {
-  font-size: 32px;
+  font-size: 24px;
   letter-spacing: var(--tracking-heading);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   font-weight: var(--weight-heading);
@@ -1567,6 +1568,54 @@ html.konami canvas {
    PAGE
    ============================================= */
 
+/* ── v17 launch banner (homepage only) ───────────────────────────────────── */
+
+/* Banner expands from zero height into view, then scrolls with the page */
+@keyframes v17-banner-in {
+  from {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    max-height: 60px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+.v17-banner {
+  width: 100%;
+  background: #000;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  padding: 0 24px;
+  overflow: hidden;
+  max-height: 0;
+  z-index: 100;
+  animation: v17-banner-in 1100ms cubic-bezier(0.22, 1, 0.36, 1) 900ms forwards;
+}
+
+/* When banner is in, gently push the fixed navbar down */
+.page--banner-in .navbar {
+  top: 40px;
+  transition: top 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.v17-banner__link {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 120ms ease-out;
+}
+
+.v17-banner__link:hover {
+  opacity: 0.75;
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
 .page {
   display: flex;
   flex-direction: column;

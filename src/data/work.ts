@@ -99,7 +99,7 @@ const sources: WorkSource[] = [
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/ibm/grid-1.png", "/images/ibm/grid-2.png", "/images/ibm/grid-3.png"],
-    homeDescription: "IMS Enterprise Design",
+    homeDescription: "IMS enterprise design",
   },
   {
     slug: "google",
