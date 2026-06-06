@@ -2420,6 +2420,15 @@ html.konami .projects-nav-m__pill {
   .bio-modal__header::after {
     display: none;
   }
+
+  .project__name-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .project__description {
+    font-size: var(--m-text) !important;
+  }
 }
 
 /* =============================================
@@ -5305,6 +5314,7 @@ button.cs-images__pic:focus-visible {
     gap: 12px;
     padding-left: 4px;
     padding-right: 4px;
+    align-items: flex-end;
   }
   .project__name,
   .project__description {
@@ -5763,6 +5773,7 @@ button.cs-images__pic:focus-visible {
   .project__inner {
     padding-top: 48px;
     padding-bottom: 24px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.55) 60%, rgba(0, 0, 0, 0) 100%);
   }
   .project__content {
     gap: 10px;
