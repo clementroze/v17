@@ -475,6 +475,7 @@ export default function ProjectsNav({
         className={`projects-nav__track${hoveredIndex !== null ? " projects-nav__track--hover" : ""}${pressed ? " projects-nav__track--pressed" : ""}`}
         onMouseLeave={() => setHoveredIndex(null)}
         style={{ touchAction: "none" }}
+        data-lenis-prevent
       >
         {Array.from({ length: count }).map((_, i) => {
           const exitDelay = (count - 1 - i) * 35;

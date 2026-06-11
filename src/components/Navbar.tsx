@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Link, useRouter, COVER_MS, DOT_LEAD_MS } from "../lib/router";
+import { useState, useEffect, useRef } from "react";
+import { LinearBlur } from "progressive-blur";
+import { Link } from "../lib/router";
 import { Reveal } from "../lib/reveal";
 
 type NavbarProps = {
@@ -32,16 +33,9 @@ export default function Navbar({
   forceWhite = false,
   activeLink,
 }: NavbarProps) {
-  const { navigate } = useRouter();
-  const [open, setOpen] = useState(false); // panel mounted (through the slide-out)
-  const [menuIn, setMenuIn] = useState(false); // panel slid into view (drives the CSS transition)
-  const [closing, setClosing] = useState(false);
-  // The hamburger morph reflects intent immediately on tap.
-  const [showX, setShowX] = useState(false);
   const [white, setWhite] = useState(forceWhite);
 
   const navRef = useRef<HTMLElement>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── color: observe watched elements ──────────────────────────────────────────
 
@@ -136,64 +130,10 @@ export default function Navbar({
     };
   }, [sections, forceWhite]);
 
-  // ── mobile menu ──────────────────────────────────────────────────────────────
-
+  // Broadcast navbar color so the external hamburger (in main.tsx) can match.
   useEffect(() => {
-    document.body.style.overflow = open || showX ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open, showX]);
-
-  // Tidy the pending unmount timer if the navbar unmounts mid-transition.
-  useEffect(
-    () => () => {
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    },
-    [],
-  );
-
-  // The black menu panel SLIDES in/out on its own (no column wipe). The column
-  // wipe is reserved for actual page navigation. `open` keeps the panel mounted;
-  // `menuIn` drives the slide via a CSS class, flipped a frame after mount so the
-  // transition runs. The hamburger morphs to an X immediately via `showX`.
-  const MENU_SLIDE_MS = 480;
-
-  const openMenu = useCallback(() => {
-    setShowX(true);
-    setOpen(true);
-    // Next frame: panel is mounted off-screen, now flip the class to slide it in.
-    requestAnimationFrame(() => setMenuIn(true));
-  }, []);
-
-  // Plain close (tapping the X to dismiss the menu, NOT navigating): slide the
-  // panel back out, then unmount once the transition has finished.
-  const closeMenu = useCallback((cb?: () => void) => {
-    setShowX(false);
-    setMenuIn(false);
-    setClosing(true);
-    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = setTimeout(() => {
-      setOpen(false);
-      setClosing(false);
-      cb?.();
-    }, MENU_SLIDE_MS);
-  }, []);
-
-  const handleMobileNav = (href: string) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    // Navigating to a page: the router's OWN column wipe is the transition here.
-    // Slide the menu panel out at the same time and unmount once the wipe has
-    // covered the screen, so the new page is revealed cleanly underneath.
-    setShowX(false);
-    setMenuIn(false);
-    navigate(href);
-    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = setTimeout(() => {
-      setOpen(false);
-      setClosing(false);
-    }, COVER_MS + DOT_LEAD_MS);
-  };
+    window.dispatchEvent(new CustomEvent("navbar-color", { detail: { white } }));
+  }, [white]);
 
   const linkStyle = (active: boolean) => ({ opacity: active ? 1 : 0.5 });
 
@@ -201,11 +141,13 @@ export default function Navbar({
     <>
       <a href="#main-content" className="skip-to-main">Skip to main content</a>
 
-      <div className="navbar__blur-bg" aria-hidden />
+      <div className="navbar__blur-bg" aria-hidden>
+        <LinearBlur side="top" steps={8} strength={48} style={{ position: "absolute", inset: 0 }} />
+      </div>
 
       <nav
         ref={navRef}
-        className={`navbar${white ? " navbar--white" : ""}${open || closing || showX ? " navbar--above-overlay" : ""}`}
+        className={`navbar${white ? " navbar--white" : ""}`}
       >
         <div className="navbar__inner">
           <div className="navbar__col">
@@ -230,45 +172,13 @@ export default function Navbar({
             </div>
           ))}
 
-          {/* Single, persistent hamburger: the SAME two bars morph from lines
-              into the X in place. It sits above the overlay (see CSS z-index)
-              and doubles as the close button when the menu is open. */}
-          <button
-            className={`hamburger${showX ? " hamburger--open" : ""}${open || closing || showX ? " hamburger--over-overlay" : ""}`}
-            onClick={() => (showX ? closeMenu() : openMenu())}
-            aria-label={showX ? "Close menu" : "Open menu"}
-            aria-expanded={showX}
-          >
-            <span className="hamburger__bar" />
-            <span className="hamburger__bar" />
-          </button>
+          {/* Hamburger lives outside the app-panel in main.tsx so it stays
+              viewport-fixed and can morph to X without being clipped by the
+              panel's transform/overflow. Spacer keeps the navbar layout intact. */}
+          <div className="hamburger" aria-hidden />
         </div>
       </nav>
 
-      {open && (
-        <div className={`menu-overlay${menuIn ? " menu-overlay--open" : ""}`}>
-          <div className="menu-overlay__inner">
-            {/* Empty spacer matching the navbar height. The name and the
-                hamburger both live in the navbar above this overlay (z-index
-                300), so the overlay needs neither — just the top offset so the
-                links start below the navbar. */}
-            <div className="menu-overlay__header" aria-hidden />
-            <nav className="menu-overlay__nav">
-              {LINKS.map(({ label, href, key }, i) => (
-                <a
-                  key={key}
-                  href={href}
-                  onClick={handleMobileNav(href)}
-                  className={`menu-overlay__link${activeLink === key ? " menu-overlay__link--active" : ""}`}
-                  style={{ animationDelay: `${i * 120 + 120}ms` }}
-                >
-                  {label}
-                </a>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
     </>
   );
 }

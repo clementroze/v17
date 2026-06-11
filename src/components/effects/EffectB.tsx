@@ -2,6 +2,7 @@
  * Effect B — Apple-style expand-to-fullbleed (first card only) + parallax + blur-fade text
  */
 import { useEffect, useRef, useState } from "react";
+import { LinearBlur } from "progressive-blur";
 import arrowWhite from "../../assets/arrow.svg";
 import arrowBlack from "../../assets/arrow-black.svg";
 import Button from "../Button";
@@ -26,8 +27,7 @@ type Project = {
 // Resting inset margin of the first project before it expands to full-bleed.
 // Tighter on mobile (16px) so the card uses more of the narrow screen; 64px on
 // larger viewports.
-const marginStart = () =>
-  typeof window !== "undefined" && window.innerWidth <= 768 ? 16 : 64;
+const marginStart = () => (typeof window !== "undefined" && window.innerWidth <= 768 ? 16 : 64);
 const RADIUS_START = 32;
 const EXPAND_ZONE = 0.5;
 
@@ -103,7 +103,6 @@ function ParallaxProject({
 
     // ── Reveal logic ──────────────────────────────────────────────────────────
     let showTimer: ReturnType<typeof setTimeout> | null = null;
-    let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let isVisible = false;
 
     const show = () => {
@@ -121,14 +120,17 @@ function ParallaxProject({
       const rect = section.getBoundingClientRect();
       const vh = window.innerHeight;
       const center = rect.top + rect.height / 2;
-      if (center > vh * 0.1 && center < vh * 0.9) show();
+      // Fire once the section is near-centred (≈landed). Because the page slide
+      // brakes hard near the end, this lands the text as the card arrives rather
+      // than waiting for the full settle — so it reads slightly sooner. (The
+      // item transition speed itself is unchanged, in styles.css.)
+      if (center > vh * 0.35 && center < vh * 0.55) show();
     };
 
     const onScrollEnd = () => checkActive();
-    const onScrollIdle = () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      idleTimer = setTimeout(checkActive, 80);
-    };
+    // Run live on scroll (not debounced) so the reveal can begin mid-slide the
+    // moment the card is centred, instead of only after scrolling fully stops.
+    const onScrollIdle = () => checkActive();
 
     window.addEventListener("scrollend", onScrollEnd, { passive: true });
     window.addEventListener("scroll", onScrollIdle, { passive: true });
@@ -139,7 +141,6 @@ function ParallaxProject({
       window.removeEventListener("scrollend", onScrollEnd);
       window.removeEventListener("scroll", onScrollIdle);
       if (showTimer) clearTimeout(showTimer);
-      if (idleTimer) clearTimeout(idleTimer);
     };
   }, [expand, sectionIndex]);
 
@@ -179,6 +180,16 @@ function ParallaxProject({
           decoding="async"
         />
         <div className="project__inner">
+          {/* Progressive gradient blur (replaces the old uniform blur(20px)):
+              four masked layers ramp the blur from strong at the bottom to
+              clear at the top. Styling lives in .project__blur* in styles.css. */}
+          <LinearBlur
+            side="bottom"
+            steps={8}
+            strength={32}
+            style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}
+            aria-hidden="true"
+          />
           {(() => {
             // The row is NOT a link — only the Button on the right is. Tone
             // class flips the border/ink to contrast with light vs dark heroes.

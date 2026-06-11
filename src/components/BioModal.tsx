@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import { LinearBlur } from "progressive-blur";
+
 import Button from "./Button";
 import Picture from "./Picture";
 import { BioSection, getBioSections } from "../data/about";
@@ -453,6 +455,12 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
         {/* Header: title on the left, close on the right — both sit at the same
             padding inset (see .bio-modal__header in CSS). */}
         <div className="bio-modal__header">
+          <LinearBlur
+            side="top"
+            steps={8}
+            strength={32}
+            style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+          />
           <h2 className="bio-modal__title">More about me</h2>
           <button type="button" className="bio-modal__close" onClick={onClose} aria-label="Close">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">

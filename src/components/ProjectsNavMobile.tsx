@@ -270,6 +270,9 @@ export default function ProjectsNavMobile({
         }
         targetScrollY = Math.max(0, nearest - scrollOffset);
       }
+      // Own the scroll while the settle tick runs so Home's Lenis controller
+      // stands down (it watches this flag); the tick clears it when it lands.
+      (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = true;
       if (raf === null) raf = requestAnimationFrame(tick);
       // Suppress the click that follows a real drag so it doesn't also tap-jump.
       if (dragMovedRef.current) {
@@ -300,7 +303,11 @@ export default function ProjectsNavMobile({
     const el = sectionRefs[i]?.current;
     if (!el) return;
     const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - scrollOffset);
-    window.scrollTo({ top, behavior: "smooth" });
+    // Route through Lenis when it's running (Home) so the jump cooperates with
+    // smooth scroll + snap instead of being stomped by Lenis's rAF.
+    const lenis = (window as unknown as { __lenis?: { scrollTo: (t: number, o?: object) => void } }).__lenis;
+    if (lenis) lenis.scrollTo(top, { duration: 0.7, easing: (t: number) => 1 - Math.pow(1 - t, 3) });
+    else window.scrollTo({ top, behavior: "smooth" });
   };
 
   const phaseClass =
@@ -326,6 +333,7 @@ export default function ProjectsNavMobile({
         ref={trackRef}
         className={`projects-nav-m__track${pressed ? " projects-nav-m__track--pressed" : ""}`}
         style={{ touchAction: "none" }}
+        data-lenis-prevent
       >
         {Array.from({ length: count }).map((_, i) => (
           <button

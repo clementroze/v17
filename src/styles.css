@@ -44,6 +44,43 @@
   padding: 0;
 }
 
+/* Lenis smooth-scroll base styles (used on the homepage). `scroll-behavior:
+   auto` is required so the browser's native smooth-scroll never fights Lenis's
+   lerp; `[data-lenis-prevent]` opts an element out of Lenis gesture capture
+   (the project-nav scrubber tracks). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* ── Mobile Reels-style touch paging (homepage only) ──────────────────────────
+   Desktop paging is JS-driven (wheel capture in Home.tsx). On touch we let the
+   browser do it natively: `mandatory` snap + `scroll-snap-stop: always` means a
+   swipe can advance at most one full-viewport section before it locks — exactly
+   the Instagram Reels feel. Scoped to `html.home-paging`, which Home toggles on
+   mount, so other routes scroll normally. The footer is a snap point too, so
+   `mandatory` doesn't trap it off-screen below the last project. */
+@media (max-width: 768px) {
+  html.home-paging {
+    scroll-snap-type: y mandatory;
+  }
+  html.home-paging .home__hero-snap,
+  html.home-paging .effect-b__section,
+  html.home-paging .footer {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
@@ -282,25 +319,6 @@ footer::selection {
   pointer-events: none;
   z-index: 99; /* just below navbar at 100 */
 }
-.navbar__blur-bg::before,
-.navbar__blur-bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-}
-/* Strong blur near top */
-.navbar__blur-bg::before {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  height: 60%;
-}
-/* Softer blur extends further */
-.navbar__blur-bg::after {
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-}
 
 .navbar__inner {
   position: relative;
@@ -464,6 +482,162 @@ footer::selection {
 }
 .hamburger--over-overlay .hamburger__bar {
   background: var(--white);
+}
+
+/* ── Mobile slide menu (Twitter/Claude-style) ────────────── */
+/* app-menu-bg: dark background that sits behind the page panel. Invisible on
+   desktop (display:none). On mobile it's always in the DOM at z-index 5; the
+   page panel (z-index 10) slides left to reveal it. */
+.app-menu-bg {
+  display: none;
+}
+
+/* app-panel: transparent wrapper around the full page on desktop. On mobile
+   it gains a stacking context so it can slide as one unit over the bg. */
+.app-panel {
+  /* no desktop styles — transparent passthrough */
+}
+
+@media (max-width: 768px) {
+  .app-menu-bg {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    z-index: 5;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 40px;
+    pointer-events: none;
+  }
+  .app-menu-bg--open {
+    pointer-events: auto;
+  }
+  .app-menu-bg__nav {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    gap: 0;
+  }
+  /* Transition-driven (not keyframes) so the exit mirrors the enter: links slide
+     in + fade up when --open is added, and reverse — slide out + fade down — when
+     it's removed. The per-item stagger delay is set inline in main.tsx (forward
+     order on open, cleared on close). */
+  .app-menu-bg__link {
+    font-size: clamp(36px, 10vw, 52px);
+    font-weight: var(--weight-heading);
+    letter-spacing: var(--tracking-heading);
+    color: var(--white);
+    text-decoration: none;
+    line-height: var(--leading-heading);
+    padding: 10px 0;
+    opacity: 0;
+    transform: translateX(20px);
+    display: block;
+    transition:
+      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .app-menu-bg--open .app-menu-bg__link {
+    opacity: 0.3;
+    transform: translateX(0);
+  }
+  .app-menu-bg--open .app-menu-bg__link--active {
+    opacity: 1;
+  }
+
+  .app-panel {
+    position: relative;
+    z-index: 10;
+    transition:
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      border-radius 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.55s ease;
+  }
+  /* While the menu is open (and through the close animation) the panel becomes a
+     viewport-sized fixed box. That puts its own border-radius on the visible
+     sliver's corners — at the viewport edges — and the radius slides with the
+     panel because it IS the panel. The inner wrapper is pushed up by the locked
+     scroll offset so the frozen page still shows the portion it had when opened.
+     transform: translateX(0) (rather than `none`) keeps a transform on the panel
+     at rest so the navbar (position:fixed inside) stays anchored to the panel
+     throughout the slide instead of snapping to the viewport mid-animation. */
+  .app-panel--fixed {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    /* Flush with the screen at rest; the right corners round as it slides out
+       (animated via the border-radius transition above). Left stays square. */
+    border-radius: 0;
+    transform: translateX(0);
+    will-change: transform;
+  }
+  .app-panel--open {
+    /* TL TR BR BL — only the right (TR/BR) corners round; left edge is off-screen
+       and stays square. */
+    border-radius: 0 32px 32px 0;
+    transform: translateX(-80vw);
+    pointer-events: none;
+  }
+  /* Grey scrim over the sliding panel so it reads as distinct from the nav behind
+     it on any page. A MID-GREY (not black) overlay is key: it lightens dark pages
+     (e.g. the black About page) toward grey and dims light pages — either way the
+     sliver separates from the pure-black nav background. Clipped to the panel's
+     rounded box by overflow:hidden; fades in with the slide. */
+  .app-panel--fixed::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #8a8a8a;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .app-panel--open::after {
+    opacity: 0.4;
+  }
+
+  /* Hide the navbar's backdrop-blur band while the menu is open — it otherwise
+     slides along inside the panel and shows as a blurred rectangle over the
+     grayed sliver. Fades with the slide. */
+  .navbar__blur-bg {
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .app-panel--open .navbar__blur-bg {
+    opacity: 0;
+  }
+  /* The in-panel hamburger (now a spacer div) is hidden; the real button is external */
+  .app-panel .hamburger {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* External hamburger — viewport-fixed so it's unaffected by the panel transform */
+  .hamburger--external {
+    display: flex;
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 20px);
+    right: 16px;
+    z-index: 200;
+  }
+
+  /* White bars: when navbar is white or when menu is open (dark bg) */
+  .hamburger--white .hamburger__bar {
+    background: var(--white);
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .app-panel {
+    transition: none;
+  }
+  .app-menu-bg__link {
+    transition: none;
+    transform: none;
+  }
+  .app-menu-bg--open .app-menu-bg__link {
+    transform: none;
+  }
 }
 
 /* ── Full-page menu overlay ───────────────────────────────── */
@@ -1003,13 +1177,14 @@ footer::selection {
   position: relative;
   display: flex;
   justify-content: center;
-  padding-top: 96px;
+  padding-top: 64px;
   padding-bottom: 32px;
   padding-left: 24px;
   padding-right: 24px;
   width: 100%;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0) 100%);
 }
+
 
 /* Light-hero variant: invert the scrim so dark text/line read against it. */
 .project__inner:has(.project__content--light) {
@@ -1025,6 +1200,7 @@ footer::selection {
    no separate CTA — the line sweep + name color change ARE the affordance. */
 .project__content {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: baseline;
   gap: 16px;
@@ -1332,7 +1508,7 @@ footer::selection {
 }
 
 .footer__city-name {
-  opacity: 0.45;
+  opacity: 0.5;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1342,6 +1518,8 @@ footer::selection {
   display: flex;
   align-items: center;
   opacity: 0.8;
+  position: relative;
+  top: -1px;
 }
 
 .footer__city-time {
@@ -1568,53 +1746,6 @@ html.konami canvas {
    PAGE
    ============================================= */
 
-/* ── v17 launch banner (homepage only) ───────────────────────────────────── */
-
-/* Banner expands from zero height into view, then scrolls with the page */
-@keyframes v17-banner-in {
-  from {
-    max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  to {
-    max-height: 60px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-}
-
-.v17-banner {
-  width: 100%;
-  background: #000;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  line-height: 1.5;
-  text-align: center;
-  padding: 0 24px;
-  overflow: hidden;
-  max-height: 0;
-  z-index: 100;
-  animation: v17-banner-in 1100ms cubic-bezier(0.22, 1, 0.36, 1) 900ms forwards;
-}
-
-/* When banner is in, gently push the fixed navbar down */
-.page--banner-in .navbar {
-  top: 40px;
-  transition: top 1100ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.v17-banner__link {
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: opacity 120ms ease-out;
-}
-
-.v17-banner__link:hover {
-  opacity: 0.75;
-}
-
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 .page {
   display: flex;
@@ -1680,9 +1811,9 @@ picture {
   transform: translateY(24px);
   filter: blur(6px);
   transition:
-    opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .effect-b__item--visible {
@@ -2165,24 +2296,12 @@ html.konami .projects-nav-m__pill {
   pointer-events: none;
 }
 
-/* Two masked blur layers mirroring .navbar__blur-bg: a strong blur near the top
-   and a softer one extending down, both fading out toward the bottom edge. */
-.bio-modal__header::before,
-.bio-modal__header::after {
+/* Dark gradient tint over the progressive blur so the title stays legible. */
+.bio-modal__header::before {
   content: "";
   position: absolute;
   inset: 0;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 10%, transparent 100%);
-}
-.bio-modal__header::before {
-  height: 60%;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-.bio-modal__header::after {
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, transparent 100%);
 }
 
 /* Title + close ride above the blur layers and stay interactive. */
@@ -2416,8 +2535,7 @@ html.konami .projects-nav-m__pill {
     padding: 20px 24px;
     background: linear-gradient(to bottom, rgba(13, 13, 13, 0.9) 0%, transparent 100%);
   }
-  .bio-modal__header::before,
-  .bio-modal__header::after {
+  .bio-modal__header::before {
     display: none;
   }
 
@@ -2794,10 +2912,21 @@ figure.bio-visual__item {
 .about-contact-icon {
   width: 48px;
   height: 48px;
+  border-radius: 24px;
+  box-shadow: 0 8px 16px #007ebb61;
+  corner-shape: squircle;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .about-contact-link:hover .about-contact-card {
   background: #262626;
+}
+
+.about-contact-link:hover .about-contact-icon {
+  box-shadow: 0 8px 18px #007dbb9d;
+  transform: scale(1.03);
 }
 
 .about-contact-label {
@@ -3888,15 +4017,19 @@ figure.bio-visual__item {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   border-top: 1px solid var(--black-line);
   padding-top: 24px;
 }
 
+.cs-meta__col:first-child {
+  gap: 16px;
+}
+
 .cs-meta__row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
 }
 
@@ -3916,7 +4049,6 @@ figure.bio-visual__item {
 
 .cs-role {
   max-width: 200px;
-  text-align: right;
 }
 
 .cs-meta__about {
@@ -3924,9 +4056,15 @@ figure.bio-visual__item {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   border-top: 1px solid var(--black-line);
   padding-top: 24px;
+}
+
+.cs-meta__p {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .cs-meta__about .cs-meta__value {
@@ -5745,6 +5883,14 @@ button.cs-images__pic:focus-visible {
     max-width: 200px;
   }
 
+  .craft-lightbox__label-row {
+    flex-direction: column;
+  }
+
+  .craft-lightbox__link-sep {
+    display: none;
+  }
+
   /* ── Navbar ── */
   .navbar {
     padding-left: 16px;
@@ -5954,7 +6100,6 @@ button.cs-images__pic:focus-visible {
     font-size: 13px;
   }
   .footer__bottom {
-    flex-direction: column;
     gap: 8px;
     text-align: center;
     align-items: center;

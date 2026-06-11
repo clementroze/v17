@@ -597,9 +597,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
   // CURRENT slug, so client-side navigation between case studies stays accurate
   // and no duplicates accumulate.
   useEffect(() => {
-    document
-      .querySelectorAll(`script[${CASE_STUDY_SCHEMA_ATTR}]`)
-      .forEach((s) => s.remove());
+    document.querySelectorAll(`script[${CASE_STUDY_SCHEMA_ATTR}]`).forEach((s) => s.remove());
     const el = document.createElement("script");
     el.type = "application/ld+json";
     el.setAttribute(CASE_STUDY_SCHEMA_ATTR, slug);
@@ -708,11 +706,13 @@ export default function CaseStudy({ slug }: { slug: string }) {
                   </div>
                   <div className="cs-meta__about">
                     <p className="cs-meta__label">About</p>
-                    {meta.about.map((p, i) => (
-                      <p key={i} className="cs-meta__value">
-                        {renderInlineLinks(p)}
-                      </p>
-                    ))}
+                    <div className="cs-meta__p">
+                      {meta.about.map((p, i) => (
+                        <p key={i} className="cs-meta__value">
+                          {renderInlineLinks(p)}
+                        </p>
+                      ))}
+                    </div>
                     {hasFinalDesigns && (
                       <div className="cs-meta__cta cs-meta__cta--down">
                         <Button variant="light-gray" iconSrc={arrowBlack} onClick={scrollToFinalDesigns}>

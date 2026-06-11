@@ -428,6 +428,32 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       ),
     },
     {
+      id: "cooking",
+      heading: "Cooking",
+      layout: "scatter",
+      images: [
+        { src: "/images/bio/crepes.png", alt: "Homemade crepes", top: "-4%", left: "8%", rotate: "-7deg" },
+        { src: "/images/bio/chicken-rice.png", alt: "Chicken rice bowl", top: "2%", left: "55%", rotate: "5deg" },
+        { src: "/images/bio/curry.png", alt: "A pan of curry", top: "28%", left: "24%", rotate: "-3deg" },
+        {
+          src: "/images/bio/grilled-cheese.png",
+          alt: "Grilled cheese sandwich",
+          top: "60%",
+          left: "5%",
+          rotate: "9deg",
+        },
+        { src: "/images/bio/beef-bowl.png", alt: "Beef bowl", top: "63%", left: "58%", rotate: "-6deg" },
+      ],
+      content: (
+        <>
+          <p>
+            I cook! Simple stuff mostly and nothing too elaborate, but enough to feel like a functioning adult. Small
+            things like chicken, rice bowls, grilled cheese, stir-fry vegetables...
+          </p>
+        </>
+      ),
+    },
+    {
       id: "community",
       heading: "Community",
       layout: "stack",

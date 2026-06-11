@@ -13,7 +13,7 @@ import profilePhotoWebp from "../assets/pfp.webp";
 import resumeThumbnail from "../assets/resume-thumbnail.png";
 import resumeThumbnailAvif from "../assets/resume-thumbnail.avif";
 import resumeThumbnailWebp from "../assets/resume-thumbnail.webp";
-import linkedinIcon from "../assets/linkedin-icon.svg";
+import linkedinIcon from "../assets/linkedin-icon.png";
 import { workExperience, freelancing, collaborations, activities, infoParagraphs } from "../data/about";
 
 // ─── section label reveal ─────────────────────────────────────────────────────
