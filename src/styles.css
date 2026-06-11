@@ -1135,18 +1135,22 @@ footer::selection {
   /* no padding — the inner wrapper handles margin */
 }
 
-/* The inset/expanding wrapper — margin and radius are driven by JS */
+/* The inset/recede wrapper — transform, radius and shadow are driven by JS
+   (window/recede in EffectB.tsx): scales down + rounds + lifts while scrolling
+   away from its settled position, flush to the section edges when landed. */
 .effect-b__inner {
   position: relative;
   flex: 1;
   overflow: hidden;
-  margin-left: 0;
-  margin-right: 0;
   border-radius: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  will-change: margin, border-radius;
+  transform-origin: center center; /* scale from centre → even-ish white shell */
+  /* Hairline edge so the window reads against the white shell as it recedes
+     (static, follows the JS-driven border-radius; no per-frame repaint cost). */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  will-change: transform, border-radius;
 }
 
 .project__bg {
@@ -1184,7 +1188,6 @@ footer::selection {
   width: 100%;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0) 100%);
 }
-
 
 /* Light-hero variant: invert the scrim so dark text/line read against it. */
 .project__inner:has(.project__content--light) {
@@ -1771,6 +1774,9 @@ html.konami canvas {
 
 .effect-b__section {
   display: flex;
+  /* The white "film-reel" shell revealed behind the inner as it recedes while
+     scrolling. Fully covered (flush) when the section is landed. */
+  background: #fff;
 }
 
 /* Reveal entrance for the first (expand) section only. Uses opacity + filter
@@ -5703,6 +5709,7 @@ button.cs-images__pic:focus-visible {
   }
   .cs-hero__text {
     padding-bottom: 40px;
+    padding-top: 128px;
   }
   .cs-cover {
     height: 56vw;

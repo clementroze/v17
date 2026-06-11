@@ -119,8 +119,9 @@ export default function Home() {
     // accelerate through sections; we snap to the nearest one once the wheel
     // quiets. This is the "cancel the snap and scroll almost freely" feel.
     const FREE_MULT = 1.3; // wheel delta → free-scroll distance while unlocked
-    const FREE_FOLLOW_S = 0.22; // how quickly free-scroll eases toward its moving target
-    const FREE_IDLE_MS = 130; // wheel silence in free mode before snapping to nearest
+    const FREE_FOLLOW_S = 0.2; // how quickly free-scroll eases toward its moving target
+    const FREE_IDLE_MS = 90; // wheel silence in free mode before snapping (lower = less dead space)
+    const FREE_FWD_BIAS = 0.25; // commit forward once this far past a section in the travel direction
     // Teaser/peek: a sub-threshold gesture doesn't advance — it nudges the feed
     // toward the neighbouring section (a sneak-peek), then rubber-bands back to
     // rest if you don't push past the commit threshold. The peek follows an
@@ -154,6 +155,7 @@ export default function Home() {
     // Free-scroll mode state (engaged when a second gesture cancels a snap).
     let freeMode = false;
     let freeTarget = 0;
+    let freeDir = 0; // last free-scroll direction, for a direction-biased settle
     let freeIdleTimer: ReturnType<typeof setTimeout> | null = null;
 
     const goToPage = (idx: number) => {
@@ -187,16 +189,36 @@ export default function Home() {
       gestureConsumed = false;
       freeTarget = window.scrollY;
     };
+    // Settle target for free-scroll: the section bracketing `y`, biased toward the
+    // travel direction so a scroll commits forward to a FULL section instead of
+    // snapping back to where it came from (kills the halfway "dead space").
+    const settleIndex = (y: number, dir: number): number => {
+      const tops = snapTops();
+      let i = 0;
+      while (i < tops.length - 1 && tops[i + 1] <= y) i++;
+      const upper = Math.min(i + 1, tops.length - 1);
+      if (upper === i) return i;
+      const frac = (y - tops[i]) / (tops[upper] - tops[i]);
+      if (dir > 0) return frac > FREE_FWD_BIAS ? upper : i;
+      if (dir < 0) return frac < 1 - FREE_FWD_BIAS ? i : upper;
+      return frac < 0.5 ? i : upper;
+    };
+
     const freeScrollBy = (dy: number) => {
       const tops = snapTops();
-      const maxY = tops[tops.length - 1]; // keep free movement within the feed
-      freeTarget = Math.max(0, Math.min(maxY, freeTarget + dy * FREE_MULT));
+      const lastTop = tops[tops.length - 1];
+      // Allow free-scroll to run past the last project into the footer (the
+      // footer isn't a snap point), but no further than the document end.
+      const docMax = document.documentElement.scrollHeight - window.innerHeight;
+      freeTarget = Math.max(0, Math.min(docMax, freeTarget + dy * FREE_MULT));
+      if (dy !== 0) freeDir = Math.sign(dy);
       lenis.scrollTo(freeTarget, { duration: FREE_FOLLOW_S, easing: freeEase });
-      // Wheel quiet → leave free mode and snap to the nearest section.
+      // Wheel quiet → leave free mode and snap to a full section (direction-
+      // biased), unless we've run past the last project into the footer.
       if (freeIdleTimer) clearTimeout(freeIdleTimer);
       freeIdleTimer = setTimeout(() => {
         freeMode = false;
-        goToPage(pageIndexFor(freeTarget));
+        if (freeTarget <= lastTop + 8) goToPage(settleIndex(freeTarget, freeDir));
       }, FREE_IDLE_MS);
     };
 
@@ -305,21 +327,33 @@ export default function Home() {
     };
     window.addEventListener("wheel", onWheel, { passive: false });
 
-    // Keyboard: arrows (and PageUp/PageDown) move one page.
+    // Keyboard: ↑/↓ and PageUp/PageDown move one section; Home/End jump to the
+    // first/last project. Keys always respond (no cooldown gate) and chain
+    // mid-slide off the current target.
     const onKeyDown = (e: KeyboardEvent) => {
       const down = e.key === "ArrowDown" || e.key === "PageDown";
       const up = e.key === "ArrowUp" || e.key === "PageUp";
-      if (!down && !up) return;
+      const home = e.key === "Home";
+      const end = e.key === "End";
+      if (!down && !up && !home && !end) return;
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
+      // A key press takes clean control: drop any in-progress free-scroll so the
+      // key moves crisply one section at a time.
+      if (freeMode) {
+        freeMode = false;
+        if (freeIdleTimer) {
+          clearTimeout(freeIdleTimer);
+          freeIdleTimer = null;
+        }
+      }
       const tops = snapTops();
       const cur = isPaging ? targetIndex : pageIndexFor(window.scrollY);
       // Let the footer scroll naturally when paging down off the last project.
       if (down && cur >= tops.length - 1) return;
       e.preventDefault();
-      const now = performance.now();
-      if (!isPaging && now < cooldownUntil) return;
-      goToPage(cur + (down ? 1 : -1));
+      const target = home ? 0 : end ? tops.length - 1 : cur + (down ? 1 : -1);
+      goToPage(target);
     };
     window.addEventListener("keydown", onKeyDown);
 

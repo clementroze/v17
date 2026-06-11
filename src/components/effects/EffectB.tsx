@@ -24,21 +24,27 @@ type Project = {
   homeDescription?: string;
 };
 
-// Resting inset margin of the first project before it expands to full-bleed.
-// Tighter on mobile (16px) so the card uses more of the narrow screen; 64px on
-// larger viewports.
-const marginStart = () => (typeof window !== "undefined" && window.innerWidth <= 768 ? 16 : 64);
-const RADIUS_START = 32;
-const EXPAND_ZONE = 0.5;
+// Window / film-reel recede: while a section is away from its settled position
+// the inner scales down and rounds its corners, revealing the white section
+// behind it as a rounded shell — "looking through a window". It sits flush to
+// the page edges once landed. Position-driven, so it tracks the snap, the
+// free-scroll mode, and momentum alike.
+const RECEDE_PEAK = 1.0; // viewport fraction away at full recede — 1.0 so the scale/radius
+// track scroll amount across the WHOLE transition (no early plateau) and only
+// reach max once a section is a full viewport away (i.e. essentially off-screen).
+const RECEDE_SCALE = 0.04; // max scale-down (0.04 → ~96%); smaller = thinner shell, frames closer in size
+const RECEDE_RADIUS = 32; // max inner corner radius (px) at full recede (all projects)
 
 function ParallaxProject({
   project,
   expand,
+  isLast,
   sectionIndex,
   onSectionRef,
 }: {
   project: Project;
   expand: boolean;
+  isLast: boolean;
   sectionIndex: number;
   onSectionRef?: (el: HTMLDivElement | null) => void;
 }) {
@@ -83,25 +89,11 @@ function ParallaxProject({
     if (desc) revealEls.push([desc, 60]);
     if (cta) revealEls.push([cta, desc ? 160 : 120]);
 
-    // ── Parallax + expand ─────────────────────────────────────────────────────
-    const onScroll = () => {
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const mid = vh / 2 - rect.top - rect.height / 2;
-      const range = vh / 2 + rect.height / 2;
-      img.style.transform = `translateY(${(mid / range) * rect.height * 0.65}px)`;
-      if (expand) {
-        const t = Math.min(1, Math.max(0, 1 - rect.top / (EXPAND_ZONE * vh)));
-        const m = marginStart();
-        inner.style.marginLeft = `${m * (1 - t)}px`;
-        inner.style.marginRight = `${m * (1 - t)}px`;
-        inner.style.borderRadius = `${RADIUS_START * (1 - t)}px`;
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    // ── Reveal logic ──────────────────────────────────────────────────────────
+    // ── Per-frame transforms + reveal (rAF-coalesced) ──────────────────────────
+    // Everything reads the section rect ONCE per animation frame, then writes —
+    // so multiple scroll events in a single frame can't each force a layout
+    // (the old per-event getBoundingClientRect + animated box-shadow was the
+    // jank). Parallax, the window/recede, and the text reveal share that read.
     let showTimer: ReturnType<typeof setTimeout> | null = null;
     let isVisible = false;
 
@@ -116,33 +108,48 @@ function ParallaxProject({
       }, 16);
     };
 
-    const checkActive = () => {
+    let frameRaf = 0;
+    const applyFrame = () => {
+      frameRaf = 0;
       const rect = section.getBoundingClientRect();
       const vh = window.innerHeight;
+
+      // Parallax image (GPU transform).
+      const mid = vh / 2 - rect.top - rect.height / 2;
+      const range = vh / 2 + rect.height / 2;
+      img.style.transform = `translate3d(0, ${(mid / range) * rect.height * 0.65}px, 0)`;
+
+      // Window/recede: 0 when settled (top at viewport top) → 1 as it scrolls
+      // away. The inner scales down + rounds so the white section behind reads as
+      // a rounded shell; flush when landed. The last section only recedes on the
+      // way IN (rect.top > 0) — scrolling past it stays flush so the footer
+      // reveals with no shell.
+      const away = isLast ? Math.max(0, rect.top) : Math.abs(rect.top);
+      const t = Math.min(1, away / (vh * RECEDE_PEAK));
+      inner.style.transform = `scale(${1 - t * RECEDE_SCALE})`;
+      inner.style.borderRadius = `${t * RECEDE_RADIUS}px`;
+
+      // Reveal the text once the section is near-centred (≈landed).
       const center = rect.top + rect.height / 2;
-      // Fire once the section is near-centred (≈landed). Because the page slide
-      // brakes hard near the end, this lands the text as the card arrives rather
-      // than waiting for the full settle — so it reads slightly sooner. (The
-      // item transition speed itself is unchanged, in styles.css.)
       if (center > vh * 0.35 && center < vh * 0.55) show();
     };
 
-    const onScrollEnd = () => checkActive();
-    // Run live on scroll (not debounced) so the reveal can begin mid-slide the
-    // moment the card is centred, instead of only after scrolling fully stops.
-    const onScrollIdle = () => checkActive();
+    const schedule = () => {
+      if (frameRaf) return;
+      frameRaf = requestAnimationFrame(applyFrame);
+    };
 
-    window.addEventListener("scrollend", onScrollEnd, { passive: true });
-    window.addEventListener("scroll", onScrollIdle, { passive: true });
-    checkActive();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scrollend", schedule, { passive: true });
+    applyFrame(); // initial paint
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("scrollend", onScrollEnd);
-      window.removeEventListener("scroll", onScrollIdle);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scrollend", schedule);
+      if (frameRaf) cancelAnimationFrame(frameRaf);
       if (showTimer) clearTimeout(showTimer);
     };
-  }, [expand, sectionIndex]);
+  }, [expand, isLast, sectionIndex]);
 
   const section = (
     <div
@@ -154,19 +161,9 @@ function ParallaxProject({
         expand ? ` effect-b__section--reveal${revealed ? " effect-b__section--revealed" : ""}` : ""
       }`}
     >
-      <div
-        ref={innerRef}
-        className="effect-b__inner"
-        style={
-          expand
-            ? {
-                marginLeft: marginStart(),
-                marginRight: marginStart(),
-                borderRadius: RADIUS_START,
-              }
-            : { marginLeft: 0, marginRight: 0, borderRadius: 0 }
-        }
-      >
+      {/* transform/border-radius/box-shadow are driven per-scroll in the effect
+          above (the window/recede). Starts flush; recedes as it scrolls away. */}
+      <div ref={innerRef} className="effect-b__inner">
         <Picture
           ref={imgRef}
           src={project.homeImageSrc}
@@ -251,6 +248,7 @@ export default function EffectB({
           key={p.name}
           project={p}
           expand={i === 0}
+          isLast={i === projects.length - 1}
           sectionIndex={i}
           onSectionRef={(el) => onSectionRef?.(i, el)}
         />

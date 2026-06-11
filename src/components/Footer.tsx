@@ -80,9 +80,7 @@ export default function Footer() {
   const bottomRef = useReveal(300);
   const { local, localDaytime } = useCurrentTime();
   const [rainbowOn, setRainbowOn] = useState(
-    () =>
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("konami"),
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("konami"),
   );
 
   // Source of truth is the `html.konami` class (owned by main.tsx). Observe it so
@@ -142,6 +140,14 @@ export default function Footer() {
           </a>
           <a href="https://x.com/TheBookie0" target="_blank" rel="noopener noreferrer" className="footer__col-item">
             Twitter
+          </a>
+          <a
+            href="https://dribbble.com/clementroze"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer__col-item"
+          >
+            Dribbble
           </a>
           <a
             href="https://www.linkedin.com/in/clementroze"

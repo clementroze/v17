@@ -62,6 +62,9 @@ function App() {
   const lockYRef = React.useRef(0);
   const lightboxOpenRef = React.useRef(false);
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
+  // The bio "More about me" modal hides the mobile hamburger while open (it sits
+  // above the hamburger and would otherwise bleed through its blurred scrim).
+  const [bioModalOpen, setBioModalOpen] = React.useState(false);
   const firstScrollRestore = React.useRef(true);
   const [navbarWhite, setNavbarWhite] = React.useState(false);
   const [konamiOn, setKonamiOn] = React.useState(false);
@@ -170,16 +173,22 @@ function App() {
     const color = (e: Event) => setNavbarWhite((e as CustomEvent<{ white: boolean }>).detail.white);
     const onLightboxOpen = () => { lightboxOpenRef.current = true; setLightboxOpen(true); };
     const onLightboxClose = () => { lightboxOpenRef.current = false; setLightboxOpen(false); };
+    const onBioOpen = () => setBioModalOpen(true);
+    const onBioClose = () => setBioModalOpen(false);
     window.addEventListener("mobile-menu-open", open);
     window.addEventListener("mobile-menu-close", close);
     window.addEventListener("navbar-color", color);
     window.addEventListener("lightbox-open", onLightboxOpen);
     window.addEventListener("lightbox-close", onLightboxClose);
+    window.addEventListener("bio-modal-open", onBioOpen);
+    window.addEventListener("bio-modal-close", onBioClose);
     return () => {
       window.removeEventListener("mobile-menu-open", open);
       window.removeEventListener("mobile-menu-close", close);
       window.removeEventListener("lightbox-open", onLightboxOpen);
       window.removeEventListener("lightbox-close", onLightboxClose);
+      window.removeEventListener("bio-modal-open", onBioOpen);
+      window.removeEventListener("bio-modal-close", onBioClose);
       window.removeEventListener("navbar-color", color);
     };
   }, []);
@@ -313,8 +322,8 @@ function App() {
         onClick={() => window.dispatchEvent(new CustomEvent(menuOpen ? "mobile-menu-close" : "mobile-menu-open"))}
         aria-label={menuOpen ? "Close menu" : "Open menu"}
         aria-expanded={menuOpen}
-        aria-hidden={lightboxOpen || undefined}
-        style={lightboxOpen ? { display: "none" } : undefined}
+        aria-hidden={lightboxOpen || bioModalOpen || undefined}
+        style={lightboxOpen || bioModalOpen ? { display: "none" } : undefined}
       >
         <span className="hamburger__bar" />
         <span className="hamburger__bar" />

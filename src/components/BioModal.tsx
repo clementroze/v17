@@ -98,6 +98,17 @@ export default function BioModal({ open, onClose, onOpenDesignClubs, triggerRef 
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
+  // Hide the viewport-fixed mobile hamburger (rendered in main.tsx) while the
+  // modal is open — it otherwise bleeds through the modal's blurred scrim and
+  // collides with the modal's own close button. Mirrors the lightbox pattern.
+  useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new CustomEvent("bio-modal-open"));
+    return () => {
+      window.dispatchEvent(new CustomEvent("bio-modal-close"));
+    };
+  }, [open]);
+
   const sections = getBioSections(onOpenDesignClubs);
 
   // Flat list of every image across all sections, each its own carousel slide,
