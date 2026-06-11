@@ -230,7 +230,9 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
   // gesture and hides the hamburger for the duration.
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("lightbox-open"));
-    return () => window.dispatchEvent(new CustomEvent("lightbox-close"));
+    return () => {
+      window.dispatchEvent(new CustomEvent("lightbox-close"));
+    };
   }, []);
 
   // Backdrop fade-in

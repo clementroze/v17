@@ -87,13 +87,23 @@ export default function Navbar({
       // on the first project or below, so the navbar should be white.
       setWhite(el.getBoundingClientRect().top <= NAV_BAND);
     };
+    // rAF-coalesce the scroll path so we read layout at most once per frame.
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
 
     update();
-    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener("scroll", update);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", update);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, [watchPastRef, forceWhite]);
 
@@ -120,13 +130,24 @@ export default function Navbar({
       }
       setWhite(!isLightUnderNav);
     };
+    // rAF-coalesce the scroll path: the loop over all sections reads layout, so
+    // we run it at most once per frame instead of on every scroll event.
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
 
     update();
-    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", update);
     return () => {
-      window.removeEventListener("scroll", update);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", update);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, [sections, forceWhite]);
 
