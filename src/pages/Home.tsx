@@ -114,14 +114,21 @@ export default function Home() {
     const REACCEL_RATIO = 1.2; // a new push's delta must exceed the last by this factor…
     const REACCEL_MIN = 5; // …and by this absolute amount, to count as a fresh touch
     const MIN_COMMIT_GAP_MS = 80; // floor between commits so one flick's own ramp can't double-fire
+    // Free-scroll mode: when a second gesture interrupts a snap, the lock is
+    // released and the wheel drives the scroll position directly so you can
+    // accelerate through sections; we snap to the nearest one once the wheel
+    // quiets. This is the "cancel the snap and scroll almost freely" feel.
+    const FREE_MULT = 1.3; // wheel delta → free-scroll distance while unlocked
+    const FREE_FOLLOW_S = 0.22; // how quickly free-scroll eases toward its moving target
+    const FREE_IDLE_MS = 130; // wheel silence in free mode before snapping to nearest
     // Teaser/peek: a sub-threshold gesture doesn't advance — it nudges the feed
     // toward the neighbouring section (a sneak-peek), then rubber-bands back to
     // rest if you don't push past the commit threshold. The peek follows an
     // asymptotic resistance curve: a light scroll reveals a little, a stronger
     // scroll reveals more (scaled by accumulated scroll "power"), easing toward a
     // generous cap rather than a hard clamp — so you can hold a good look down.
-    const PEEK_DAMP = 1.0; // how strongly the peek tracks accumulated scroll
-    const PEEK_MAX_FRAC = 0.3; // peek asymptote, as a fraction of viewport height
+    const PEEK_DAMP = 1.35; // how strongly the peek tracks accumulated scroll
+    const PEEK_MAX_FRAC = 0.45; // peek asymptote, as a fraction of viewport height
 
     let isPaging = false;
     let cooldownUntil = 0;
@@ -144,6 +151,10 @@ export default function Home() {
     let lastWheelTs = 0;
     let lastAbsDelta = 0;
     let lastDir = 0;
+    // Free-scroll mode state (engaged when a second gesture cancels a snap).
+    let freeMode = false;
+    let freeTarget = 0;
+    let freeIdleTimer: ReturnType<typeof setTimeout> | null = null;
 
     const goToPage = (idx: number) => {
       const tops = snapTops();
@@ -166,12 +177,43 @@ export default function Home() {
       });
     };
 
+    // Drop into free-scroll: cancel the running snap and let the wheel move the
+    // page directly. easeOutCubic follow makes repeated deltas accelerate smoothly.
+    const freeEase = (t: number) => 1 - Math.pow(1 - t, 3);
+    const enterFreeMode = () => {
+      freeMode = true;
+      isPaging = false; // take over from the (now-cancelled) snap
+      isPeeking = false;
+      gestureConsumed = false;
+      freeTarget = window.scrollY;
+    };
+    const freeScrollBy = (dy: number) => {
+      const tops = snapTops();
+      const maxY = tops[tops.length - 1]; // keep free movement within the feed
+      freeTarget = Math.max(0, Math.min(maxY, freeTarget + dy * FREE_MULT));
+      lenis.scrollTo(freeTarget, { duration: FREE_FOLLOW_S, easing: freeEase });
+      // Wheel quiet → leave free mode and snap to the nearest section.
+      if (freeIdleTimer) clearTimeout(freeIdleTimer);
+      freeIdleTimer = setTimeout(() => {
+        freeMode = false;
+        goToPage(pageIndexFor(freeTarget));
+      }, FREE_IDLE_MS);
+    };
+
     // Wheel: accumulate a gesture's delta, commit a single page once it crosses
     // the threshold, then ignore everything until the slide + cooldown finishes.
     const onWheel = (e: WheelEvent) => {
       if (isPillDragging()) return;
       if (e.ctrlKey) return; // trackpad pinch-zoom — leave it to the browser
       if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // horizontal-dominant gesture
+
+      // Free-scroll mode owns the wheel entirely until it settles.
+      if (freeMode) {
+        e.preventDefault();
+        freeScrollBy(e.deltaY);
+        return;
+      }
+
       const tops = snapTops();
       const y = window.scrollY;
       const dir = e.deltaY > 0 ? 1 : -1;
@@ -202,19 +244,18 @@ export default function Home() {
       lastAbsDelta = absD;
       lastDir = dir;
 
-      // Mid-slide: a fresh, deliberate gesture cancels the running slide and
-      // advances immediately to the next section — touch again and it goes again,
-      // as early in the animation as the second touch lands. The only gate is a
-      // short floor since the last commit, so one flick's own ramp can't double-
-      // fire. Either way the gesture is marked consumed, so its trailing momentum
-      // can't peek when the slide settles.
+      // Mid-slide: a fresh, deliberate second gesture CANCELS the snap and drops
+      // into free scroll, so you can accelerate through sections instead of being
+      // held one-at-a-time; it re-snaps to the nearest section when you stop. The
+      // floor since the last commit keeps a single flick's own ramp from tripping
+      // this, and momentum that isn't a fresh gesture is ignored — so a lone flick
+      // still snaps cleanly to exactly one section.
       if (isPaging) {
-        if (newGesture) {
-          gestureConsumed = true;
-          if (now - lastCommitAt >= MIN_COMMIT_GAP_MS) {
-            isPeeking = false;
-            goToPage(targetIndex + dir);
-          }
+        if (newGesture && now - lastCommitAt >= MIN_COMMIT_GAP_MS) {
+          enterFreeMode();
+          freeScrollBy(e.deltaY);
+        } else if (newGesture) {
+          gestureConsumed = true; // floored (same flick's ramp) — consume, don't act
         }
         return;
       }
@@ -287,6 +328,7 @@ export default function Home() {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown);
       if (wheelIdleTimer) clearTimeout(wheelIdleTimer);
+      if (freeIdleTimer) clearTimeout(freeIdleTimer);
       document.documentElement.classList.remove("home-paging");
       lenis.destroy();
       delete (window as unknown as { __lenis?: Lenis }).__lenis;

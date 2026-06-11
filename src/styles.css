@@ -5530,6 +5530,7 @@ button.cs-images__pic:focus-visible {
     box-sizing: border-box;
     height: auto;
     padding: 16px 0 8px;
+    touch-action: pan-y;
   }
   /* Images: all on the second grid row, each a near-full-width slide (grid-auto-
      columns), flowing into implicit columns the row scrolls through. */

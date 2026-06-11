@@ -226,6 +226,13 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
     };
   }, [phase]);
 
+  // Tell main.tsx the lightbox is open so it suppresses the swipe-to-menu
+  // gesture and hides the hamburger for the duration.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("lightbox-open"));
+    return () => window.dispatchEvent(new CustomEvent("lightbox-close"));
+  }, []);
+
   // Backdrop fade-in
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true));

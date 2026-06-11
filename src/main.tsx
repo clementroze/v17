@@ -60,6 +60,8 @@ function App() {
   // true through the close animation, then released so the page flows normally.
   const [panelFixed, setPanelFixed] = React.useState(false);
   const lockYRef = React.useRef(0);
+  const lightboxOpenRef = React.useRef(false);
+  const [lightboxOpen, setLightboxOpen] = React.useState(false);
   const firstScrollRestore = React.useRef(true);
   const [navbarWhite, setNavbarWhite] = React.useState(false);
   const [konamiOn, setKonamiOn] = React.useState(false);
@@ -166,12 +168,18 @@ function App() {
     const open = () => setMenuOpen(true);
     const close = () => setMenuOpen(false);
     const color = (e: Event) => setNavbarWhite((e as CustomEvent<{ white: boolean }>).detail.white);
+    const onLightboxOpen = () => { lightboxOpenRef.current = true; setLightboxOpen(true); };
+    const onLightboxClose = () => { lightboxOpenRef.current = false; setLightboxOpen(false); };
     window.addEventListener("mobile-menu-open", open);
     window.addEventListener("mobile-menu-close", close);
     window.addEventListener("navbar-color", color);
+    window.addEventListener("lightbox-open", onLightboxOpen);
+    window.addEventListener("lightbox-close", onLightboxClose);
     return () => {
       window.removeEventListener("mobile-menu-open", open);
       window.removeEventListener("mobile-menu-close", close);
+      window.removeEventListener("lightbox-open", onLightboxOpen);
+      window.removeEventListener("lightbox-close", onLightboxClose);
       window.removeEventListener("navbar-color", color);
     };
   }, []);
@@ -250,6 +258,7 @@ function App() {
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (window.innerWidth > 768) return; // mobile-only menu
+      if (lightboxOpenRef.current) return; // lightbox owns all touch gestures
       const dx = e.changedTouches[0].clientX - startX;
       const dy = e.changedTouches[0].clientY - startY;
       if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
@@ -304,6 +313,8 @@ function App() {
         onClick={() => window.dispatchEvent(new CustomEvent(menuOpen ? "mobile-menu-close" : "mobile-menu-open"))}
         aria-label={menuOpen ? "Close menu" : "Open menu"}
         aria-expanded={menuOpen}
+        aria-hidden={lightboxOpen || undefined}
+        style={lightboxOpen ? { display: "none" } : undefined}
       >
         <span className="hamburger__bar" />
         <span className="hamburger__bar" />
