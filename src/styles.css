@@ -1149,7 +1149,7 @@ footer::selection {
   transform-origin: center center; /* scale from centre → even-ish white shell */
   /* Hairline edge so the window reads against the white shell as it recedes
      (static, follows the JS-driven border-radius; no per-frame repaint cost). */
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
   will-change: transform, border-radius;
 }
 
@@ -5163,13 +5163,14 @@ button.cs-images__pic:focus-visible {
   -webkit-user-drag: none;
   user-select: none;
   pointer-events: none;
+  width: 100%;
 }
 
 .craft-lightbox__img {
   display: block;
   height: auto;
   max-height: 85vh;
-  max-width: calc(100vw - 128px);
+  /* max-width: calc(100vw - 128px); */
   width: auto;
 }
 
@@ -5180,13 +5181,14 @@ button.cs-images__pic:focus-visible {
   background: linear-gradient(135deg, var(--white-faint), var(--white-faint));
 }
 
-/* Custom video player inside the lightbox: size it to fit the viewport like the
-   image (85vh tall, width follows aspect), so the video isn't cropped by the
-   card's overflow:hidden. The inline `aspect-ratio` (set from the known ratio in
-   CaseStudyVideo) gives the wrapper a real width on first paint — so the open
-   morph can measure the card before the video's metadata has decoded. */
+/* Custom video player inside the lightbox: fill the card, which the lightbox
+   reserves at the correct contain-fit box from the known aspect (see
+   `containBox` in CraftLightbox) so the open morph can measure it on first
+   paint — before the video's metadata has decoded. Filling the card (rather
+   than forcing 85vh) keeps wide videos from overflowing the reserved box. */
 .craft-lightbox__card .cs-video {
-  height: 85vh;
+  width: 100%;
+  height: 100%;
   max-height: 85vh;
   max-width: calc(100vw - 128px);
 }

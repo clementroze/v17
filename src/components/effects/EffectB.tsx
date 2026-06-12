@@ -33,7 +33,7 @@ const RECEDE_PEAK = 1.0; // viewport fraction away at full recede — 1.0 so the
 // track scroll amount across the WHOLE transition (no early plateau) and only
 // reach max once a section is a full viewport away (i.e. essentially off-screen).
 const RECEDE_SCALE = 0.04; // max scale-down (0.04 → ~96%); smaller = thinner shell, frames closer in size
-const RECEDE_RADIUS = 32; // max inner corner radius (px) at full recede (all projects)
+const RECEDE_RADIUS = 48; // max inner corner radius (px) at full recede (all projects)
 
 function ParallaxProject({
   project,

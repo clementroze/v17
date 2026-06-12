@@ -27,6 +27,12 @@ const ZOOM_MIN = 1;
 // Only auto-zoom when the image is meaningfully taller than wide — short or
 // square images keep zoom = 1 so the contain-fit shows them in full.
 const TALL_ASPECT_THRESHOLD = 1.4; // natH / natW (= 1/aspect, since aspect = w/h)
+// Viewport gutter the card sits inside (matches .craft-lightbox { padding: 64px }).
+const LIGHTBOX_PAD = 64;
+// How far below dead-centre a normal (non-tall) image rests on open, as a
+// fraction of viewport height. Subtle — just enough to feel centred rather than
+// floating high. Clamped to the available slack so the bottom never clips.
+const CENTER_NUDGE_VH = 0.04;
 
 /**
  * Decide how to frame a tall image on open. Takes the image's aspect (w/h)
@@ -39,7 +45,18 @@ const TALL_ASPECT_THRESHOLD = 1.4; // natH / natW (= 1/aspect, since aspect = w/
  */
 function computeInitialFraming(aspect: number): { zoom: number; panY: number } {
   if (!aspect || 1 / aspect < TALL_ASPECT_THRESHOLD) {
-    return { zoom: 1, panY: 0 };
+    // Normal/short images stay at 1×, but rest a touch below dead-centre so they
+    // read as centred rather than floating high. Clamp the downward nudge to the
+    // slack between the contain-fitted image and the padded viewport, so a near-
+    // full-height image can't push its bottom edge off-screen. Tall images skip
+    // this entirely and keep their top-aligned framing (below).
+    if (!aspect) return { zoom: 1, panY: 0 };
+    const vh = window.innerHeight;
+    const maxW = window.innerWidth - 2 * LIGHTBOX_PAD;
+    let renderedH = 0.85 * vh;
+    if (aspect * renderedH > maxW) renderedH = maxW / aspect;
+    const slack = Math.max(0, (vh - 2 * LIGHTBOX_PAD - renderedH) / 2);
+    return { zoom: 1, panY: Math.min(CENTER_NUDGE_VH * vh, slack) };
   }
   const vh = window.innerHeight;
   const vw = window.innerWidth;
@@ -56,6 +73,26 @@ function computeInitialFraming(aspect: number): { zoom: number; panY: number } {
   // (z-1)*H/2; translate down by that amount to snap the top back into view.
   const panY = ((zoom - 1) * renderedH) / 2;
   return { zoom, panY };
+}
+
+/**
+ * The pixel box the card will occupy once its media is laid out — a `contain`
+ * fit of the given aspect (w/h) into the viewport, mirroring the card's CSS
+ * (`max-width: calc(100vw - 128px)`, `max-height: 85vh`). Applied to the card
+ * as an explicit width/height so it has a measurable box on FIRST paint, before
+ * the <img>/<video> has decoded its natural size. Without it the card is 0×0 on
+ * open and the enter morph (which measures the card) is silently skipped.
+ */
+function containBox(aspect: number): { width: number; height: number } {
+  const maxW = window.innerWidth - 128;
+  const maxH = window.innerHeight * 0.85;
+  let height = maxH;
+  let width = maxH * aspect;
+  if (width > maxW) {
+    width = maxW;
+    height = maxW / aspect;
+  }
+  return { width, height };
 }
 
 type Props = {
@@ -163,67 +200,100 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
   // which crops, so morphing between two different aspect rects without a
   // uniform scale would stretch the image. We scale to fit the source rect
   // entirely (max of sx, sy) and center the difference with translate.
-  const computeOriginTransform = useCallback((): string | null => {
-    const card = cardRef.current;
-    const sourceEl = getOriginEl(indexRef.current);
-    if (!card || !sourceEl) return null;
-    const finalRect = measure(card);
-    const sourceRect = measure(sourceEl);
-    if (finalRect.width === 0 || finalRect.height === 0) return null;
-    const sx = sourceRect.width / finalRect.width;
-    const sy = sourceRect.height / finalRect.height;
-    // Use the LARGER scale so the morphed card fully covers the source slot
-    // (matching `object-fit: cover` behavior on the grid card).
-    const scale = Math.max(sx, sy);
-    const scaledW = finalRect.width * scale;
-    const scaledH = finalRect.height * scale;
-    // Center the scaled card over the source rect
-    const dx = sourceRect.left - finalRect.left - (scaledW - sourceRect.width) / 2;
-    const dy = sourceRect.top - finalRect.top - (scaledH - sourceRect.height) / 2;
-    return `translate(${dx}px, ${dy}px) scale(${scale})`;
-  }, [getOriginEl]);
-
-  // Initial morph: pin to origin synchronously after first paint.
+  // Imperative OPEN morph — the mirror image of close(). We animate the card's
+  // transform per-frame with rAF (re-measuring the source thumbnail every frame
+  // so it tracks scroll) instead of leaning on a React phase → CSS-transition
+  // hand-off. The old approach pinned an "origin" transform in state and waited
+  // two rAFs before flipping to "center" to kick a CSS transition; that origin
+  // frame could fail to paint (re-renders from aspect/scroll updates reset the
+  // countdown), so the image popped straight to centre with no entrance. Driving
+  // the morph imperatively — exactly like the exit — makes the entrance reliable.
   useLayoutEffect(() => {
     if (phase !== "origin") return;
-    const t = computeOriginTransform();
-    if (t) {
-      setOriginTransform(t);
-    } else {
-      // Card has no measurable size — skip morph, CSS fade-in handles entrance.
-      setPhase("idle");
-    }
-  }, [phase, computeOriginTransform]);
-
-  // After origin paints, advance to center on next frame to trigger transition.
-  useEffect(() => {
-    if (phase !== "origin" || originTransform === null) return;
-    let r2 = 0;
-    const r1 = requestAnimationFrame(() => {
-      r2 = requestAnimationFrame(() => setPhase("center"));
-    });
-    return () => {
-      cancelAnimationFrame(r1);
-      if (r2) cancelAnimationFrame(r2);
-    };
-  }, [phase, originTransform]);
-
-  // When the centering transition ends, mark idle.
-  useEffect(() => {
-    if (phase !== "center") return;
     const card = cardRef.current;
-    if (!card) return;
-    const onEnd = (e: TransitionEvent) => {
-      if (e.target !== card || e.propertyName !== "transform") return;
+    const sourceEl = getOriginEl(indexRef.current);
+    // No measurable source/card → skip the morph; the card just appears.
+    if (!card || !sourceEl) {
       setPhase("idle");
-      card.removeEventListener("transitionend", onEnd);
+      return;
+    }
+    const naturalW = card.offsetWidth;
+    const naturalH = card.offsetHeight;
+    if (naturalW === 0 || naturalH === 0) {
+      setPhase("idle");
+      return;
+    }
+
+    // The card's untransformed top-left in viewport coords (strip any transform
+    // it currently carries). Its layout box is centred in the fixed overlay, so
+    // this stays put while the page scrolls underneath.
+    const visible = measure(card);
+    const m0 = new DOMMatrixReadOnly(getComputedStyle(card).transform);
+    const naturalLeft = visible.left - m0.e;
+    const naturalTop = visible.top - m0.f;
+
+    // Source-mapped (thumbnail) transform — uniform scale so the aspect is
+    // preserved while covering the source slot (object-fit: cover on the grid).
+    const originFor = (src: Rect) => {
+      const scale = Math.max(src.width / naturalW, src.height / naturalH);
+      const scaledW = naturalW * scale;
+      const scaledH = naturalH * scale;
+      const dx = src.left - naturalLeft - (scaledW - src.width) / 2;
+      const dy = src.top - naturalTop - (scaledH - src.height) / 2;
+      return { dx, dy, scale };
     };
-    card.addEventListener("transitionend", onEnd);
-    const t = window.setTimeout(() => setPhase("idle"), MORPH_IN_MS + 80);
-    return () => {
-      card.removeEventListener("transitionend", onEnd);
-      clearTimeout(t);
+
+    // Pin to the thumbnail BEFORE the first paint so there's a real "from"
+    // state — both imperatively (wins this frame) and via React state (so
+    // re-renders during the morph keep the same locked origin string).
+    const startO = originFor(measure(sourceEl));
+    const startStr = `translate(${startO.dx}px, ${startO.dy}px) scale(${startO.scale})`;
+    setOriginTransform(startStr);
+    card.style.transformOrigin = "top left";
+    card.style.transition = "none";
+    card.style.willChange = "transform";
+    card.style.transform = startStr;
+
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    const startTime = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - startTime) / MORPH_IN_MS);
+      const e = ease(t);
+
+      // Live end target: the framed pan/zoom, read each frame so a late
+      // onImgLoad re-frame (tall screenshots) is animated to, not snapped.
+      const z = zoomRef.current;
+      const p = panRef.current;
+      const endDx = p.x - ((z - 1) * naturalW) / 2;
+      const endDy = p.y - ((z - 1) * naturalH) / 2;
+
+      // Re-measure the source every frame so the origin tracks page scroll.
+      const o = originFor(measure(sourceEl));
+
+      const dx = o.dx + (endDx - o.dx) * e;
+      const dy = o.dy + (endDy - o.dy) * e;
+      const scale = o.scale + (z - o.scale) * e;
+
+      card.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+      // Keep the rendered corner radius constant as the card scales.
+      card.style.borderRadius = `calc(var(--radius-img) / ${scale})`;
+
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        // Hand control back to React's idle styling (same framed transform).
+        card.style.transition = "";
+        card.style.willChange = "";
+        card.style.transform = "";
+        card.style.borderRadius = "";
+        setPhase("idle");
+      }
     };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // Runs once on entering the "origin" phase (component mount).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   // Tell main.tsx the lightbox is open so it suppresses the swipe-to-menu
@@ -338,15 +408,21 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       const next = (index + delta + items.length) % items.length;
       setDir(delta > 0 ? 1 : -1);
       setAnimKey((k) => k + 1);
-      // Reset per-item state; initialZoom will be re-derived from the new
-      // image's natural size in onImgLoad.
-      setZoom(1);
-      setInitialZoom(1);
-      setZoomMax(ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1]);
-      setPan({ x: 0, y: 0 });
+      // Seed the next item's framing SYNCHRONOUSLY from its already-measured
+      // aspect (same as the initial open) so a tall screenshot renders straight
+      // at its framed zoom. Resetting to 1× here instead let onImgLoad bump the
+      // zoom a frame later, which — with the card's idle transform transition —
+      // showed the image flashing in small and then resizing to position.
+      const id = items[next]?.id;
+      const a = (id ? aspectMap?.[id] : undefined) ?? items[next]?.aspect ?? 0;
+      const f = computeInitialFraming(a);
+      setZoom(f.zoom);
+      setInitialZoom(f.zoom);
+      setZoomMax(Math.max(ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1], f.zoom * 2));
+      setPan({ x: 0, y: f.panY });
       onIndexChange(next);
     },
-    [index, items.length, onIndexChange],
+    [index, items, aspectMap, onIndexChange],
   );
 
   // Fallback path: when the parent didn't yet have an aspect for this item
@@ -362,7 +438,13 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       const natH = img.naturalHeight;
       if (!natW || !natH) return;
       const { zoom: z, panY } = computeInitialFraming(natW / natH);
-      if (z <= 1) return;
+      if (z <= 1) {
+        // Non-tall: no zoom, but apply the small downward centring nudge now
+        // that we know the real aspect (the synchronous init may have run
+        // without one, leaving the image dead-centred).
+        setPan({ x: 0, y: panY });
+        return;
+      }
       setInitialZoom(z);
       setZoomMax(Math.max(ZOOM_STEPS_BASE[ZOOM_STEPS_BASE.length - 1], z * 2));
       setZoom(z);
@@ -780,9 +862,24 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
     // phases prevents the abrupt shift that used to happen when phase flipped
     // from 'center' (top-left) to 'idle' (center-center) — that transition
     // swap would visually snap a zoomed-in tall image to a new position.
+    // Reserve the card's layout box from the known aspect (measured by the grid
+    // before the click) so the open morph can measure it on first paint —
+    // before the image/video decodes. Covers BOTH images and videos uniformly.
+    const reserveAspect = (() => {
+      const id = items[index]?.id;
+      return (id ? aspectMap?.[id] : undefined) ?? items[index]?.aspect ?? 0;
+    })();
+    const box = reserveAspect > 0 ? containBox(reserveAspect) : null;
+    const sizeStyle: React.CSSProperties = box ?? {};
+    // Use the DETERMINISTIC reserved box (not cardRef.offsetWidth/Height) for the
+    // zoom-centring math. On prev/next the card remounts (key=animKey), so the
+    // ref still points at the OUTGOING image's element for the first paint —
+    // reading its stale size would frame the new image off-position and then
+    // snap. The reserved box equals the rendered size, so this is exact and
+    // correct on the very first frame.
     const card = cardRef.current;
-    const w = card?.offsetWidth ?? 0;
-    const h = card?.offsetHeight ?? 0;
+    const w = box?.width ?? card?.offsetWidth ?? 0;
+    const h = box?.height ?? card?.offsetHeight ?? 0;
     const framedTransform = (px: number, py: number, z: number): string => {
       const tx = px - ((z - 1) * w) / 2;
       const ty = py - ((z - 1) * h) / 2;
@@ -791,6 +888,7 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
 
     if (phase === "origin" && originTransform) {
       return {
+        ...sizeStyle,
         transformOrigin: "top left",
         transform: originTransform,
         transition: "none",
@@ -801,6 +899,7 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       // Animate from origin (top-left anchored thumb position) to the final
       // framed transform (pan/zoom expressed in top-left coordinates).
       return {
+        ...sizeStyle,
         transformOrigin: "top left",
         transform: framedTransform(pan.x, pan.y, zoom),
         transition: `transform ${MORPH_IN_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
@@ -822,6 +921,7 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       // because the lighter 'transform 200ms ...' kicks in once drift is 0.
       const live = isDragging || dismissDrift !== 0;
       return {
+        ...sizeStyle,
         transformOrigin: "top left",
         transform: framedTransform(pan.x, pan.y + dismissDrift, zoom),
         transition: live ? "transform 80ms linear" : "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -838,6 +938,7 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       // the source — otherwise the shadow follows the card the whole way
       // and snaps off when the lightbox unmounts.
       return {
+        ...sizeStyle,
         transformOrigin: "top left",
         transform: closingStartTransform,
         transition: `box-shadow ${MORPH_OUT_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
@@ -845,7 +946,7 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
         willChange: "transform",
       };
     }
-    return {};
+    return sizeStyle;
   })();
 
   const cardAnimClass =
