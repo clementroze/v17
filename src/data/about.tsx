@@ -101,7 +101,7 @@ export const activities: AccordionRowProps[] = [
   {
     slug: "dcc",
     description: [
-      "I joined DCC, the Ivy League's only student-run design consultancy, in Fall 2024 as a consultant. I first worked with AlgoLink, a startup building an interview hiring platform.",
+      "I joined DCC, the Ivy League's only student-run design consultancy, in Fall 2024 as a consultant. I first worked with Evallos (fka. AlgoLink), a startup building an interview hiring platform.",
       [
         "The next semester, I became a Project Manager, leading collaborations with ",
         { label: "Microsoft", href: "/work/microsoft" },
@@ -124,9 +124,11 @@ export const activities: AccordionRowProps[] = [
         "On the Internal Tools team, I led the redesign and launch of ",
         {
           label: "our new website",
-          href: "https://cornelldti.org/design-system",
+          href: "https://cornelldti.org/",
         },
-        " to better showcase our team and projects. It was rebuilt from the ground up with accessibility, open-source design, and delightful interactions in mind.",
+        " to better showcase our team and projects. It was rebuilt from the ground up with accessibility, ",
+        { label: "open-source design", href: "https://cornelldti.org/design-system" },
+        ", and delightful interactions in mind.",
       ],
       [
         "And with ",
@@ -191,6 +193,16 @@ export type BioImage = {
   top?: string;
   left?: string;
   rotate?: string;
+  // Optional per-image width override (e.g. "80%" or "320px"). Overrides the
+  // layout's default figure width (stack = 62%, scatter = 34%) for this one
+  // image only. The image still renders at its own aspect ratio.
+  width?: string;
+  // Optional per-image aspect-ratio override (e.g. "4/3", "1", "16/9"). Forces
+  // the figure to that ratio so its height is deterministic instead of the
+  // image's intrinsic proportions (which can overflow + get clipped by the
+  // stage). The image fills the frame via `object-fit: cover` (cropping the
+  // overflowing edges).
+  aspectRatio?: string;
 };
 export type BioSection = {
   id: string;
@@ -262,8 +274,8 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       heading: "How did I get here?",
       layout: "stack",
       images: [
-        { src: "/images/bio/python.png", alt: "My first Python program" },
-        { src: "/images/bio/html.png", alt: "My first HTML website" },
+        { src: "/images/bio/python.png", alt: "My first Python program", rotate: "-2deg" },
+        { src: "/images/bio/html.png", alt: "My first HTML website", rotate: "1.5deg" },
       ],
       content: (
         <>
@@ -298,9 +310,9 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       heading: "Design is broad. What's my corner of it?",
       layout: "stack",
       images: [
-        { src: "/images/bio/mess.png", alt: "An example of my Figma file" },
-        { src: "/images/bio/details.png", alt: "Detailed UI I like to make" },
-        { src: "/images/bio/system.png", alt: "An example of a design system" },
+        { src: "/images/bio/a11y.png", alt: "An example of my Figma file", aspectRatio: "1/1", rotate: "1deg" },
+        { src: "/images/bio/details.png", alt: "Detailed UI I like to make", rotate: "-2deg" },
+        { src: "/images/bio/system.png", alt: "An example of a design system", rotate: "1.5deg" },
       ],
       content: (
         <>
@@ -378,6 +390,7 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
               )
             </li>
             <li>School should teach how to type fast</li>
+            <li>A 2 hour lunch break is sacred</li>
             <li>Your personal site is your hardest client</li>
             <li>High agency is the most underrated work attribute; do what you say you'll do, and do it well</li>
             <li>Honest feedback is a gift, but most people are too scared to give it</li>
@@ -458,9 +471,9 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       heading: "Community",
       layout: "stack",
       images: [
-        { src: "/images/bio/present.png", alt: "Presenting a new website at DTI, a club at Cornell" },
-        { src: "/images/bio/collab.png", alt: "Collaborating with teammates on a whiteboard" },
-        { src: "/images/bio/nme.png", alt: "Welcoming the new members at DCC, a club at Cornell" },
+        { src: "/images/bio/present.png", alt: "Presenting a new website at DTI, a club at Cornell", rotate: "-1deg" },
+        { src: "/images/bio/collab.png", alt: "Collaborating with teammates on a whiteboard", rotate: "3deg" },
+        { src: "/images/bio/nme.png", alt: "Welcoming the new members at DCC, a club at Cornell", rotate: "-2.5deg" },
       ],
       content: (
         <>

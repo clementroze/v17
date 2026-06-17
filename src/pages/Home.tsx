@@ -259,8 +259,7 @@ export default function Home() {
       // back up / flipped direction, which only a deliberate new touch can do.
       const reaccel =
         gestureConsumed &&
-        (absD > lastAbsDelta * REACCEL_RATIO + REACCEL_MIN ||
-          (dir !== lastDir && lastDir !== 0 && absD > REACCEL_MIN));
+        (absD > lastAbsDelta * REACCEL_RATIO + REACCEL_MIN || (dir !== lastDir && lastDir !== 0 && absD > REACCEL_MIN));
       const newGesture = now - lastWheelTs > GESTURE_GAP_MS || reaccel;
       lastWheelTs = now;
       lastAbsDelta = absD;

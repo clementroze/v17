@@ -338,6 +338,28 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   },
 
   { src: c("monarcha.png"), label: "Monarcha website", date: "2025" },
+
+  {
+    src: c("dos-donts.png"),
+    label: "User Interfaces Do's and Don'ts",
+    date: "2023",
+    link: "https://dos-and-donts.clementroze.com/",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("radios.png"),
+    label: "UI radio button guidelines",
+    date: "2023",
+    link: "https://dos-and-donts.clementroze.com/",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("states.png"),
+    label: "UI state guidelines",
+    date: "2023",
+    link: "https://dos-and-donts.clementroze.com/",
+    linkLabel: "Visit website",
+  },
 ];
 
 // Ordered list used everywhere (grid distribution, mobile stacking, lightbox).

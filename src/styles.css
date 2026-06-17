@@ -336,7 +336,7 @@ footer::selection {
 
 .navbar__link {
   font-size: 14px;
-  padding: 16px 8px;
+  padding: 8px;
   cursor: pointer;
   white-space: nowrap;
   pointer-events: all;
@@ -368,7 +368,7 @@ footer::selection {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: 6px;
+  bottom: 0;
   width: 4px;
   height: 4px;
   border-radius: 0;
@@ -392,6 +392,161 @@ footer::selection {
   100% {
     transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+/* ── Work hover reveal: case-study links drop in under "Work" ──────────────── */
+
+.navbar__col--work {
+  position: relative;
+}
+
+/* Anchored under the link, left-aligned with the "Work" text (the link has 8px
+   of horizontal padding, so the panel pads to match). No background — just the
+   text. Sits above the blur band. */
+.navbar__reveal {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Readability overlay behind the Work reveal list — frosted glass panel that
+   mirrors the .projects-nav--dark .projects-nav__label::before approach.
+   backdrop-filter is safe on a plain <div> (the button pseudo-element breakage
+   noted elsewhere doesn't apply here). Fades in alongside the link animation. */
+.navbar__reveal::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: -10px;
+  right: -10px;
+  bottom: -8px;
+  border-radius: 8px;
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  background: rgba(255, 255, 255, 0.12);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.navbar__reveal--open::before {
+  opacity: 1;
+}
+
+.navbar--white .navbar__reveal::before {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.navbar__reveal--open {
+  pointer-events: all;
+}
+
+/* Chevron toggle. Absolutely positioned just right of the link so it never
+   shifts layout. Hidden at rest; fades in on hover of the Work column or on
+   keyboard focus (and stays visible while the menu is pinned open). */
+.navbar__chevron {
+  position: absolute;
+  left: 100%;
+  /* Stretch to the column's full height (= the nav link height) so the keyboard
+     focus ring matches the other nav anchors. The icon stays centered via flex;
+     the extra height is transparent. */
+  top: -4px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  padding: 0;
+  margin-left: -2px;
+  border: 0;
+  background: transparent;
+  color: var(--black);
+  cursor: pointer;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    color 0.25s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.navbar--white .navbar__chevron {
+  color: var(--white);
+}
+
+.navbar__col--work:hover .navbar__chevron,
+.navbar__chevron:focus-visible,
+.navbar__chevron--open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* The chevron icon flips when the menu is pinned open. */
+.navbar__chevron svg {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.navbar__chevron--open svg {
+  transform: rotate(180deg);
+}
+
+/* Each row is an overflow clip; its text slides up from below + fades in. */
+.navbar__reveal-link {
+  display: block;
+  overflow: hidden;
+  padding: 3px 8px;
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: nowrap;
+  color: var(--black);
+  opacity: 0.5;
+  transition: opacity 120ms ease-out;
+}
+
+.navbar__reveal-link:hover {
+  opacity: 1;
+}
+
+.navbar__reveal-text {
+  display: block;
+  transform: translateY(115%);
+  opacity: 0;
+  /* Exit = the enter animation played backwards: same durations, the reflected
+     easing (ease-in is the time-reverse of the enter's ease-out), and the
+     stagger reversed via the inline transition-delay (set in Navbar.tsx). The
+     transition on the base/closed rule is what runs when --open is removed. */
+  transition:
+    transform 0.55s cubic-bezier(0.64, 0, 0.78, 0),
+    opacity 0.4s ease;
+}
+
+/* Enter: text rises up + fades in. The transition declared here runs when
+   --open is added, letting enter and exit use mirrored easings. */
+.navbar__reveal--open .navbar__reveal-text {
+  transform: translateY(0);
+  opacity: 1;
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s ease;
+}
+
+.navbar--white .navbar__reveal-link {
+  color: var(--white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar__reveal-text,
+  .navbar__reveal--open .navbar__reveal-text {
+    transition: opacity 0.2s ease;
+    transform: none;
   }
 }
 
@@ -803,8 +958,58 @@ footer::selection {
   text-wrap: balance;
 }
 
+/* IBM-blue highlight + scale wave for the hero tag, driven from JS (HeroTag in
+   Hero.tsx). Each letter is its own inline-block <span> so it can scale, and each
+   paints its OWN slice of one phrase-wide gradient so the blue still reads as a
+   single continuous sweep flying L→R. JS measures letter offsets, then sets
+   background-size / background-position-x (to keep the slices aligned) and the
+   per-letter transform every frame. At rest — and with no JS or reduced motion —
+   letters simply show the muted base colour. */
 .hero__tag {
   color: var(--black-muted);
+  white-space: nowrap; /* keep the tag (now per-letter boxes) from breaking mid-word */
+}
+
+.hero__tag-letter {
+  display: inline-block; /* lets each letter scale; its gradient slice is self-contained */
+  white-space: pre; /* preserve the width of the space glyphs between words */
+}
+
+/* JS adds .hero__tag--animate only after the slices are positioned, so the text
+   is never transparent-with-nothing-behind-it for a frame. */
+.hero__tag--animate .hero__tag-letter {
+  background-image: linear-gradient(
+    90deg,
+    var(--black-muted) 35%,
+    #4589ff 45%,
+    #0f62fe 50%,
+    #4589ff 55%,
+    var(--black-muted) 65%
+  );
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  will-change: transform, background-position;
+}
+
+/* Konami code easter egg: spin hue-rotate on the parent so all the per-letter
+   rainbow gradients cycle continuously. Runs for 6 s then JS removes the class. */
+.hero__tag--rainbow {
+  animation: hero-tag-hue-spin 2s linear infinite;
+}
+
+@keyframes hero-tag-hue-spin {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__tag-letter {
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    transform: none !important;
+  }
 }
 
 /* =============================================
@@ -1336,7 +1541,7 @@ footer::selection {
   font-size: 14px;
   color: var(--white-muted);
   line-height: var(--leading-heading);
-  transition: collor 120ms ease-out;
+  transition: color 120ms ease-out;
   width: fit-content;
 }
 
@@ -2127,10 +2332,12 @@ html.konami .projects-nav-m__pill {
   opacity: 0;
   transform: translateY(16px);
   filter: blur(6px);
+  /* --reveal-dur lets a scroll-velocity-aware reveal shorten the entrance on
+     fast scroll (see useReveal); defaults to the normal 0.65s. */
   transition:
-    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity var(--reveal-dur, 0.65s) cubic-bezier(0.22, 1, 0.36, 1),
+    transform var(--reveal-dur, 0.65s) cubic-bezier(0.22, 1, 0.36, 1),
+    filter var(--reveal-dur, 0.65s) cubic-bezier(0.22, 1, 0.36, 1),
     background 160ms ease-out,
     border-color 160ms ease-out,
     color 160ms ease-out;
@@ -2720,8 +2927,10 @@ html.konami .projects-nav-m__pill {
   animation-delay: 0.24s;
 }
 
-/* Scatter items carry their own rotate(var(--rot)); separate keyframes keep
-   that rotation through the entrance/exit instead of flattening it. */
+/* Scatter AND stack items can carry their own rotate(var(--rot)); these
+   keyframes keep that rotation through the entrance/exit instead of flattening
+   it (the generic bioItemIn/Out end at transform:none, which would snap any
+   tilt back to 0°). */
 @keyframes bioScatterItemIn {
   from {
     opacity: 0;
@@ -2742,7 +2951,8 @@ html.konami .projects-nav-m__pill {
     transform: rotate(var(--rot, 0deg)) translateY(18px) scale(0.92);
   }
 }
-.bio-modal--open .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
+.bio-modal--open .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item,
+.bio-modal--open .bio-modal__stage .bio-visual--stack.is-active .bio-visual__item {
   animation-name: bioScatterItemIn;
 }
 /* Must carry `.bio-modal--entered` too: the generic exit rule above gained it
@@ -2751,7 +2961,8 @@ html.konami .projects-nav-m__pill {
    `transform: none` snaps the rotation back to 0° before they drop out. Matching
    specificity (and coming later) lets bioScatterItemOut win again, holding the
    rotation steady through the exit. */
-.bio-modal:not(.bio-modal--open).bio-modal--entered .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item {
+.bio-modal:not(.bio-modal--open).bio-modal--entered .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item,
+.bio-modal:not(.bio-modal--open).bio-modal--entered .bio-modal__stage .bio-visual--stack.is-active .bio-visual__item {
   animation-name: bioScatterItemOut;
 }
 
@@ -2770,6 +2981,14 @@ html.konami .projects-nav-m__pill {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* When a figure is given a forced aspect-ratio (BioImage.aspectRatio), the
+   image fills that frame and the overflowing edges are cropped instead of the
+   figure growing to the image's intrinsic height. */
+.bio-visual__item--ratio img {
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ── Layout: solo — one image, centered, fit to the stage box at its own ratio ── */
@@ -5383,8 +5602,8 @@ button.cs-images__pic:focus-visible {
   .reveal {
     filter: none;
     transition:
-      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity var(--reveal-dur, 0.6s) cubic-bezier(0.22, 1, 0.36, 1),
+      transform var(--reveal-dur, 0.6s) cubic-bezier(0.22, 1, 0.36, 1),
       background 160ms ease-out,
       border-color 160ms ease-out,
       color 160ms ease-out;

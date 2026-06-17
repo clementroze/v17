@@ -24,19 +24,26 @@ const BIO_MODAL_FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([ta
 function BioVisual({ section, active }: { section: BioSection; active?: boolean }) {
   return (
     <div className={`bio-visual bio-visual--${section.layout}${active ? " is-active" : ""}`}>
-      {section.images.map((img, i) => (
+      {section.images.map((img, i) => {
+        const style = {
+          ...(section.layout === "scatter" ? { top: img.top, left: img.left } : {}),
+          // Rotation works for both scatter and stack — the rotation-preserving
+          // keyframes read --rot.
+          ...(img.rotate ? { "--rot": img.rotate } : {}),
+          // Per-image overrides (optional); each overrides the layout default.
+          ...(img.width ? { width: img.width } : {}),
+          ...(img.aspectRatio ? { aspectRatio: img.aspectRatio } : {}),
+        } as React.CSSProperties;
+        return (
         <figure
-          className="bio-visual__item"
+          className={`bio-visual__item${img.aspectRatio ? " bio-visual__item--ratio" : ""}`}
           key={i}
-          style={
-            section.layout === "scatter"
-              ? ({ top: img.top, left: img.left, "--rot": img.rotate } as React.CSSProperties)
-              : undefined
-          }
+          style={Object.keys(style).length ? style : undefined}
         >
           <Picture src={img.src} alt="" loading="lazy" draggable={false} />
         </figure>
-      ))}
+        );
+      })}
     </div>
   );
 }

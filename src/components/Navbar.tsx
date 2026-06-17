@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { LinearBlur } from "progressive-blur";
 import { Link } from "../lib/router";
 import { Reveal } from "../lib/reveal";
+import work from "../data/work";
+
+// Published case studies, in Work-page order (drops "coming soon" entries like
+// IBM). Used for the hover reveal under the navbar "Work" link.
+const caseStudies = work.filter((w) => !w.comingSoon);
 
 type NavbarProps = {
   watchHideRef?: React.RefObject<Element>;
@@ -34,8 +39,18 @@ export default function Navbar({
   activeLink,
 }: NavbarProps) {
   const [white, setWhite] = useState(forceWhite);
+  // The Work reveal opens on hover (mouse) OR when "pinned" open via the
+  // keyboard chevron toggle — either path shows the case-study links.
+  const [workHover, setWorkHover] = useState(false);
+  const [workPinned, setWorkPinned] = useState(false);
+  const workOpen = workHover || workPinned;
+  // Vertical offset (px) the chevron nudges to so it subtly tracks the hovered
+  // list item — 0 over the first item (its resting spot next to "Work") and a
+  // small step per item down, staying within the chevron's own frame.
+  const [chevronOffset, setChevronOffset] = useState(0);
 
   const navRef = useRef<HTMLElement>(null);
+  const workChevronRef = useRef<HTMLButtonElement>(null);
 
   // ── color: observe watched elements ──────────────────────────────────────────
 
@@ -180,7 +195,34 @@ export default function Navbar({
           </div>
 
           {LINKS.map(({ label, href, key }, i) => (
-            <div key={key} className="navbar__col navbar__col--desktop">
+            <div
+              key={key}
+              className={`navbar__col navbar__col--desktop${
+                key === "work" ? " navbar__col--work" : ""
+              }`}
+              onMouseEnter={key === "work" ? () => setWorkHover(true) : undefined}
+              onMouseLeave={key === "work" ? () => setWorkHover(false) : undefined}
+              // Close the keyboard-pinned menu once focus leaves the whole
+              // group (link + chevron + reveal links).
+              onBlur={
+                key === "work"
+                  ? (e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) setWorkPinned(false);
+                    }
+                  : undefined
+              }
+              // Escape closes the menu and returns focus to the chevron.
+              onKeyDown={
+                key === "work"
+                  ? (e) => {
+                      if (e.key === "Escape" && workPinned) {
+                        setWorkPinned(false);
+                        workChevronRef.current?.focus();
+                      }
+                    }
+                  : undefined
+              }
+            >
               <Reveal delay={80 + i * 80}>
                 <Link
                   href={href}
@@ -190,6 +232,72 @@ export default function Navbar({
                   {label}
                 </Link>
               </Reveal>
+
+              {/* Keyboard affordance: a chevron toggle that only surfaces on
+                  keyboard focus (see CSS :focus-visible). Tab from "Work" lands
+                  here; Enter/Space opens the case-study menu so the links below
+                  become tabbable. Hover users never see it. */}
+              {key === "work" && (
+                <button
+                  ref={workChevronRef}
+                  type="button"
+                  className={`navbar__chevron${workPinned ? " navbar__chevron--open" : ""}`}
+                  aria-label={workPinned ? "Hide work case studies" : "Show work case studies"}
+                  aria-expanded={workPinned}
+                  onClick={() => setWorkPinned((v) => !v)}
+                  style={{ transform: `translateY(${chevronOffset}px)` }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                    <path
+                      d="M2 4l3 3 3-3"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              )}
+
+              {/* Reveal: case-study links drop in under "Work", left-aligned
+                  with the link. Desktop only — the col is hidden on mobile
+                  (navbar__col--desktop), so this never shows there. */}
+              {key === "work" && (
+                <div
+                  className={`navbar__reveal${workOpen ? " navbar__reveal--open" : ""}`}
+                  aria-hidden={!workOpen}
+                  // Leaving the list returns the chevron to its resting spot.
+                  onMouseLeave={() => setChevronOffset(0)}
+                >
+                  {caseStudies.map((cs, j) => (
+                    <Link
+                      key={cs.slug}
+                      href={cs.href}
+                      className="navbar__reveal-link"
+                      tabIndex={workOpen ? 0 : -1}
+                      // Small per-item nudge so the chevron stays inside its
+                      // frame instead of sliding down the whole list.
+                      onMouseEnter={() => setChevronOffset(j * 2.5)}
+                    >
+                      <span
+                        className="navbar__reveal-text"
+                        // Enter cascades top→bottom; exit is the same ripple in
+                        // reverse (bottom→top), so it reads as the enter played
+                        // backwards.
+                        style={{
+                          transitionDelay: `${
+                            workOpen
+                              ? 60 + j * 35
+                              : (caseStudies.length - 1 - j) * 35
+                          }ms`,
+                        }}
+                      >
+                        {cs.name}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
 

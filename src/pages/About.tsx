@@ -118,7 +118,7 @@ export default function About() {
                       <picture>
                         <source srcSet={profilePhotoAvif} type="image/avif" />
                         <source srcSet={profilePhotoWebp} type="image/webp" />
-                        <img src={profilePhoto} alt="Picture of Clément Rozé" className="about-photo" />
+                        <img src={profilePhoto} alt="Picture of Clément Rozé, smiling" className="about-photo" />
                       </picture>
                     </div>
                   </Reveal>
@@ -291,7 +291,11 @@ export default function About() {
                               </div>
                               <span className="label">Copy email</span>
                             </Button>
-                            <Button href="mailto:cpr58@cornell.edu" className="about-email-pill">
+                            <Button
+                              href="mailto:cpr58@cornell.edu"
+                              className="about-email-pill"
+                              ariaLabel="Open email"
+                            >
                               <svg
                                 width="18"
                                 height="18"

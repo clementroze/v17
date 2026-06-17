@@ -127,11 +127,7 @@ export function resolveRouteMeta(rawPath: string): PageMeta {
 
 // Escape a value for use inside a double-quoted HTML attribute.
 function attr(v: string): string {
-  return v
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 // Escape a value for use as HTML text content (the <title>).
@@ -154,12 +150,9 @@ export function headTags(meta: PageMeta): string {
     `<meta property="og:description" content="${attr(meta.ogDescription)}" />`,
     `<meta property="og:image" content="${attr(meta.ogImage)}" />`,
   ];
-  if (meta.ogImageWidth)
-    lines.push(`<meta property="og:image:width" content="${attr(meta.ogImageWidth)}" />`);
-  if (meta.ogImageHeight)
-    lines.push(`<meta property="og:image:height" content="${attr(meta.ogImageHeight)}" />`);
-  if (meta.ogImageAlt)
-    lines.push(`<meta property="og:image:alt" content="${attr(meta.ogImageAlt)}" />`);
+  if (meta.ogImageWidth) lines.push(`<meta property="og:image:width" content="${attr(meta.ogImageWidth)}" />`);
+  if (meta.ogImageHeight) lines.push(`<meta property="og:image:height" content="${attr(meta.ogImageHeight)}" />`);
+  if (meta.ogImageAlt) lines.push(`<meta property="og:image:alt" content="${attr(meta.ogImageAlt)}" />`);
   lines.push(
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${attr(meta.ogTitle)}" />`,

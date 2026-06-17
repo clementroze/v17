@@ -60,7 +60,7 @@ export const internships: Entity[] = [
   {
     slug: "ibm",
     name: "IBM",
-    date: "2026 – Now",
+    date: "2026 - Now",
     role: "Internship",
     accent: "#226AFE",
     href: "/work/ibm",

@@ -47,7 +47,7 @@ function CraftCard({
 }) {
   const isVideo = item.src ? /\.(mp4|mov|webm|ogg)$/i.test(item.src) : false;
   return (
-    <Reveal delay={delay}>
+    <Reveal delay={delay} scrollAware>
       <button
         ref={(el) => registerEl(item.id, el)}
         type="button"

@@ -224,7 +224,14 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block, lb?: Lightbox
                       type="button"
                       className="cs-images__pic cs-images__pic--zoomable"
                       ref={(el) => lb.registerEl(flatIdx, el)}
-                      aria-label={`Expand image${block.captions?.[i] ? `: ${block.captions[i]}` : ""}`}
+                      // When a figcaption is present it already describes the
+                      // image (read once by AT), so keep the button name to just
+                      // the action to avoid a double read. Fall back to the alt
+                      // only when there's no caption, so captionless images still
+                      // get a description.
+                      aria-label={`Expand image${
+                        block.captions?.[i] ? "" : block.alts?.[i] ? `: ${block.alts[i]}` : ""
+                      }`}
                       onClick={() => lb.onOpen(flatIdx)}
                     >
                       <Picture src={src} alt={block.alts?.[i] ?? ""} />
