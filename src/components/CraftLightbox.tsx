@@ -282,11 +282,24 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       if (t < 1) {
         raf = requestAnimationFrame(tick);
       } else {
-        // Hand control back to React's idle styling (same framed transform).
-        card.style.transition = "";
+        // Hand control back to React's idle styling. Pin the final framed
+        // transform imperatively (no transition) FIRST, then flip to idle.
+        // We must NOT clear the inline transform before setPhase('idle')
+        // commits: React is still rendering the 'origin' phase, whose cardStyle
+        // is the zoomed-OUT thumbnail transform — clearing/overwriting with it
+        // would flash the card back to the thumbnail position for a frame
+        // before the idle render lands, the jump the bug describes (very
+        // visible on tall images, where the framed zoom is far from the thumb).
+        // Pinning the exact framed transform means the idle render writes the
+        // identical value via its style prop — a seamless hand-off, no flicker.
+        const z = zoomRef.current;
+        const p = panRef.current;
+        const endDx = p.x - ((z - 1) * naturalW) / 2;
+        const endDy = p.y - ((z - 1) * naturalH) / 2;
+        card.style.transition = "none";
         card.style.willChange = "";
-        card.style.transform = "";
-        card.style.borderRadius = "";
+        card.style.transform = `translate(${endDx}px, ${endDy}px) scale(${z})`;
+        card.style.borderRadius = `calc(var(--radius-img) / ${z})`;
         setPhase("idle");
       }
     };

@@ -526,6 +526,7 @@ footer::selection {
   transition:
     transform 0.55s cubic-bezier(0.64, 0, 0.78, 0),
     opacity 0.4s ease;
+  font-size: 14px;
 }
 
 /* Enter: text rises up + fades in. The transition declared here runs when
@@ -1000,8 +1001,12 @@ footer::selection {
 }
 
 @keyframes hero-tag-hue-spin {
-  from { filter: hue-rotate(0deg); }
-  to   { filter: hue-rotate(360deg); }
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

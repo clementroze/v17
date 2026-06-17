@@ -227,7 +227,7 @@ export default function Navbar({
                 <Link
                   href={href}
                   className={`navbar__link${activeLink === key ? " navbar__link--active" : ""}`}
-                  style={linkStyle(activeLink === key)}
+                  style={linkStyle(activeLink === key || (key === "work" && workOpen))}
                 >
                   {label}
                 </Link>
@@ -244,7 +244,7 @@ export default function Navbar({
                   className={`navbar__chevron${workPinned ? " navbar__chevron--open" : ""}`}
                   aria-label={workPinned ? "Hide work case studies" : "Show work case studies"}
                   aria-expanded={workPinned}
-                  onClick={() => setWorkPinned((v) => !v)}
+                  onClick={(e) => { if (e.detail === 0) setWorkPinned((v) => !v); }}
                   style={{ transform: `translateY(${chevronOffset}px)` }}
                 >
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
