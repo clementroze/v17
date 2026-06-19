@@ -68,6 +68,12 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   },
 
   {
+    src: c("cfc.mov"),
+    label: "Cornell Fashion Collective website",
+    date: "2026",
+  },
+
+  {
     src: c("iwater-pair.png"),
     label: "iWater and Apple Cup",
     date: "2022",
@@ -139,6 +145,13 @@ const ITEMS: Omit<CraftItem, "id">[] = [
     linkLabel: "Play Deadline",
   },
   {
+    src: c("deadline-clip.mov"),
+    label: "Deadline website hero section",
+    date: "2024",
+    link: "https://www.roblox.com/games/12144402492/Deadline",
+    linkLabel: "Play Deadline",
+  },
+  {
     src: c("deadline-won.png"),
     label: "Deadline results screen",
     date: "2024",
@@ -183,7 +196,7 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   },
 
   {
-    src: c("archive.png"),
+    src: c("archive.mov"),
     label: "Website Archive",
     date: "2026",
     link: "https://archive.clementroze.com",
@@ -195,7 +208,7 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   { src: c("hyperform-listing.png"), label: "Hyperform listing flow", date: "2023" },
 
   {
-    src: c("souvenir-nav.png"),
+    src: c("souvenir-nav.mov"),
     label: "Souvenir button components",
     date: "2025",
     link: "https://devpost.com/software/placeholder-project-name-lha0e2",
@@ -245,24 +258,17 @@ const ITEMS: Omit<CraftItem, "id">[] = [
   },
 
   {
-    src: c("dti-cta.png"),
-    label: "DTI footer",
-    date: "2025",
-    link: "https://cornelldti.org/",
-    linkLabel: "View website",
-  },
-  {
     src: c("dti-team.png"),
-    label: "DTI team hero section",
+    label: "DTI team page",
     date: "2025",
-    link: "https://cornelldti.org/",
+    link: "https://cornelldti.org/team",
     linkLabel: "View website",
   },
   {
-    src: c("dti-role.png"),
-    label: "DTI roles section",
+    src: c("dti-apply.png"),
+    label: "DTI apply page",
     date: "2025",
-    link: "https://cornelldti.org/",
+    link: "https://cornelldti.org/apply",
     linkLabel: "View website",
   },
   {
