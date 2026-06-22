@@ -467,6 +467,40 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
       ),
     },
     {
+      id: "shows",
+      heading: "Shows",
+      layout: "scatter",
+      images: [
+        {
+          src: "/images/bio/backrooms.png",
+          alt: "Backrooms movie poster",
+          top: "20%",
+          left: "4%",
+          rotate: "-3deg",
+        },
+        {
+          src: "/images/bio/severance.png",
+          alt: "Severance show poster",
+          top: "15%",
+          left: "58%",
+          rotate: "3deg",
+        },
+      ],
+      content: (
+        <>
+          <p>
+            I've started watching a lot more television lately, both series and films, and I've found myself drawn to a
+            very specific kind of storytelling.
+          </p>
+          <p>
+            My favorite genre sits somewhere between psychological thriller and surreal horror. Think <em>Severance</em>
+            , <em>Backrooms</em>, or anything that weaponizes mundane spaces against you. I love stories that use an
+            eerie and liminal premise to explore human identity and behavior. The more unsettling, the better!
+          </p>
+        </>
+      ),
+    },
+    {
       id: "community",
       heading: "Community",
       layout: "stack",

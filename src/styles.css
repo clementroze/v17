@@ -3137,6 +3137,7 @@ figure.bio-visual__item {
   transition:
     background 200ms ease,
     transform 200ms ease;
+  border-radius: var(--radius-img);
 }
 
 .about-contact-icon {
@@ -3270,7 +3271,7 @@ figure.bio-visual__item {
 .about-resume-card {
   display: block;
   background: var(--white-faint);
-  border-radius: var(--img-radius);
+  border-radius: var(--radius-img);
   padding: 28px 28px 0;
   overflow: visible;
   width: 100%;
@@ -3291,7 +3292,7 @@ figure.bio-visual__item {
     transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
-  border-radius: var(--img-radius);
+  border-radius: var(--radius-img);
 }
 
 .about-resume-link:hover .about-resume-thumbnail-wrap {
@@ -3302,7 +3303,7 @@ figure.bio-visual__item {
 .about-resume-thumbnail {
   display: block;
   width: 100%;
-  border-radius: var(--img-radius);
+  border-radius: var(--radius-img);
 }
 
 .accordion-row {
