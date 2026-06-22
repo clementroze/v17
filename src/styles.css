@@ -1038,7 +1038,9 @@ footer::selection {
   cursor: pointer;
   border: none;
   font-family: var(--font);
-  transition: background 120ms ease-in;
+  transition:
+    background 120ms ease-in,
+    transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Hover fill: a panel of `--btn-hover-fill` (set per variant) that wipes in from
@@ -1055,6 +1057,10 @@ footer::selection {
 
 .btn:hover::before {
   transform: translateX(0);
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 /* Keep the label + icon above the sliding fill. */
@@ -1714,10 +1720,12 @@ footer::selection {
 
 .footer__bottom p {
   opacity: 0.6;
+  font-size: 14px;
 }
 
 .footer__location-time {
   font-variant-numeric: tabular-nums;
+  font-size: 14px;
 }
 
 .footer__city-name {
@@ -1725,6 +1733,7 @@ footer::selection {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 14px;
 }
 
 .footer__city-icon {
@@ -2552,12 +2561,18 @@ html.konami .projects-nav-m__pill {
   background: none;
   color: var(--white-muted);
   cursor: pointer;
-  transition: color 160ms ease-out;
+  transition:
+    color 160ms ease-out,
+    transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .bio-modal__close:hover,
 .bio-modal__close:focus-visible {
   color: var(--white);
+}
+
+.bio-modal__close:active {
+  transform: scale(0.97);
 }
 
 /* Content typography mirrors the rest of the site: a 500-weight heading, muted
@@ -5267,8 +5282,16 @@ button.cs-images__pic:focus-visible {
     opacity 0.25s ease,
     background-color 0.2s ease,
     border-color 0.2s ease,
-    transform 0.2s ease,
+    transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     color 0.2s ease;
+}
+
+.craft-lightbox__icon-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.craft-lightbox__nav:active {
+  transform: translateY(-50%) scale(0.97);
 }
 
 .craft-lightbox__nav {
@@ -5292,44 +5315,13 @@ button.cs-images__pic:focus-visible {
 
 .craft-lightbox__icon-btn:hover:not(:disabled),
 .craft-lightbox__nav:hover {
-  background: var(--black-scrim);
+  background: rgba(0, 0, 0, 0.65);
   border-color: var(--white-faint);
 }
 
 .craft-lightbox__icon-btn:disabled {
   cursor: default;
   opacity: 0.35;
-}
-
-/* Icon micro-motion: the button pill stays put, the glyph inside reacts. */
-.craft-lightbox__icon-btn svg,
-.craft-lightbox__nav svg {
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Zoom buttons telegraph their direction: + grows, − shrinks on hover. */
-.craft-lightbox__icon-btn--zoom-in:hover:not(:disabled) svg {
-  transform: scale(1.18);
-}
-
-.craft-lightbox__icon-btn--zoom-out:hover:not(:disabled) svg {
-  transform: scale(0.82);
-}
-
-/* Close button: a quick "blink" — the X dips smaller then springs back, same
-   language as the work-page grid/list toggle icons. */
-@keyframes lb-close-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(0.82);
-  }
-}
-
-.craft-lightbox__icon-btn--close:hover:not(:disabled) svg {
-  animation: lb-close-pulse 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Prev/next: nudge the arrow glyph (not the pill) toward its direction. */
@@ -5345,12 +5337,10 @@ button.cs-images__pic:focus-visible {
   transform: translateY(-50%);
 }
 
-.craft-lightbox__nav--prev:hover svg,
 .craft-lightbox__nav--prev.is-pressed svg {
   transform: translateX(-3px);
 }
 
-.craft-lightbox__nav--next:hover svg,
 .craft-lightbox__nav--next.is-pressed svg {
   transform: translateX(3px);
 }
@@ -6574,11 +6564,9 @@ button.cs-images__pic:focus-visible {
     right: 50%;
     margin-right: -48px;
   }
-  .craft-lightbox__nav--prev:hover svg,
   .craft-lightbox__nav--prev.is-pressed svg {
     transform: translateX(-3px);
   }
-  .craft-lightbox__nav--next:hover svg,
   .craft-lightbox__nav--next.is-pressed svg {
     transform: translateX(3px);
   }
