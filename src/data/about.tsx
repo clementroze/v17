@@ -485,6 +485,13 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
           left: "58%",
           rotate: "3deg",
         },
+        {
+          src: "/images/bio/pluribus.png",
+          alt: "Pluribus show poster",
+          top: "55%",
+          left: "30%",
+          rotate: "-2deg",
+        },
       ],
       content: (
         <>
@@ -494,8 +501,8 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
           </p>
           <p>
             My favorite genre sits somewhere between psychological thriller and surreal horror. Think <em>Severance</em>
-            , <em>Backrooms</em>, or anything that weaponizes mundane spaces against you. I love stories that use an
-            eerie and liminal premise to explore human identity and behavior. The more unsettling, the better!
+            , <em>Backrooms</em>, or anything that weaponizes the mundane against you. I love stories that use an eerie
+            and liminal premise to explore human identity and behavior. The more unsettling, the better!
           </p>
         </>
       ),
