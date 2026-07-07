@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { trackEvent, incrementCraftView } from "../lib/analytics";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
@@ -152,7 +153,12 @@ export default function Craft() {
 
   const openById = (id: string) => {
     const idx = CRAFT_ITEMS.findIndex((i) => i.id === id);
-    if (idx >= 0) setActiveIndex(idx);
+    if (idx >= 0) {
+      const item = CRAFT_ITEMS[idx];
+      trackEvent("lightbox-open", { id: item.id, label: item.label });
+      incrementCraftView(item.id);
+      setActiveIndex(idx);
+    }
   };
 
   return (

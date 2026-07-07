@@ -120,6 +120,7 @@ export function resolveRouteMeta(rawPath: string): PageMeta {
   if (path === "/about") return section("About", "/about", ABOUT_DESCRIPTION);
   if (path === "/work") return section("Work", "/work", WORK_DESCRIPTION);
   if (path === "/craft") return section("Craft", "/craft", CRAFT_DESCRIPTION);
+  if (path === "/analytics") return notFound(path); // noindex, owner-only
   const m = path.match(/^\/work\/([^/]+)$/);
   if (m && caseExists(m[1])) return caseStudy(m[1]);
   return notFound(path);

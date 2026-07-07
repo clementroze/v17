@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import "./styles.css";
 import { RouterProvider, useRouter } from "./lib/router";
 import { useKonami } from "./lib/useKonami";
+import { useAnalyticsDashboard } from "./lib/useAnalyticsDashboard";
+import { initAnalytics, trackPageView, trackEvent } from "./lib/analytics";
 import Home from "./pages/Home";
 // Home is eager (it's the landing page — no extra round-trip on first paint).
 // The remaining routes are code-split so their JS isn't shipped in the homepage
@@ -12,6 +14,7 @@ const Work = lazy(() => import("./pages/Work"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy"));
 const Craft = lazy(() => import("./pages/Craft"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 import { applyMeta, resolveRouteMeta } from "./lib/routeMeta";
 
 const LS_KEY = "konami-rainbow";
@@ -50,6 +53,7 @@ const MENU_LINKS = [
 
 function App() {
   const { path: rawPath, navigate } = useRouter();
+  useAnalyticsDashboard(React.useCallback(() => navigate("/analytics"), [navigate]));
   // Normalize a trailing slash (e.g. "/about/" -> "/about") so slash variants of
   // known routes aren't misclassified as not-found (which would noindex them).
   const path = rawPath === "/" ? "/" : rawPath.replace(/\/+$/, "");
@@ -75,6 +79,9 @@ function App() {
   const phaseTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+
+  // Init analytics once on mount
+  React.useEffect(() => { initAnalytics(); }, []);
 
   // Restore from localStorage on first load
   React.useEffect(() => {
@@ -129,6 +136,7 @@ function App() {
 
   useKonami(() => {
     const isOn = document.documentElement.classList.contains("konami");
+    trackEvent("konami-trigger", { resultingState: !isOn });
     triggerWipe(!isOn);
   });
 
@@ -164,6 +172,7 @@ function App() {
   // path as 200, so unknown/typo URLs are marked noindex rather than indexed.
   React.useEffect(() => {
     applyMeta(resolveRouteMeta(path));
+    trackPageView(path);
   }, [path]);
 
   // Mobile slide menu: listen for open/close events from the hamburger button
@@ -173,7 +182,7 @@ function App() {
     const color = (e: Event) => setNavbarWhite((e as CustomEvent<{ white: boolean }>).detail.white);
     const onLightboxOpen = () => { lightboxOpenRef.current = true; setLightboxOpen(true); };
     const onLightboxClose = () => { lightboxOpenRef.current = false; setLightboxOpen(false); };
-    const onBioOpen = () => setBioModalOpen(true);
+    const onBioOpen = () => { setBioModalOpen(true); trackEvent("bio-modal-open", {}); };
     const onBioClose = () => setBioModalOpen(false);
     window.addEventListener("mobile-menu-open", open);
     window.addEventListener("mobile-menu-close", close);
@@ -235,6 +244,21 @@ function App() {
       }
     }
   }, [panelFixed]);
+
+  // Track external link clicks (delegated, catches all target="_blank" links sitewide)
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const a = (e.target as Element).closest('a[target="_blank"]');
+      if (a instanceof HTMLAnchorElement) {
+        trackEvent("external-click", {
+          href: a.href,
+          label: a.textContent?.trim() ?? "",
+        });
+      }
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
 
   // Swipe to open/close the menu: swipe left opens (page slides left to reveal the
   // nav), swipe right closes — mirror gestures. Mostly-horizontal swipes only, so
@@ -364,7 +388,9 @@ function App() {
           {/* fallback is null: route swaps happen mid-wipe (the overlay covers the
               screen), so the brief lazy-chunk load is never visible. */}
           <Suspense fallback={null}>
-            {path === "/about" ? (
+            {path === "/analytics" ? (
+              <Analytics />
+            ) : path === "/about" ? (
               <About />
             ) : path === "/work" ? (
               <Work />
