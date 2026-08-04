@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import { bySlug } from '../data/data';
 
 export const DOT_LEAD_MS = 350; // dot animates for this long before columns start
 
@@ -68,8 +69,38 @@ function wipeColor(to: string) {
   return DARK_PATHS.has(to) ? '#fff' : '#000';
 }
 
+// The reveal sweep (overlay tearing away to show the destination) uses the
+// destination case study's accent color when navigating into a case study —
+// a little color hit that previews the page underneath. The cover sweep
+// (columns rising over the CURRENT page) keeps the plain contrast color since
+// the destination isn't visible yet. Any other destination falls back to the
+// same color as cover, so the two sweeps still read as one continuous wipe.
+function revealColorFor(to: string) {
+  const match = to.match(/^\/work\/([^/]+)\/?$/);
+  const entity = match ? bySlug(match[1]) : undefined;
+  return entity?.hasCaseStudy ? entity.accent : undefined;
+}
+
 function isKonami() {
   return document.documentElement.classList.contains('konami');
+}
+
+// How long each column's color cross-fade takes, and the delay stepped in
+// between columns (left to right, matching the accent-on-the-left stepping)
+// so the black→accent morph sweeps across rather than popping everywhere at
+// once. CROSSFADE_MS is sized for the max (desktop) column count, same
+// pattern as COVER_MS/REVEAL_MS, so the hold always covers the full stagger
+// before the reveal sweep starts.
+const CROSSFADE_COL_MS     = 260;
+const CROSSFADE_STAGGER_MS = 40;
+const CROSSFADE_MS = CROSSFADE_COL_MS + (DESKTOP_COLS - 1) * CROSSFADE_STAGGER_MS;
+
+// Per-column shade of the reveal color: column 0 (leftmost) is the accent
+// exactly, each column after it mixes in a bit more black — a stepped fade
+// left-to-right so the columns read as related but not identical.
+function stepColor(base: string, i: number, cols: number) {
+  const pct = cols > 1 ? Math.round((i / (cols - 1)) * 45) : 0;
+  return pct === 0 ? base : `color-mix(in srgb, ${base} ${100 - pct}%, #000 ${pct}%)`;
 }
 
 // ── provider ──────────────────────────────────────────────────────────────────
@@ -93,6 +124,10 @@ export function RouterProvider({
   const [previousPath, setPreviousPath] = useState<string | null>(null);
   const [phase, setPhase]           = useState<Phase>('idle');
   const [colColor, setColColor]     = useState('#000');
+  const [revealColor, setRevealColor] = useState<string | undefined>(undefined);
+  // True for the brief hold, screen fully covered, right after cover finishes
+  // and before reveal starts — this is when colColor cross-fades to revealColor.
+  const [crossfade, setCrossfade]   = useState(false);
   const pendingRef                  = useRef<string | null>(null);
   const timerRef                    = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -121,6 +156,7 @@ export function RouterProvider({
     const next = href;
     setCols(colCount());
     setColColor(wipeColor(next));
+    setRevealColor(revealColorFor(next));
 
     // Dot leads — columns start after DOT_LEAD_MS
     timerRef.current = setTimeout(() => {
@@ -135,11 +171,21 @@ export function RouterProvider({
         // mount effect, reading a position they stashed in sessionStorage when
         // the user left for a case study. That overrides this scroll-to-top.
         window.scrollTo(0, 0);
-        setPhase('revealing');
 
-        timerRef.current = setTimeout(() => {
-          setPhase('idle');
-        }, REVEAL_MS);
+        const toAccent = revealColorFor(next);
+        if (toAccent) {
+          // Hold fully covered while the plain cover color cross-fades to the
+          // destination's accent (stepped per column), then reveal.
+          setCrossfade(true);
+          timerRef.current = setTimeout(() => {
+            setCrossfade(false);
+            setPhase('revealing');
+            timerRef.current = setTimeout(() => setPhase('idle'), REVEAL_MS);
+          }, CROSSFADE_MS);
+        } else {
+          setPhase('revealing');
+          timerRef.current = setTimeout(() => setPhase('idle'), REVEAL_MS);
+        }
       }, COVER_MS);
     }, DOT_LEAD_MS);
   }, [path]);
@@ -151,6 +197,7 @@ export function RouterProvider({
     if (timerRef.current) clearTimeout(timerRef.current);
     setCols(colCount());
     setColColor(color ?? wipeColor(path));
+    setRevealColor(undefined);
 
     if (mode === 'reveal') {
       // Overlay starts fully covering, then a single reveal sweep clears it.
@@ -189,13 +236,22 @@ export function RouterProvider({
           {Array.from({ length: cols }, (_, i) => {
             const coverDelay = i * STAGGER_MS;
             const revealDelay = (cols - 1 - i) * STAGGER_MS;
+            // Once we're crossfading or revealing, columns take the stepped
+            // per-column shade of revealColor (accent on the left, fading
+            // darker to the right); otherwise the plain uniform cover color.
+            const useStepped = (crossfade || phase === 'revealing') && revealColor;
             return (
               <div
                 key={i}
-                className="page-transition__col"
+                className={`page-transition__col${crossfade ? ' page-transition__col--crossfade' : ''}`}
                 style={{
                   animationDelay: `${phase === 'revealing' ? revealDelay : coverDelay}ms`,
-                  background: isKonami() ? RAINBOW_COLS[i % RAINBOW_COLS.length] : colColor,
+                  transitionDelay: crossfade ? `${i * CROSSFADE_STAGGER_MS}ms` : undefined,
+                  background: isKonami()
+                    ? RAINBOW_COLS[i % RAINBOW_COLS.length]
+                    : useStepped
+                      ? stepColor(revealColor, i, cols)
+                      : colColor,
                 }}
               />
             );

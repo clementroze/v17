@@ -4291,6 +4291,7 @@ figure.bio-visual__item {
   overflow-wrap: break-word;
   word-break: break-word;
   min-width: 0;
+  line-height: var(--leading-body);
 }
 
 .cs-role {
@@ -5519,6 +5520,15 @@ button.cs-images__pic:focus-visible {
   margin: 0 -1px;
 }
 
+/* Applied only during the brief fully-covered hold before a case-study
+   reveal — cross-fades the plain cover color into the stepped accent shades
+   so the color change reads as a seamless morph, not a pop, right before the
+   reveal sweep starts. */
+.page-transition__col--crossfade {
+  /* transition-delay is set inline per column in router.tsx (staggered) */
+  transition: background-color 260ms ease;
+}
+
 /* Covering: slide up from below */
 .page-transition--covering .page-transition__col {
   animation: col-cover-in 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
@@ -6633,7 +6643,9 @@ button.cs-images__pic:focus-visible {
   padding: 0;
   transition: color 0.15s;
 }
-.an-back:hover { color: var(--black); }
+.an-back:hover {
+  color: var(--black);
+}
 
 .an-header__title {
   font-size: 13px;
@@ -6670,21 +6682,27 @@ button.cs-images__pic:focus-visible {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
   line-height: 1.3;
 }
 .an-tab--active {
   color: var(--black);
   border-bottom-color: var(--black);
 }
-.an-tab:hover { color: var(--black); }
+.an-tab:hover {
+  color: var(--black);
+}
 
 .an-tab__sub {
   font-size: 11px;
   color: var(--black-faint);
   font-weight: var(--weight-body);
 }
-.an-tab--active .an-tab__sub { color: var(--black-muted); }
+.an-tab--active .an-tab__sub {
+  color: var(--black-muted);
+}
 
 /* Date range / sort filters */
 .an-filter-group {
@@ -6704,9 +6722,15 @@ button.cs-images__pic:focus-visible {
   letter-spacing: var(--tracking);
   color: var(--black-muted);
   padding: 4px 12px;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
-.an-filter:hover { background: var(--surface); color: var(--black); }
+.an-filter:hover {
+  background: var(--surface);
+  color: var(--black);
+}
 .an-filter--active {
   background: var(--black);
   color: var(--white);
@@ -6880,7 +6904,9 @@ button.cs-images__pic:focus-visible {
   font-size: 13px;
   align-items: center;
 }
-.an-pv-row:last-child { border-bottom: none; }
+.an-pv-row:last-child {
+  border-bottom: none;
+}
 
 .an-pv-row--head {
   font-size: 11px;
@@ -6914,7 +6940,9 @@ button.cs-images__pic:focus-visible {
   flex-direction: column;
   gap: 4px;
 }
-.an-session:last-child { border-bottom: none; }
+.an-session:last-child {
+  border-bottom: none;
+}
 
 .an-session__meta {
   display: flex;
@@ -6979,8 +7007,12 @@ button.cs-images__pic:focus-visible {
   line-height: var(--leading-body);
 }
 
-.an-setup__steps strong { color: var(--black); }
-.an-setup__steps em { font-style: italic; }
+.an-setup__steps strong {
+  color: var(--black);
+}
+.an-setup__steps em {
+  font-style: italic;
+}
 .an-setup__steps code {
   font-family: "SFMono-Regular", "Consolas", monospace;
   font-size: 12px;
@@ -7011,7 +7043,9 @@ button.cs-images__pic:focus-visible {
   padding: 24px 0;
 }
 
-.an-error { color: #c0392b; }
+.an-error {
+  color: #c0392b;
+}
 
 /* Action row */
 .an-action-row {
@@ -7032,13 +7066,30 @@ button.cs-images__pic:focus-visible {
   letter-spacing: var(--tracking);
   color: var(--black-muted);
   padding: 6px 16px;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
-.an-btn:hover { background: var(--surface); color: var(--black); }
-.an-btn--danger { color: #c0392b; border-color: rgba(192, 57, 43, 0.2); }
-.an-btn--danger:hover { background: rgba(192, 57, 43, 0.06); }
-.an-btn--confirm { background: #c0392b; color: var(--white); border-color: #c0392b; }
-.an-btn--confirm:hover { background: #a93226; }
+.an-btn:hover {
+  background: var(--surface);
+  color: var(--black);
+}
+.an-btn--danger {
+  color: #c0392b;
+  border-color: rgba(192, 57, 43, 0.2);
+}
+.an-btn--danger:hover {
+  background: rgba(192, 57, 43, 0.06);
+}
+.an-btn--confirm {
+  background: #c0392b;
+  color: var(--white);
+  border-color: #c0392b;
+}
+.an-btn--confirm:hover {
+  background: #a93226;
+}
 
 .an-note {
   font-size: 11px;
@@ -7046,7 +7097,9 @@ button.cs-images__pic:focus-visible {
   margin-top: 4px;
 }
 
-.an-faint { color: var(--black-faint); }
+.an-faint {
+  color: var(--black-faint);
+}
 
 /* Page flow */
 .an-flow {
@@ -7065,7 +7118,9 @@ button.cs-images__pic:focus-visible {
   border-bottom: 1px solid var(--black-line);
   font-size: 12px;
 }
-.an-flow-row:last-child { border-bottom: none; }
+.an-flow-row:last-child {
+  border-bottom: none;
+}
 
 .an-flow-from,
 .an-flow-to {
@@ -7098,13 +7153,31 @@ button.cs-images__pic:focus-visible {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .an-header__inner { padding: 16px 20px 0; }
-  .an-content { padding: 28px 20px 60px; gap: 40px; }
-  .an-controls { gap: 12px; }
-  .an-two-col { grid-template-columns: 1fr; gap: 40px; }
-  .an-bar-row { grid-template-columns: 130px 1fr 44px; }
-  .an-stat-grid { grid-template-columns: repeat(2, 1fr); }
-  .an-pv-row { grid-template-columns: 1fr 48px; }
+  .an-header__inner {
+    padding: 16px 20px 0;
+  }
+  .an-content {
+    padding: 28px 20px 60px;
+    gap: 40px;
+  }
+  .an-controls {
+    gap: 12px;
+  }
+  .an-two-col {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .an-bar-row {
+    grid-template-columns: 130px 1fr 44px;
+  }
+  .an-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .an-pv-row {
+    grid-template-columns: 1fr 48px;
+  }
   .an-pv-row > span:nth-child(3),
-  .an-pv-row > span:nth-child(4) { display: none; }
+  .an-pv-row > span:nth-child(4) {
+    display: none;
+  }
 }
