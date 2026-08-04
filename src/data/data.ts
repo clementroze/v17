@@ -64,7 +64,7 @@ export const internships: Entity[] = [
     role: "Internship",
     accent: "#226AFE",
     href: "/work/ibm",
-    hasCaseStudy: false,
+    hasCaseStudy: true,
   },
   {
     slug: "frog",

@@ -39,11 +39,14 @@ function scrollToAnchor(id: string) {
   window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
 }
 
-// Inline tokenizer for body text. Splits on two token kinds and leaves the rest
-// as plain strings:
+// Inline tokenizer for body text. Splits on three token kinds and leaves the
+// rest as plain strings:
 //   [label](href)  → an accent-underlined link (in-page #anchor or external)
 //   #rrggbb / #rgb → a syntax-highlighted hex code chip with a color swatch
-const INLINE_RE = /(\[[^\]]+\]\([^)]+\))|(#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b)/g;
+//   `token`        → a plain monospace chip (same styling, no swatch) for
+//                     literal UI symbols/abbreviations, e.g. `*` or `Chg`
+const INLINE_RE =
+  /(\[[^\]]+\]\([^)]+\))|(#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b)|(`[^`]+`)/g;
 
 function renderInlineLinks(text: string): React.ReactNode {
   const parts = text.split(INLINE_RE).filter((p) => p !== undefined);
@@ -82,6 +85,13 @@ function renderInlineLinks(text: string): React.ReactNode {
         <code key={i} className="cs-hex">
           <span className="cs-hex__swatch" style={{ backgroundColor: part }} aria-hidden="true" />
           {part}
+        </code>
+      );
+    const token = part.match(/^`([^`]+)`$/);
+    if (token)
+      return (
+        <code key={i} className="cs-token">
+          {token[1]}
         </code>
       );
     return part;
@@ -239,7 +249,9 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block, lb?: Lightbox
                   ) : (
                     <div className="cs-images__pic">{src && <Picture src={src} alt={block.alts?.[i] ?? ""} />}</div>
                   )}
-                  {block.captions?.[i] && <figcaption className="cs-figcaption">{block.captions[i]}</figcaption>}
+                  {block.captions?.[i] && (
+                    <figcaption className="cs-figcaption">{renderInlineLinks(block.captions[i])}</figcaption>
+                  )}
                 </figure>
               );
             })}

@@ -475,22 +475,29 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
           src: "/images/bio/backrooms.png",
           alt: "Backrooms movie poster",
           top: "20%",
-          left: "4%",
+          left: "-4%",
           rotate: "-3deg",
-        },
-        {
-          src: "/images/bio/severance.png",
-          alt: "Severance show poster",
-          top: "15%",
-          left: "58%",
-          rotate: "3deg",
         },
         {
           src: "/images/bio/pluribus.png",
           alt: "Pluribus show poster",
           top: "55%",
-          left: "30%",
+          left: "22%",
           rotate: "-2deg",
+        },
+        {
+          src: "/images/bio/silo.png",
+          alt: "Silo show poster",
+          top: "35%",
+          left: "70%",
+          rotate: "2deg",
+        },
+        {
+          src: "/images/bio/severance.png",
+          alt: "Severance show poster",
+          top: "10%",
+          left: "45%",
+          rotate: "3deg",
         },
       ],
       content: (
@@ -501,8 +508,7 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
           </p>
           <p>
             My favorite genre sits somewhere between psychological thriller and surreal horror. Think <em>Severance</em>
-            , <em>Backrooms</em>, or anything that weaponizes the mundane against you. I love stories that use an eerie
-            and liminal premise to explore human identity and behavior. The more unsettling, the better!
+            , <em>Backrooms</em>, or anything that weaponizes the mundane against you. The more unsettling, the better!
           </p>
         </>
       ),

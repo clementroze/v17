@@ -4539,6 +4539,22 @@ figure.bio-visual__item {
     0 1px 3px color-mix(in srgb, var(--black) 12%, transparent);
 }
 
+/* Inline literal-token chip: same styling as .cs-hex (mono face, faint gray
+   field) but square-ish (4px radius) and no swatch — for literal UI symbols
+   and abbreviations quoted from a screen, e.g. `*` or `Chg`. */
+.cs-token {
+  display: inline;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 0.85em;
+  letter-spacing: 0;
+  color: var(--black);
+  background: rgba(0 0 0 / 5%);
+  border: 1px solid rgba(0 0 0 / 5%);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
 /* ── Image groups ──────────────────────────────────────────── */
 
 .cs-figure {
