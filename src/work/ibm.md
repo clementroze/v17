@@ -8,7 +8,7 @@ type: Visual design, Design system, Enterprise design
 about:
   - As a Design Intern at IBM's Silicon Valley Lab, I worked on IVP, the setup process that verifies a new IMS system is configured correctly.
   - It was still run through "green screen" terminal interfaces, so I redesigned the process end-to-end, turning a complex, keyboard-driven setup into a guided, visual experience.
-finalDesigns: TODO
+finalDesigns: Final designs
 ---
 
 ## What is IMS?
@@ -31,9 +31,9 @@ Below is a look at some of the "green screen" interfaces; the screens IVP used b
 
 ![/images/ibm/old-4.png "ALT TODO" | /images/ibm/old-2.png "ALT TODO"] IVP start screen where you choose an environment by typing a number | Sub-option selection where you use forward slash `/` to enable settings
 
-![/images/ibm/old-3.png "ALT TODO" | /images/ibm/old-1.png "ALT TODO"] Loading screen, with the word "PATIENCE" as the only sign of progress | Variables shown in a dense table, where symbols like `*` and `!` mark status and abbreviations like `Chg`, `Doc`, and `eNt` stand for actions
+![/images/ibm/old-3.png "ALT TODO" | /images/ibm/old-1.png "ALT TODO"] Loading screen, with the word `PATIENCE` as the only sign of progress | Variables shown in a dense table, where symbols like `*` and `!` mark status and abbreviations like `Chg`, `Doc`, and `eNt` stand for actions
 
-## Process
+## IVP legacy process
 
 We started by mapping the flow of IVP. As you can see, even this setup process alone, before the actual IMS database system is involved, is quite complicated.
 
@@ -48,21 +48,31 @@ This structure is a holdover from a decades-old process, a direct reflection of 
 
 ![flow](/images/ibm/flow.png) FLOW
 
-## Phase 1 - Manual "Translation"
+## Part 1 - Manual "translation"
 
 To better understand how IVP worked, and to also familiarize ourselves with the types of screens, we dissected each screen, state, and panel that the terminal could render, and created a modern 1:1 equivalent using proper interfaces, as well as using [Carbon](https://carbondesignsystem.com/) (IBM's design system)
 
-![/images/ibm/old-4.png "ALT TODO" | /images/ibm/env-new.png "ALT TODO"] Before: User types numbers to select their environment | After: User selects an IVP environment using visual cards and icons
-
 ![/images/ibm/old-5.png "ALT TODO" | /images/ibm/phase-new.png "ALT TODO"] Before: Phase navigation and restart options are embedded in a text-based menu | After: Phase navigation is organized into tabs with visual progress tracking and guided actions
+
+![/images/ibm/old-4.png "ALT TODO" | /images/ibm/env-new.png "ALT TODO"] Before: User types numbers to select their environment | After: User selects an IVP environment using visual cards and icons
 
 ![/images/ibm/old-1.png "ALT TODO" | /images/ibm/vg-new.png "ALT TODO"] Before: User scrolls through a text-based variable list and edits values using action codes | After: User manages variables through data tables with inline editing and status indicators
 
 Once this was done, we moved into the second phase of this project: to completely redesign this whole process.
 
-## Phase 2 - Introducing Configuration as Code
+## Part 2 - Introducing Configuration as Code
 
-Another team had been working on a tool called "Configuration as Code." This was basically a YAML file that contained all of the parameters that an IMS system would "import."
+The second part of my internship was revamping this lengthy installation process from the ground up. Coming in as interns with no prior history with IVP – but with the knowledge of Part 1 – turned out to be an advantage: we could bring a fresh approach to a decades-old system.
+
+Another team had been building a tool called Configuration as Code: a YAML file that holds every parameter an IMS system needs to import. It became the middleware that let us glue the pieces together.
+
+### Updated flow
+
+Configuration as Code fundamentally changed how we approached IVP. Instead of guiding users through hundreds of sequential inputs, the system now revolves around a single, reusable configuration YAML file. This leads to a shorter flow that starts with the YAML import/discovery, editing the parameters, and ultimately running the jobs all in one.
+
+![flow2](/images/ibm/flow-2.png) The main differences with the flow from Part 1 is that "File tailoring" and "Execution" are now combined under one "Apply" step
+
+## Final designs
 
 ## Looking ahead: integrating AI
 
@@ -73,3 +83,15 @@ One of the last things we did was to identify usecases for integrating AI (from 
 ![todo](/images/ibm/ai-2.png) AI-powered YAML validation - detects syntax error in configuration files and proposes fixes
 
 ![todo](/images/ibm/ai-3.png) AI migration analysis - evaluates configuration values to identify incompatibilities
+
+## Learnings & reflections
+
+IVP is a genuinely complex system, and reading through pages of [documentation](https://www.ibm.com/docs/en/zos-basic-skills?topic=ims-installation-verification-program-ivp) wasn't enough. Throughout the whole summer, regularly leaning on more experienced devs on the team was very helpful.
+
+When I mentioned my work to some friends, one of the points that was raised was: couldn't AI have done most of this? Here is my answer to that:
+
+Phase 1 was a literal translation: same process, same steps, same confirmations, just re-skinned from terminal text into a clickable UI. That kind of 1:1 conversion is exactly what AI is good at, and we did use it to iterate faster on component choices. But we still built most of those screens by hand, because the point of Phase 1 wasn't speed, it was learning the system well enough to redesign it in Phase 2.
+
+Phase 2 was different: rethinking the flow from first principles. AI could suggest a "simplified" or "revamped" version if prompted, but there was no way to know if that version actually worked without presenting it to clients, talking it through with colleague devs, and reasoning through the mainframe's edge cases ourselves — an AI will confidently hallucinate details about a system this complex. None of that (walking over to a colleague's desk for a two-minute gut check, reading a room in a client meeting) is something AI can do. So yes, a lot of this could theoretically be AI-generated, but it would be lower quality and impossible to fully trust.
+
+Two other lessons stuck with me: how much legacy behavior matters to long-time IVP users, since change takes time and trust; and just how different the pace and process of a large, decades-old company feels day to day.

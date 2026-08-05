@@ -7,7 +7,7 @@ type HeroProps = {
   tag?: string;
 };
 
-const DURATION = 1600;
+const DURATION = 3000;
 const START_DELAY = 0;
 const TRACK = 3.2;
 const BLUE_CENTER = TRACK / 2;

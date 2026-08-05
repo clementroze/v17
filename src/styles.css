@@ -1309,6 +1309,13 @@ footer::selection {
   --btn-hover-fill: rgba(0, 0, 0, 0.1);
 }
 
+.btn--black {
+  background: var(--black);
+  color: var(--white);
+  /* wipes brighter on the black surface, mirroring dark-gray's hover fill */
+  --btn-hover-fill: rgba(255, 255, 255, 0.1);
+}
+
 /* Spinning rainbow gradient border on hover — used on the rainbow toggle in
    the NotFound page. The border is always 2px transparent so no layout shift
    occurs on hover. box-sizing: border-box (global) keeps height at 36px.
@@ -1410,7 +1417,7 @@ footer::selection {
   background: linear-gradient(
     to top,
     rgba(255, 255, 255, 0.9) 0%,
-    rgba(255, 255, 255, 0.7) 80%,
+    rgba(255, 255, 255, 0.7) 50%,
     rgba(255, 255, 255, 0) 100%
   );
 }

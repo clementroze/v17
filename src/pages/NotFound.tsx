@@ -37,7 +37,7 @@ export default function NotFound() {
             :)
           </p>
           <div className="cs-not-found__actions">
-            <Button href="/" variant="light-gray">
+            <Button href="/" className="btn--black">
               Back to home
             </Button>
             <Button
