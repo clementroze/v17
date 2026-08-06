@@ -29,6 +29,7 @@
 //   ![a.jpg | b.jpg]              → { type: 'images', srcs: ['a.jpg','b.jpg'] }
 //   ![a.jpg] Caption text         → { type: 'images', srcs: [...], caption: 'Caption text' }
 //   ![alt](src) Caption text      → { type: 'images', srcs: ['src'], caption: 'Caption text' }
+//   ```lang\n…\n```                → { type: 'code', lang, lines[] }
 
 export type Meta = {
   slug: string;
@@ -55,7 +56,8 @@ export type Block =
   | { type: 'hmw'; text: string }
   | { type: 'cols'; columns: Col[] }
   | { type: 'list'; items: string[] }
-  | { type: 'images'; srcs: string[]; alts?: string[]; captions?: string[]; width?: string };
+  | { type: 'images'; srcs: string[]; alts?: string[]; captions?: string[]; width?: string }
+  | { type: 'code'; lang?: string; lines: string[] };
 
 export type CaseStudy = { meta: Meta; blocks: Block[] };
 
@@ -93,6 +95,21 @@ export function parseCase(raw: string): CaseStudy {
 
     // blank
     if (!line.trim()) { i++; continue; }
+
+    // fenced code block (```lang … ```)
+    const fence = line.match(/^```(\w*)\s*$/);
+    if (fence) {
+      const lang = fence[1] || undefined;
+      i++;
+      const codeLines: string[] = [];
+      while (i < lines.length && lines[i].trim() !== '```') {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // consume closing ```
+      blocks.push({ type: 'code', lang, lines: codeLines });
+      continue;
+    }
 
     // COLS block
     if (line.trim() === 'COLS') {

@@ -6,14 +6,14 @@ homeDescription: Bringing modern UX principles to legacy mainframe infrastructur
 role: Design Intern
 type: Visual design, Design system, Enterprise design
 about:
-  - As a Design Intern at IBM's Silicon Valley Lab, I worked on IVP, the setup process that verifies a new IMS system is configured correctly.
-  - It was still run through "green screen" terminal interfaces, so I redesigned the process end-to-end, turning a complex, keyboard-driven setup into a guided, visual experience.
+  - As a Design Intern at IBM's Silicon Valley Lab, I took a mainframe setup process still stuck on "green screen" terminals and rebuilt it from the ground up.
+    - The result was a guided, visual experience instead of a complex, text-based workflow.
 finalDesigns: Final designs
 ---
 
 ## What is IMS?
 
-IBM's Information Management System, or IMS, is a high-speed database and transaction manager used on mainframe computers. Originally built in the 1960s for the Apollo moon landing to track rocket parts, it still helps large banks, airlines, and stores handle millions of quick daily tasks safely.
+IBM's [Information Management System](https://www.ibm.com/products/ims), or IMS, is a high-speed database and transaction manager used on mainframe computers. Originally built in the 1960s for the Apollo moon landing to track rocket parts, it helps large banks, airlines, and stores handle millions of quick daily tasks safely.
 
 IMS remains the backbone of some of the world's most critical systems: powering 72% of Fortune Global 500 banks, processing up to 100,000 transactions per second, and maintaining 99.9999999% availability (just 30 milliseconds of downtime per year)!
 
@@ -23,11 +23,13 @@ IMS remains the backbone of some of the world's most critical systems: powering 
 
 When you install a new version of your Mac's or iPhone's software, you usually just download it from Apple's servers and it installs automatically. IVP, or Installation Verification Program, is the enterprise equivalent of making sure everything a new install is configured correctly and ready to use.
 
-It runs a series of checks to verify that a new IMS system (ie: a database) is configured properly and functioning as expected. This program has looked and worked the smae since the start of IMS over 60 years ago. My team and I worked on revamping it with a brand new UI.
+It runs a series of checks to verify that a new IMS system (ie: a database) is configured properly and functioning as expected. This program has looked and worked the same since the start of IMS over 60 years ago. My team and I worked on revamping it with a brand new UI.
+
+HMW How might we make a 60-year-old, text-based program feel as modern and intuitive as consumer software, withoutu losing the trust of engineers who rely on it?
 
 ## Old interface
 
-Below is a look at some of the "green screen" interfaces; the screens IVP used before the redesign. They are text-based, monospace, and reliant on cryptic keyboard commands rather than modern UI conventions.
+Below is a look at some of the "green screen" interfaces; the screens IVP used before the redesign. They are text-based, monospace, and rely on cryptic keyboard commands rather than modern UI conventions.
 
 ![/images/ibm/old-4.png "ALT TODO" | /images/ibm/old-2.png "ALT TODO"] IVP start screen where you choose an environment by typing a number | Sub-option selection where you use forward slash `/` to enable settings
 
@@ -66,6 +68,48 @@ The second part of my internship was revamping this lengthy installation process
 
 Another team had been building a tool called Configuration as Code: a YAML file that holds every parameter an IMS system needs to import. It became the middleware that let us glue the pieces together.
 
+### What does the YAML file look like?
+
+A YAML file (YAML Ain't Markup Language) is a plain-text format that uses indentation and key-value pairs to encode data.
+
+For example:
+
+- `imsid: IMS1` (line 5) is a setting: the variable `imsid` is assigned the value `IMS1`.
+- `- member_name: DFSPB001` (line 17) is an array item: the `-` marks it as one entry in a list, and the parameters indented beneath it belong to that specific item
+
+```yaml
+# -*- coding: utf-8 -*-
+# (c) Copyright IBM Corp. 2025
+
+vars:
+  imsid: IMS1
+  ims_hlq: IMSTESTL.IMS1
+ims:
+  ims_id: "{{ vars.imsid }}"
+  ims_sys_hlq: IMSV15
+  ims_hlq: "{{ vars.ims_hlq }}"
+  ims_type: DB/DC
+  ims_unit: SYSALLDA
+  ims_target_user: IBMUSER
+
+  ims_proclib:
+    members:
+      - member_name: DFSPB001
+        config:
+          dynamic_terminal_auto_logoff_time: 1440
+          aoi_buffer_pool_upper_limit: 2047M
+          aoi_type2_security_settings: false
+          : R
+          appc_enablement: false
+          appc_security_setting: F
+          ims_vtam_appl_id_for_rsr: APPL7
+          automatic_restart_manager_registration: false
+          dynamic_terminal_auto_signoff_time: 1440
+          automatic_restart: false
+          dedb_maximum_buffer_size: 0
+          coordinator_controller_convert_abend_on_cancel: false
+```
+
 ### Updated flow
 
 Configuration as Code fundamentally changed how we approached IVP. Instead of guiding users through hundreds of sequential inputs, the system now revolves around a single, reusable configuration YAML file. This leads to a shorter flow that starts with the YAML import/discovery, editing the parameters, and ultimately running the jobs all in one.
@@ -74,15 +118,51 @@ Configuration as Code fundamentally changed how we approached IVP. Instead of gu
 
 ## Final designs
 
+First, the user lands on the Configuration Center screen. From there, they can choose to create a new system, test an existing one, or if they really want to, go through the legacy IVP process instead. Once they hit "Create," there are 3 ways to do this:
+
+- Discover an existing IMS system and clone it
+- Use an official IBM template to start the system from
+- Upload their own configuration file
+
+![/images/ibm/config-center.png "ALT TODO" | /images/ibm/create.png "ALT TODO"] Configuration Center landing page | Options when creating a new system
+
+Then, depending on the option picked above, users either "discover" (ie: locate and select) an existing database to use to clone, or they upload an existing YAML file that they already have.
+
+![/images/ibm/discover.png "ALT TODO" | /images/ibm/upload.png "ALT TODO"] Discovering an existing IMS system | Uploading a YAML configuration file to use its parameters
+
+The next step is the "Edit" step. Users see a table with all the values/variables organized into categories. They can also open the raw configuration file of the YAML file if they wish to edit that instead, which maps 1 to 1 to the UI table. To edit, they can click on the value where there is inline editing with validation checks (eg: to check for typos and incorrect value types).
+
+![/images/ibm/edit.png "ALT TODO" | /images/ibm/inline.png "ALT TODO"] Users can edit through the table interface or with the raw configuration file editor | Inline editing and validation allows for seamless editing of the parameters
+
+Once they're finished editing, users proceed to the "Apply" step. Their job is vastly simplified compared to the legacy IVP version: they only have to click "Run," and all the jobs are queued up automatically in the right order in the backend and then executed seamlessly. If a runtime error occurs, the user gets a detailed screen showing what happened.
+
+![/images/ibm/run.png "ALT TODO" | /images/ibm/error.png "ALT TODO"] Users can track the progress of the new system being configured | If a runtime error occurs, users are shown details
+
+The Configuration Center can intelligently identify the error and suggest a solution. The user can fix the error directly in a modal, without losing the context of the Apply screen. Finally, the last step is to review the newly configured system. Users can even export a new YAML file with the updated variables and parameters that were newly generated.
+
+![/images/ibm/fix.png "ALT TODO" | /images/ibm/review.png "ALT TODO"] AI identifies, analyzes, and prompts the user with a fix – all from the same screen | The final page lets user review their newly configured system
+
 ## Looking ahead: integrating AI
 
-One of the last things we did was to identify usecases for integrating AI (from IBM's [watsonx.ai](https://www.ibm.com/products/watsonx-ai)).
+One of the last things we did was to identify usecases for integrating AI (from IBM's [watsonx.ai](https://www.ibm.com/products/watsonx-ai)) into the configuration flow. Here are a few examples:
 
-![todo](/images/ibm/ai-1.png) AI configuration assistant - Ask questions in natural language and receive contextual explanations without leaving the setup flow
+### AI configuration assistant
 
-![todo](/images/ibm/ai-2.png) AI-powered YAML validation - detects syntax error in configuration files and proposes fixes
+Ask questions in natural language and receive contextual explanations without leaving the setup flow.
 
-![todo](/images/ibm/ai-3.png) AI migration analysis - evaluates configuration values to identify incompatibilities
+![todo](/images/ibm/ai-1.png) Configuration assistant
+
+### AI-powered YAML validation
+
+Detects syntax errors in configuration files and proposes fixes.
+
+![todo](/images/ibm/ai-2.png) YAML validation
+
+### AI migration analysis
+
+Evaluates configuration values to identify incompatibilities system between different versions.
+
+![todo](/images/ibm/ai-3.png) Migration analysis
 
 ## Learnings & reflections
 

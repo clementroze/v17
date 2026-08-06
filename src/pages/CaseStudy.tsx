@@ -203,6 +203,20 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block, lb?: Lightbox
           <p className="cs-paragraph">{renderInlineLinks(block.text)}</p>
         </Reveal>
       );
+    case "code":
+      return (
+        <Reveal key={idx} delay={40}>
+          <pre className="cs-code">
+            <code>
+              {block.lines.map((line, i) => (
+                <span key={i} className="cs-code__line">
+                  {line || " "}
+                </span>
+              ))}
+            </code>
+          </pre>
+        </Reveal>
+      );
     case "list":
       return (
         <Reveal key={idx} delay={40}>
@@ -389,6 +403,21 @@ function renderInlineBlock(block: Block, idx: number): React.ReactNode {
     return (
       <Reveal key={idx} delay={idx * 50}>
         <p className="cs-paragraph">{renderInlineLinks(block.text)}</p>
+      </Reveal>
+    );
+  }
+  if (block.type === "code") {
+    return (
+      <Reveal key={idx} delay={idx * 50}>
+        <pre className="cs-code">
+          <code>
+            {block.lines.map((line, i) => (
+              <span key={i} className="cs-code__line">
+                {line || " "}
+              </span>
+            ))}
+          </code>
+        </pre>
       </Reveal>
     );
   }

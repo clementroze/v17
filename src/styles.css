@@ -435,6 +435,7 @@ footer::selection {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .navbar__reveal--open::before {
@@ -4389,7 +4390,6 @@ figure.bio-visual__item {
 
 .cs-cols__heading {
   font-size: 20px;
-  font-weight: var(--weight-heading);
   line-height: var(--leading-heading);
   color: var(--black);
 }
@@ -4472,6 +4472,43 @@ figure.bio-visual__item {
   font-size: 20px;
   line-height: var(--leading-body);
   color: var(--black);
+}
+
+/* ── Code block ────────────────────────────────────────────── */
+
+.cs-code {
+  width: 100%;
+  margin: 0;
+  padding: 8px 16px 8px 40px;
+  background: #262626;
+  border-radius: var(--radius-img);
+  overflow-x: auto;
+  counter-reset: cs-code-line;
+}
+
+.cs-code code {
+  display: block;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.cs-code__line {
+  position: relative;
+  display: block;
+  white-space: pre;
+  color: #e6e6e6;
+}
+
+.cs-code__line::before {
+  counter-increment: cs-code-line;
+  content: counter(cs-code-line);
+  position: absolute;
+  left: -40px;
+  width: 32px;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.32);
+  user-select: none;
 }
 
 /* Case-study inline links. Text uses the page accent (--cs-accent, set on
@@ -6055,6 +6092,16 @@ button.cs-images__pic:focus-visible {
   .cs-quote {
     font-size: var(--m-text);
     line-height: var(--leading-body);
+  }
+  .cs-code {
+    padding-left: 44px;
+  }
+  .cs-code code {
+    font-size: 12px;
+  }
+  .cs-code__line::before {
+    left: -32px;
+    width: 24px;
   }
   .cs-heading {
     font-size: var(--m-heading);
