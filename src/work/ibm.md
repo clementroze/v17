@@ -25,7 +25,7 @@ When you install a new version of your Mac's or iPhone's software, you usually j
 
 It runs a series of checks to verify that a new IMS system (ie: a database) is configured properly and functioning as expected. This program has looked and worked the same since the start of IMS over 60 years ago. My team and I worked on revamping it with a brand new UI.
 
-HMW How might we make a 60-year-old, text-based program feel as modern and intuitive as consumer software, withoutu losing the trust of engineers who rely on it?
+HMW How might we make a 60-year-old, text-based program feel as modern and intuitive as consumer software, without losing the trust of engineers who rely on it?
 
 ## Old interface
 
