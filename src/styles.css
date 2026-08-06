@@ -444,6 +444,7 @@ footer::selection {
 
 .navbar--white .navbar__reveal::before {
   background: rgba(0, 0, 0, 0.12);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .navbar__reveal--open {
@@ -510,6 +511,8 @@ footer::selection {
   color: var(--black);
   opacity: 0.5;
   transition: opacity 120ms ease-out;
+  position: relative;
+  top: 4px;
 }
 
 .navbar__reveal-link:hover {
@@ -2369,6 +2372,15 @@ html.konami .projects-nav-m__pill {
   opacity: 1;
   transform: translateY(0);
   filter: blur(0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
 
 /* =============================================
@@ -4441,6 +4453,10 @@ figure.bio-visual__item {
   width: 100%;
 }
 
+h3.cs-heading {
+  margin-top: 32px;
+}
+
 .cs-quote {
   border-left: 2px solid var(--black-faint);
   padding-left: 12px;
@@ -4479,7 +4495,7 @@ figure.bio-visual__item {
 .cs-code {
   width: 100%;
   margin: 0;
-  padding: 8px 16px 8px 40px;
+  padding: 12px 16px 12px 40px;
   background: #262626;
   border-radius: var(--radius-img);
   overflow-x: auto;
@@ -5584,6 +5600,12 @@ button.cs-images__pic:focus-visible {
    it adapts to any column count. */
 .page-transition--revealing .page-transition__col {
   animation: col-cover-out 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    display: none !important;
+  }
 }
 
 /* =============================================

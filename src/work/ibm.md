@@ -21,9 +21,9 @@ IMS remains the backbone of some of the world's most critical systems: powering 
 
 ## What is IVP?
 
-When you install a new version of your Mac's or iPhone's software, you usually just download it from Apple's servers and it installs automatically. IVP, or Installation Verification Program, is the enterprise equivalent of making sure everything a new install is configured correctly and ready to use.
+When you install a new version of your Mac's or iPhone's software, you usually just download it from Apple's servers and it installs automatically. IVP, or Installation Verification Program, is the enterprise equivalent: it makes sure a new install is configured correctly and ready to use.
 
-It runs a series of checks to verify that a new IMS system (ie: a database) is configured properly and functioning as expected. This program has looked and worked the same since the start of IMS over 60 years ago. My team and I worked on revamping it with a brand new UI.
+It runs a series of checks to verify that a new IMS system (ie: a database) is configured properly and functioning as expected. This program has looked and worked the same since the start of IMS over 60 years ago. My team and I worked on giving it a brand new UI.
 
 HMW How might we make a 60-year-old, text-based program feel as modern and intuitive as consumer software, without losing the trust of engineers who rely on it?
 
@@ -31,13 +31,13 @@ HMW How might we make a 60-year-old, text-based program feel as modern and intui
 
 Below is a look at some of the "green screen" interfaces; the screens IVP used before the redesign. They are text-based, monospace, and rely on cryptic keyboard commands rather than modern UI conventions.
 
-![/images/ibm/old-4.png "ALT TODO" | /images/ibm/old-2.png "ALT TODO"] IVP start screen where you choose an environment by typing a number | Sub-option selection where you use forward slash `/` to enable settings
+![/images/ibm/old-4.png "Green screen terminal showing a numbered list of IMS environments to choose from" | /images/ibm/old-2.png "Green screen terminal showing sub-options toggled on with a forward slash"] IVP start screen where you choose an environment by typing a number | Sub-option selection where you use forward slash `/` to enable settings
 
-![/images/ibm/old-3.png "ALT TODO" | /images/ibm/old-1.png "ALT TODO"] Loading screen, with the word `PATIENCE` as the only sign of progress | Variables shown in a dense table, where symbols like `*` and `!` mark status and abbreviations like `Chg`, `Doc`, and `eNt` stand for actions
+![/images/ibm/old-3.png "Green screen loading indicator displaying only the word PATIENCE" | /images/ibm/old-1.png "Green screen table of IMS variables with cryptic status symbols and abbreviations"] Loading screen, with the word `PATIENCE` as the only sign of progress | Variables shown in a dense table, where symbols like `*` and `!` mark status and abbreviations like `Chg`, `Doc`, and `eNt` stand for actions
 
 ## IVP legacy process
 
-We started by mapping the flow of IVP. As you can see, even this setup process alone, before the actual IMS database system is involved, is quite complicated.
+We started by mapping the flow of IVP. As you can see, even this setup process alone – before the actual IMS database system is involved – is quite complicated.
 
 IVP runs in four phases:
 
@@ -48,23 +48,23 @@ IVP runs in four phases:
 
 This structure is a holdover from a decades-old process, a direct reflection of the legacy of IBM's mainframe software.
 
-![flow](/images/ibm/flow.png) FLOW
+![Diagram of the four-phase legacy IVP flow: Initialization, Variable Gathering, File Tailoring, and Execution](/images/ibm/flow.png) The legacy IVP flow, phase by phase
 
 ## Part 1 - Manual "translation"
 
-To better understand how IVP worked, and to also familiarize ourselves with the types of screens, we dissected each screen, state, and panel that the terminal could render, and created a modern 1:1 equivalent using proper interfaces, as well as using [Carbon](https://carbondesignsystem.com/) (IBM's design system)
+To better understand how IVP worked, and to familiarize ourselves with the process, we dissected each screen, state, and panel the terminal could render, then rebuilt each one as a modern 1:1 equivalent using proper UI components and [Carbon](https://carbondesignsystem.com/) (IBM's design system).
 
-![/images/ibm/old-5.png "ALT TODO" | /images/ibm/phase-new.png "ALT TODO"] Before: Phase navigation and restart options are embedded in a text-based menu | After: Phase navigation is organized into tabs with visual progress tracking and guided actions
+![/images/ibm/old-5.png "Green screen menu listing phase navigation and restart options as plain text" | /images/ibm/phase-new.png "Redesigned phase navigation shown as tabs with a visual progress tracker"] Before: phase navigation and restart options are buried in a text menu | After: phase navigation is organized into tabs with visual progress tracking and guided actions
 
-![/images/ibm/old-4.png "ALT TODO" | /images/ibm/env-new.png "ALT TODO"] Before: User types numbers to select their environment | After: User selects an IVP environment using visual cards and icons
+![/images/ibm/old-4.png "Green screen terminal showing a numbered list of IMS environments to choose from" | /images/ibm/env-new.png "Redesigned environment picker shown as a grid of visual cards with icons"] Before: user types numbers to pick their environment | After: selecting an IVP environment using visual cards and icons
 
-![/images/ibm/old-1.png "ALT TODO" | /images/ibm/vg-new.png "ALT TODO"] Before: User scrolls through a text-based variable list and edits values using action codes | After: User manages variables through data tables with inline editing and status indicators
+![/images/ibm/old-1.png "Green screen table of IMS variables with cryptic status symbols and abbreviations" | /images/ibm/vg-new.png "Redesigned data table with inline editing and status indicators for each variable"] Before: scrolling a text-based variable list and editing via action codes | After: user manages variables in an editable data table
 
 Once this was done, we moved into the second phase of this project: to completely redesign this whole process.
 
 ## Part 2 - Introducing Configuration as Code
 
-The second part of my internship was revamping this lengthy installation process from the ground up. Coming in as interns with no prior history with IVP – but with the knowledge of Part 1 – turned out to be an advantage: we could bring a fresh approach to a decades-old system.
+The second part of my internship was revamping this lengthy installation process from the ground up. Coming in as an intern with no prior history with IVP – but with the knowledge from Part 1 – turned out to be an advantage: we could bring a fresh approach to a decades-old system.
 
 Another team had been building a tool called Configuration as Code: a YAML file that holds every parameter an IMS system needs to import. It became the middleware that let us glue the pieces together.
 
@@ -112,66 +112,60 @@ ims:
 
 ### Updated flow
 
-Configuration as Code fundamentally changed how we approached IVP. Instead of guiding users through hundreds of sequential inputs, the system now revolves around a single, reusable configuration YAML file. This leads to a shorter flow that starts with the YAML import/discovery, editing the parameters, and ultimately running the jobs all in one.
+Configuration as Code fundamentally changed how we approached IVP. Instead of guiding users through hundreds of sequential inputs, the system now revolves around a single, reusable configuration YAML file. This leads to a shorter flow that starts with the YAML import/discovery, moves to editing the parameters, and ends with running the jobs – all in one place.
 
-![flow2](/images/ibm/flow-2.png) The main differences with the flow from Part 1 is that "File tailoring" and "Execution" are now combined under one "Apply" step
+![Diagram of the updated IVP flow](/images/ibm/flow-2.png) The updated flow merge File Tailoring and Execution into one Apply step
 
 ## Final designs
 
 First, the user lands on the Configuration Center screen. From there, they can choose to create a new system, test an existing one, or if they really want to, go through the legacy IVP process instead. Once they hit "Create," there are 3 ways to do this:
 
 - Discover an existing IMS system and clone it
-- Use an official IBM template to start the system from
+- Use an official IBM template to start from
 - Upload their own configuration file
 
-![/images/ibm/config-center.png "ALT TODO" | /images/ibm/create.png "ALT TODO"] Configuration Center landing page | Options when creating a new system
+![/images/ibm/config-center.png "Configuration Center landing page with options to create, test, or run the legacy IVP process" | /images/ibm/create.png "Three three ways to create a new system: discover, template, or upload"] The Configuration Center landing page | Choosing how to create a new system
 
-Then, depending on the option picked above, users either "discover" (ie: locate and select) an existing database to use to clone, or they upload an existing YAML file that they already have.
+Then, depending on the option picked above, users either "discover" (i.e. locate and select) an existing database to clone, or they upload an existing YAML file they already have.
 
-![/images/ibm/discover.png "ALT TODO" | /images/ibm/upload.png "ALT TODO"] Discovering an existing IMS system | Uploading a YAML configuration file to use its parameters
+![/images/ibm/discover.png "Screen for locating and selecting an existing IMS system to clone" | /images/ibm/upload.png "Screen for uploading a YAML configuration file"] Discovering an existing IMS system to clone | Uploading a YAML configuration file to reuse its parameters
 
-The next step is the "Edit" step. Users see a table with all the values/variables organized into categories. They can also open the raw configuration file of the YAML file if they wish to edit that instead, which maps 1 to 1 to the UI table. To edit, they can click on the value where there is inline editing with validation checks (eg: to check for typos and incorrect value types).
+The next step is the "Edit." Users see a table with all the values and variables organized into categories. They can also open the raw configuration file if they'd rather edit that directly, which maps 1 to 1 to the UI table. To edit, they click a value for inline editing with built-in vaildation (e.g. catching typos and incorrect value types).
 
-![/images/ibm/edit.png "ALT TODO" | /images/ibm/inline.png "ALT TODO"] Users can edit through the table interface or with the raw configuration file editor | Inline editing and validation allows for seamless editing of the parameters
+![/images/ibm/edit.png "Table view of configuration values organized into categories, with a toggle to view the raw YAML file" | /images/ibm/inline.png "A value being edited inline, with a validation error shown as a tooltip"] Editing through the table, or with the raw configuration file | Inline editing with real-time validation
 
-Once they're finished editing, users proceed to the "Apply" step. Their job is vastly simplified compared to the legacy IVP version: they only have to click "Run," and all the jobs are queued up automatically in the right order in the backend and then executed seamlessly. If a runtime error occurs, the user gets a detailed screen showing what happened.
+Once they're finished editing, users move to the "Apply" step. Their job is far simpler than in the legacy IVP flow: they just click "Run," and every job is queued in the right order and executed automatically. If a runtime error occurs, the user gets a detailed screen showing what happened.
 
-![/images/ibm/run.png "ALT TODO" | /images/ibm/error.png "ALT TODO"] Users can track the progress of the new system being configured | If a runtime error occurs, users are shown details
+![/images/ibm/run.png "ALT TODO" | /images/ibm/error.png "Error screen with details about a failed job"] Users can track the progress of the new system being configured | If a runtime error occurs, users are shown details
 
-The Configuration Center can intelligently identify the error and suggest a solution. The user can fix the error directly in a modal, without losing the context of the Apply screen. Finally, the last step is to review the newly configured system. Users can even export a new YAML file with the updated variables and parameters that were newly generated.
+The Configuration Center can intelligently identify the error and suggest a fix. Users can apply it directly from a modal, without losing the context of the Apply screen. Finally, the last step is to review the newly configured system. Users can even export a new YAML file with the updated variables and parameters that were generated.
 
-![/images/ibm/fix.png "ALT TODO" | /images/ibm/review.png "ALT TODO"] AI identifies, analyzes, and prompts the user with a fix – all from the same screen | The final page lets user review their newly configured system
+![/images/ibm/fix.png "Modal showing an AI-suggested fix for a configuration error, layered over the Apply screen" | /images/ibm/review.png "Final review screen summarizing the newly configured system"] AI identifies, analyzes, and prompts the user with a fix – all from the same screen | The final page lets user review their newly configured system
 
 ## Looking ahead: integrating AI
 
-One of the last things we did was to identify usecases for integrating AI (from IBM's [watsonx.ai](https://www.ibm.com/products/watsonx-ai)) into the configuration flow. Here are a few examples:
+One of the last things I did was to identify usecases for integrating AI (from IBM's [watsonx.ai](https://www.ibm.com/products/watsonx-ai)) into the configuration flow. Here are a few examples:
 
 ### AI configuration assistant
 
-Ask questions in natural language and receive contextual explanations without leaving the setup flow.
+Users ask questions in natural language and receive contextual explanations without leaving the setup flow.
 
-![todo](/images/ibm/ai-1.png) Configuration assistant
+![Chat panel where a user asks a natural-language question about their configuration and receives a contextual answer](/images/ibm/ai-1.png) Configuration assistant
 
 ### AI-powered YAML validation
 
-Detects syntax errors in configuration files and proposes fixes.
+This tool detects syntax errors in configuration files and proposes fixes.
 
-![todo](/images/ibm/ai-2.png) YAML validation
+![YAML validation panel highlighting a syntax error alongside a suggested ](/images/ibm/ai-2.png) YAML validation
 
 ### AI migration analysis
 
-Evaluates configuration values to identify incompatibilities system between different versions.
+Finally, this tool evaluates configuration values to flag incompatibilities between system versions.
 
-![todo](/images/ibm/ai-3.png) Migration analysis
+![Migration analysis screen flagging configuration values that are incompatible with the target version](/images/ibm/ai-3.png) Migration analysis
 
 ## Learnings & reflections
 
-IVP is a genuinely complex system, and reading through pages of [documentation](https://www.ibm.com/docs/en/zos-basic-skills?topic=ims-installation-verification-program-ivp) wasn't enough. Throughout the whole summer, regularly leaning on more experienced devs on the team was very helpful.
+IVP is a genuinely complex system, and reading pages of [documentation](https://www.ibm.com/docs/en/zos-basic-skills?topic=ims-installation-verification-program-ivp) wasn't enough. Throughout the whole summer, regularly leaning on more experienced devs on the team was very helpful and also helped us see things from their point of view.
 
-When I mentioned my work to some friends, one of the points that was raised was: couldn't AI have done most of this? Here is my answer to that:
-
-Phase 1 was a literal translation: same process, same steps, same confirmations, just re-skinned from terminal text into a clickable UI. That kind of 1:1 conversion is exactly what AI is good at, and we did use it to iterate faster on component choices. But we still built most of those screens by hand, because the point of Phase 1 wasn't speed, it was learning the system well enough to redesign it in Phase 2.
-
-Phase 2 was different: rethinking the flow from first principles. AI could suggest a "simplified" or "revamped" version if prompted, but there was no way to know if that version actually worked without presenting it to clients, talking it through with colleague devs, and reasoning through the mainframe's edge cases ourselves — an AI will confidently hallucinate details about a system this complex. None of that (walking over to a colleague's desk for a two-minute gut check, reading a room in a client meeting) is something AI can do. So yes, a lot of this could theoretically be AI-generated, but it would be lower quality and impossible to fully trust.
-
-Two other lessons stuck with me: how much legacy behavior matters to long-time IVP users, since change takes time and trust; and just how different the pace and process of a large, decades-old company feels day to day.
+Another lesson that stuck with me: legacy behavior matters more than I expected, and trust from long-time IVP users takes real work to earn. During our three client calls, engineers were initially skeptical of trading their whole process for a new web interface. They were less resistant to the change itself and more concerned with how their day-to-day would be affected. We listened closely, and looking back, several of the concerns they raised became actual features in the final product.
