@@ -764,7 +764,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
                     </div>
                   </div>
                   <div className="cs-meta__about">
-                    <p className="cs-meta__label">About</p>
+                    <p className="cs-meta__label">Summary</p>
                     <div className="cs-meta__p">
                       {meta.about.map((p, i) => (
                         <p key={i} className="cs-meta__value">
