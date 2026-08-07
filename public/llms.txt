@@ -14,6 +14,7 @@
 - [frog](https://clementroze.com/work/frog): Designing the next-generation mobile commodity trading platform.
 - [General Counsel AI](https://clementroze.com/work/gcai): Building the design foundation for an AI legal platform.
 - [Google](https://clementroze.com/work/google): Designing and evaluating user experiences to engage college-age users with Google products.
+- [IBM](https://clementroze.com/work/ibm): Bringing modern UX principles to legacy mainframe infrastructure.
 - [Microsoft](https://clementroze.com/work/microsoft): Copilot-powered B2B sales tools designed for Gen Z buyers.
 - [Replit](https://clementroze.com/work/replit): Fostering polish, revamping design systems, and building marketing pages.
 
