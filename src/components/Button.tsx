@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { Link } from "../lib/router";
 import Hourglass from "./Hourglass";
 
-type ButtonVariant = "dark-gray" | "light-gray" | "accent";
+type ButtonVariant = "dark-gray" | "light-gray" | "accent" | "black";
 
 type ButtonProps = {
   children: React.ReactNode;

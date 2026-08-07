@@ -9,6 +9,7 @@ about:
   - [frog](https://www.frog.co) is a design agency renowned for its innovative approach to creating meaningful experiences that advance both people and planet.
   - Last summer, working from the Paris studio, I had the unique opportunity to work with a grain trading company to design the first B2C, mobile trading platform.
   - I collaborated across design and business teams to deliver a mid-fidelity, highly functional prototype showcasing this mobile platform.
+whyNoAI:
 finalDesigns: Designing the next-generation trading model
 ---
 

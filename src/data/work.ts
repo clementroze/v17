@@ -71,6 +71,11 @@ type WorkSource = {
    * projects without a .md file (e.g. IBM, which is "coming soon").
    */
   homeDescription?: string;
+  /**
+   * Shows a small accent-colored "New" tag next to the project name on the
+   * Work page (grid and list views). Remove once a project isn't new anymore.
+   */
+  isNew?: boolean;
 };
 
 /**
@@ -99,6 +104,7 @@ const sources: WorkSource[] = [
     previewSrc: "/images/ibm/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/ibm/grid-1.png", "/images/ibm/grid-2.png", "/images/ibm/grid-3.png"],
+    isNew: true,
   },
   {
     slug: "google",
@@ -106,32 +112,35 @@ const sources: WorkSource[] = [
     previewSrc: "/images/google/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/google/grid-1.png", "/images/google/grid-2.png", "/images/google/grid-3.png"],
+    textPosition: 0,
   },
   {
     slug: "frog",
     previewSrc: "/images/frog/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/frog/grid-1.png", "/images/frog/grid-2.png", "/images/frog/grid-3.png"],
+    textPosition: 0,
   },
   {
     slug: "microsoft",
     previewSrc: "/images/microsoft/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/microsoft/grid-1.png", "/images/microsoft/grid-2.png", "/images/microsoft/grid-3.png"],
+    textPosition: 0,
   },
   {
     slug: "gcai",
     previewSrc: "/images/gcai/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/gcai/grid-1.png", "/images/gcai/grid-2.png", "/images/gcai/grid-3.png"],
-    textPosition: 2,
+    textPosition: 0,
   },
   {
     slug: "replit",
     previewSrc: "/images/replit/preview.png",
     images: [332, 332, 332],
     imageUrls: ["/images/replit/grid-1.png", "/images/replit/grid-2.png", "/images/replit/grid-3.png"],
-    textPosition: 1,
+    textPosition: 0,
   },
 ];
 

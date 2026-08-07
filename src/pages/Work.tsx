@@ -69,7 +69,10 @@ function GridText({ item, delay }: { item: WorkItem; delay: number }) {
   const inner = (
     <>
       <div className="work-grid__text-top">
-        <h2 className="work-grid__name">{item.name}</h2>
+        <h2 className="work-grid__name">
+          {item.name}
+          {item.isNew && <span className="work-tag-new">New</span>}
+        </h2>
         <p className="work-grid__role">{item.subtitle}</p>
       </div>
       <span className="work-grid__cta">
@@ -166,13 +169,15 @@ function SeeMoreText({ delay }: { delay: number }) {
 }
 
 function SeeMoreGridRow({ index }: { index: number }) {
-  const textIndex = SEE_MORE_GRID_IMAGES.length;
+  // Delays are derived from each cell's actual position in the row (text is
+  // now first, so it gets the smallest delay; images shift by 1 to follow it)
+  // — mirrors GridItem's cells-in-final-order approach above.
   return (
     <div className="work-grid__row">
+      <SeeMoreText delay={index * 60} />
       {SEE_MORE_GRID_IMAGES.map((src, i) => (
-        <GridPic key={i} src={src} h={332} delay={index * 60 + i * 70} lead={i === 0} />
+        <GridPic key={i} src={src} h={332} delay={index * 60 + (i + 1) * 70} lead={i === 0} />
       ))}
-      <SeeMoreText delay={index * 60 + textIndex * 70} />
     </div>
   );
 }
@@ -274,7 +279,10 @@ function WorkList({ items, dividerRef }: { items: WorkItem[]; dividerRef: React.
 
           const inner = (
             <>
-              <span className="work-list__name">{item.name}</span>
+              <span className="work-list__name">
+                {item.name}
+                {item.isNew && <span className="work-tag-new">New</span>}
+              </span>
               <span className="work-list__role">{item.role}</span>
               <div className="work-list__right">
                 {item.comingSoon ? (

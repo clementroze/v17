@@ -92,9 +92,9 @@ function caseStudy(slug: string): PageMeta {
     ogType: "article",
     ogTitle: title,
     ogDescription: description,
-    // The case study's hero image makes a far more relevant social card than the
+    // The case study's cover image makes a far more relevant social card than the
     // generic site image. Dimensions are omitted because they vary per project.
-    ogImage: `${SITE_ORIGIN}/images/${slug}/cs-hero.png`,
+    ogImage: `${SITE_ORIGIN}/images/${slug}/cover.png`,
     ogImageAlt: `${name} — case study by Clément Rozé`,
   };
 }

@@ -116,7 +116,7 @@ Body copy.
 The instant this file exists, these auto-generate on build: the `/work/ibm`
 route, its `sitemap.xml` entry, `CreativeWork` + `BreadcrumbList` JSON-LD, and
 all per-route `<head>` tags (title/description/canonical/OG, with
-`cs-hero.png` as the social card). The router also stops treating `/work/ibm`
+`cover.png` as the social card). The router also stops treating `/work/ibm`
 as a noindex not-found.
 
 **B. Flip `hasCaseStudy: true`** in `data.ts`. This drops the "Coming soon."
@@ -142,8 +142,8 @@ reference it with **descriptive alt**. Markdown image syntax:
 | Name | Purpose | Optimizer cap |
 |------|---------|---------------|
 | `home-hero.png` | Homepage hero | 3840px (retina) |
-| `cs-hero.png` | Case-study hero + OG social card | 3840px |
-| `cover.png` | Case-study cover background | 3840px |
+| `cs-hero.png` | Case-study hero | 3840px |
+| `cover.png` | Case-study cover background + OG social card | 3840px |
 | `preview.png` | Floating hover preview on Work list | 2000px |
 | `grid-1/2/3.png` | Work-page grid thumbnails | 2000px |
 | anything else | In-body content images | 2000px |

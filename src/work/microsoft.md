@@ -8,6 +8,7 @@ type: DCC Collaboration
 about:
   - Through Design Consulting at Cornell, I led a team of 6 consultants during a five-month collaboration with Microsoft.
   - We analyzed 50 research papers, conducted 90 interviews, and designed two integrated solutions spanning the B2B buyer journey.
+whyNoAI:
 finalDesigns: Final flow & high-fidelity mockups
 ---
 

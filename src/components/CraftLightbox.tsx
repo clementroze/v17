@@ -6,7 +6,7 @@ import Picture from "./Picture";
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-const MORPH_IN_MS = 520;
+const MORPH_IN_MS = 300;
 const isVideoSrc = (src?: string | null) => Boolean(src && /\.(mp4|mov|webm|ogg)$/i.test(src));
 const MORPH_OUT_MS = 380;
 // How much accumulated same-direction wheel intent it takes to dismiss the

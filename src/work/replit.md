@@ -9,6 +9,7 @@ about:
   - [Replit](https://replit.com/) an online platform that offers a place for both experienced developers and novices to build, share, and deploy software. Their goal is to empower the next billion software creators.
   - I joined Replit when I was 15 years old and loved it so much that I worked there for two and a half years, even part-time during high school! My work involved revamping the Replit User Interface (RUI) design system, ensuring every surface received a quality dose of CSS polish. I also built slide decks and other support materials for conferences and presentations.
   - My biggest accomplishment was designing the following marketing pages as part of a company-wide rebrand.
+whyNoAI:
 finalDesigns: AI Comparison page
 ---
 

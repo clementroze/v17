@@ -13,6 +13,7 @@ import { loadCase } from "../lib/cases";
 import { Reveal } from "../lib/reveal";
 import { contrastText } from "../lib/contrast";
 import CraftLightbox from "../components/CraftLightbox";
+import WhyNoAIModal from "../components/WhyNoAIModal";
 import Picture, { bgImageSet } from "../components/Picture";
 import type { CraftItem } from "../data/craft";
 import work from "../data/work";
@@ -45,8 +46,7 @@ function scrollToAnchor(id: string) {
 //   #rrggbb / #rgb → a syntax-highlighted hex code chip with a color swatch
 //   `token`        → a plain monospace chip (same styling, no swatch) for
 //                     literal UI symbols/abbreviations, e.g. `*` or `Chg`
-const INLINE_RE =
-  /(\[[^\]]+\]\([^)]+\))|(#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b)|(`[^`]+`)/g;
+const INLINE_RE = /(\[[^\]]+\]\([^)]+\))|(#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b)|(`[^`]+`)/g;
 
 function renderInlineLinks(text: string): React.ReactNode {
   const parts = text.split(INLINE_RE).filter((p) => p !== undefined);
@@ -608,6 +608,17 @@ export default function CaseStudy({ slug }: { slug: string }) {
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }, [finalDesignsIdx]);
 
+  // "Why couldn't AI do this?" side panel (opt-in via `whyNoAI:` frontmatter).
+  // Mirrors the About page's bio "More" modal state pattern: the modal owns its
+  // own mount/animation lifecycle, this page just owns whether it's open.
+  // Temporarily disabled — mechanics (parseCase field, WhyNoAIModal, CSS) stay
+  // in place, just not surfaced yet. Flip this back on when it's ready.
+  const WHY_NO_AI_ENABLED = false;
+  const [whyNoAIOpen, setWhyNoAIOpen] = useState(false);
+  const whyNoAITriggerRef = useRef<HTMLButtonElement>(null);
+  const toggleWhyNoAI = () => setWhyNoAIOpen((o) => !o);
+  const closeWhyNoAI = () => setWhyNoAIOpen(false);
+
   // Show ProjectsNav once the cs-meta block has scrolled into view; hide before
   // it AND hide again once the prev/next cards (.cs-nav) enter the viewport so
   // the side rail doesn't overlap the footer navigation.
@@ -761,11 +772,28 @@ export default function CaseStudy({ slug }: { slug: string }) {
                         </p>
                       ))}
                     </div>
-                    {hasFinalDesigns && (
-                      <div className="cs-meta__cta cs-meta__cta--down">
-                        <Button variant="light-gray" iconSrc={arrowBlack} onClick={scrollToFinalDesigns}>
-                          View final designs
-                        </Button>
+                    {(hasFinalDesigns || (WHY_NO_AI_ENABLED && meta.whyNoAI)) && (
+                      <div className="cs-meta__cta-row">
+                        {hasFinalDesigns && (
+                          <div className="cs-meta__cta cs-meta__cta--down">
+                            <Button variant="black" iconSrc={arrowWhite} onClick={scrollToFinalDesigns}>
+                              View final designs
+                            </Button>
+                          </div>
+                        )}
+                        {WHY_NO_AI_ENABLED && meta.whyNoAI && (
+                          <div className="cs-meta__cta">
+                            <Button
+                              ref={whyNoAITriggerRef}
+                              variant="light-gray"
+                              onClick={toggleWhyNoAI}
+                              ariaHaspopup="dialog"
+                              ariaExpanded={whyNoAIOpen}
+                            >
+                              Why couldn't AI do this?
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -867,6 +895,10 @@ export default function CaseStudy({ slug }: { slug: string }) {
           onIndexChange={setLbIndex}
           onClose={() => setLbIndex(null)}
         />
+      )}
+
+      {WHY_NO_AI_ENABLED && meta.whyNoAI && (
+        <WhyNoAIModal open={whyNoAIOpen} onClose={closeWhyNoAI} content={meta.whyNoAI} triggerRef={whyNoAITriggerRef} />
       )}
     </div>
   );

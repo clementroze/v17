@@ -10,6 +10,7 @@
 //   about:
 //     - paragraph one
 //     - paragraph two
+//   whyNoAI: Why this couldn't have just been AI-generated…   (optional)
 //   finalDesigns: Final flow & high-fidelity mockups   (optional)
 //   ---
 //
@@ -38,6 +39,12 @@ export type Meta = {
   role: string;
   type: string;
   about: string[];
+  /**
+   * Optional. Powers the "Why couldn't AI do this?" side panel button next to
+   * "View final designs" — each list item renders as its own paragraph. Left
+   * blank/omitted, the button doesn't render.
+   */
+  whyNoAI?: string[];
   /**
    * Optional. When set, a "View final designs" button is rendered below the
    * About meta block. The value is the exact text of a `## ` section heading in
@@ -69,21 +76,33 @@ export function parseCase(raw: string): CaseStudy {
   const body = fmMatch[2].trim();
 
   // ── parse frontmatter ──────────────────────────────────────────────────────
+  // `about` and `whyNoAI` (or any other key left with no inline value) may be
+  // followed by indented `- ` list items, each becoming its own paragraph. A
+  // key left blank with no list items underneath just stays unset (e.g.
+  // `whyNoAI:` on case studies that haven't written one yet).
   const meta: Partial<Meta> & { about: string[] } = { about: [] };
-  let inAbout = false;
+  const lists: Record<string, string[]> = {};
+  let listKey: string | null = null;
 
   for (const line of fmRaw.split('\n')) {
-    if (inAbout) {
+    if (listKey) {
       const li = line.match(/^\s{2,}-\s+(.+)$/);
-      if (li) { meta.about.push(li[1]); continue; }
-      inAbout = false;
+      if (li) { lists[listKey].push(li[1]); continue; }
+      listKey = null;
     }
     const kv = line.match(/^(\w+):\s*(.*)$/);
     if (!kv) continue;
     const [, key, val] = kv;
-    if (key === 'about') { inAbout = true; continue; }
+    if (!val.trim()) {
+      listKey = key;
+      lists[key] = [];
+      continue;
+    }
     (meta as unknown as Record<string, string>)[key] = val.trim();
   }
+
+  meta.about = lists.about ?? [];
+  if (lists.whyNoAI?.length) meta.whyNoAI = lists.whyNoAI;
 
   // ── parse body ─────────────────────────────────────────────────────────────
   const blocks: Block[] = [];
