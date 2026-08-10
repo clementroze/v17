@@ -2,22 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import { Drawer } from "vaul";
 
 import Button from "./Button";
+import CaseStudyVideo from "./CaseStudyVideo";
+import { renderInlineLinks, scrollToAnchor } from "../lib/inlineLinks";
 
-// Desktop: a light-mode, text-only sibling of BioModal's "More about me"
-// drawer — same right-docked panel, blurred/dimmed scrim, and open/close
-// lifecycle, but no left image stage and light instead of dark.
-//
-// Mobile (≤768px): a bottom sheet built on vaul (github.com/emilkowalski/vaul)
-// instead of the custom slide-in panel — a right-docked half-width drawer
-// doesn't work on narrow viewports, and vaul gives us the native-feeling
-// drag-to-dismiss bottom sheet for free (its own focus trap + scroll lock too,
-// so the desktop-only effects below are skipped in this mode).
+// A content item can also be a single-media image/video line, same syntax as
+// the case study body: ![alt](src) caption {600px}. Lets whyNoAI embed a
+// supporting clip without a body-only block type.
+const MEDIA_RE = /^!\[([^\]]*)\]\(([^)]+)\)\s*(.*)$/;
+const VIDEO_RE = /\.(mp4|mov|webm|ogg)$/i;
+const WIDTH_RE = /\{([^}]+)\}\s*$/;
 
-// Must be ≥ the desktop panel's slide transition (see .whynoai-modal__panel in
-// CSS) so the node unmounts right as the close animation finishes.
-const WHYNOAI_MODAL_EXIT_MS = 600;
-
-const WHYNOAI_MODAL_FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+// Right-docked panel on desktop, bottom sheet on mobile — both driven by vaul
+// (github.com/emilkowalski/vaul), just switching `direction` at the ≤768px
+// breakpoint. Vaul owns mount/animation lifecycle, focus trap, scroll lock,
+// and drag-to-dismiss (bottom sheet only) in both modes; this component only
+// owns whether it's open.
 
 type WhyNoAIModalProps = {
   open: boolean;
@@ -26,9 +25,13 @@ type WhyNoAIModalProps = {
   content: string[];
   /** Focus returns here on close (the trigger button on the page). */
   triggerRef: React.RefObject<HTMLButtonElement>;
+  /** Portal target — pass the .cs-page element so the drawer stays a DOM
+   * descendant of it and inherits --cs-accent/--cs-on-accent (and the
+   * .cs-page ::selection rule) instead of vaul's default document.body portal. */
+  container?: HTMLElement | null;
 };
 
-export default function WhyNoAIModal({ open, onClose, content, triggerRef }: WhyNoAIModalProps) {
+export default function WhyNoAIModal({ open, onClose, content, triggerRef, container }: WhyNoAIModalProps) {
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches,
   );
@@ -39,174 +42,96 @@ export default function WhyNoAIModal({ open, onClose, content, triggerRef }: Why
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  // ── desktop-only: custom right-docked slide-in panel ────────────────────────
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const closeTimer = useRef<number | null>(null);
-  const openRaf = useRef<number | null>(null);
+  const direction = isMobile ? "bottom" : "right";
 
-  const cancelTransition = () => {
-    if (closeTimer.current !== null) {
-      window.clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-    if (openRaf.current !== null) {
-      cancelAnimationFrame(openRaf.current);
-      openRaf.current = null;
-    }
+  // An in-page anchor link clicked inside the drawer closes it first, but the
+  // drawer's scroll lock is still held until its close animation finishes —
+  // scrolling immediately is a no-op that gets silently reverted once the
+  // lock releases. `open` is a controlled prop here, so vaul's own
+  // onAnimationEnd (which only fires from its *internal* dismiss handlers,
+  // e.g. drag/Escape) never runs for a close driven by us — wait out the
+  // fixed 500ms close transition vaul itself uses instead.
+  const anchorScrollTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (anchorScrollTimer.current !== null) window.clearTimeout(anchorScrollTimer.current);
+    };
+  }, []);
+
+  const handleAnchorClick = (id: string) => {
+    onClose();
+    if (anchorScrollTimer.current !== null) window.clearTimeout(anchorScrollTimer.current);
+    anchorScrollTimer.current = window.setTimeout(() => {
+      anchorScrollTimer.current = null;
+      scrollToAnchor(id);
+    }, 500);
   };
 
-  useEffect(() => {
-    if (isMobile) return; // vaul owns mount/open state on mobile
-    cancelTransition();
-    if (open) {
-      if (!mounted) {
-        setMounted(true);
-      } else {
-        setVisible(true);
-      }
-    } else if (mounted) {
-      setVisible(false);
-      closeTimer.current = window.setTimeout(() => {
-        closeTimer.current = null;
-        setMounted(false);
-      }, WHYNOAI_MODAL_EXIT_MS);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isMobile]);
-
-  // Double rAF so the browser paints the hidden state before the slide-in
-  // transition is triggered (a single frame can fire before that paint).
-  useEffect(() => {
-    if (!mounted || isMobile) return;
-    openRaf.current = requestAnimationFrame(() => {
-      openRaf.current = requestAnimationFrame(() => {
-        openRaf.current = null;
-        setVisible(true);
-      });
-    });
-    return () => {
-      if (openRaf.current !== null) {
-        cancelAnimationFrame(openRaf.current);
-        openRaf.current = null;
-      }
-    };
-  }, [mounted, isMobile]);
-
-  useEffect(() => cancelTransition, []);
-
-  // While mounted: lock page scroll, move focus inside, trap Tab, close on
-  // Escape, restore focus to the trigger on unmount. Skipped on mobile — vaul
-  // (via Radix Dialog) already does all of this for the bottom sheet.
-  useEffect(() => {
-    if (!mounted || isMobile) return;
-
-    const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
-    const prevOverflow = document.body.style.overflow;
-    const prevPadRight = document.body.style.paddingRight;
-    document.body.style.overflow = "hidden";
-    if (scrollbarW > 0) document.body.style.paddingRight = `${scrollbarW}px`;
-
-    requestAnimationFrame(() => panelRef.current?.focus());
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const panel = panelRef.current;
-      if (!panel) return;
-      const focusables = Array.from(panel.querySelectorAll<HTMLElement>(WHYNOAI_MODAL_FOCUSABLE)).filter(
-        (el) => el.offsetParent !== null,
-      );
-      const first = focusables[0] ?? panel;
-      const last = focusables[focusables.length - 1] ?? panel;
-      const active = document.activeElement as HTMLElement | null;
-      if (e.shiftKey) {
-        if (active === first || active === panel || !panel.contains(active)) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (active === last || !panel.contains(active)) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-    window.addEventListener("keydown", onKey);
-
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-      document.body.style.paddingRight = prevPadRight;
-      triggerRef.current?.focus();
-    };
-  }, [mounted, isMobile, onClose, triggerRef]);
-
-  // ── mobile: vaul bottom sheet ────────────────────────────────────────────────
-  if (isMobile) {
-    return (
-      <Drawer.Root open={open} onOpenChange={(next) => !next && onClose()}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="whynoai-drawer__overlay" />
-          <Drawer.Content className="whynoai-drawer__content">
-            <Drawer.Handle className="whynoai-drawer__handle" />
-            <div className="whynoai-drawer__header">
-              <Drawer.Title className="whynoai-drawer__title">Why couldn't AI do this?</Drawer.Title>
-              <Drawer.Description className="whynoai-drawer__description">
-                A few notes on which parts of this project AI could and couldn't have done.
-              </Drawer.Description>
-            </div>
-            <div className="whynoai-drawer__body">
-              {content.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-              <div className="whynoai-drawer__footer">
-                <Button variant="dark-gray" onClick={onClose}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
-    );
-  }
-
-  // ── desktop: custom slide-in panel ──────────────────────────────────────────
-  if (!mounted) return null;
-
   return (
-    <div
-      className={`whynoai-modal${visible ? " whynoai-modal--open" : ""}`}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Why couldn't AI do this?"
+    <Drawer.Root
+      open={open}
+      onOpenChange={(next) => !next && onClose()}
+      direction={direction}
+      onClose={() => triggerRef.current?.focus()}
+      autoFocus
     >
-      <div ref={panelRef} className="whynoai-modal__panel" tabIndex={-1} onClick={(e) => e.stopPropagation()}>
-        <div className="whynoai-modal__header">
-          <h2 className="whynoai-modal__title">Why couldn't AI do this?</h2>
-          <button type="button" className="whynoai-modal__close" onClick={onClose} aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M4 4L16 16M16 4L4 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-        <div className="whynoai-modal__body">
-          {content.map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
-          <div className="whynoai-modal__footer">
-            <Button variant="dark-gray" onClick={onClose}>
-              Close
-            </Button>
+      <Drawer.Portal container={container}>
+        <Drawer.Overlay className="whynoai-drawer__overlay" />
+        <Drawer.Content
+          className={`whynoai-drawer__content whynoai-drawer__content--${direction}`}
+          data-testid="whynoai-drawer"
+        >
+          {isMobile && <Drawer.Handle className="whynoai-drawer__handle" />}
+          <div className="whynoai-drawer__header">
+            <Drawer.Title className="whynoai-drawer__title">Why couldn't AI do this instead of me?</Drawer.Title>
+            <Drawer.Description className="whynoai-drawer__description">
+              A few notes on which parts of this project AI could and couldn't have done.
+            </Drawer.Description>
+            {!isMobile && (
+              <button type="button" className="whynoai-drawer__close" onClick={onClose} aria-label="Close">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M4 4L16 16M16 4L4 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+          {/* data-vaul-no-drag: swipe-to-dismiss still works from the handle
+              (mobile) or anywhere else in the panel, but text inside here is
+              selectable instead of always being captured as a drag gesture. */}
+          <div className="whynoai-drawer__body" data-vaul-no-drag="">
+            {content.map((p, i) => {
+              const widthToken = p.match(WIDTH_RE);
+              const width = widthToken?.[1].trim();
+              const pNoWidth = widthToken ? p.slice(0, widthToken.index).trimEnd() : p;
+              const media = pNoWidth.match(MEDIA_RE);
+              if (media) {
+                const [, alt, src, caption] = media;
+                return (
+                  <figure
+                    key={i}
+                    className="whynoai-drawer__media"
+                    style={width ? { maxWidth: width, width: "100%" } : undefined}
+                  >
+                    {VIDEO_RE.test(src) ? (
+                      <CaseStudyVideo src={src} label={caption || alt} />
+                    ) : (
+                      <img src={src} alt={alt} />
+                    )}
+                    {caption && <figcaption className="whynoai-drawer__caption">{caption}</figcaption>}
+                  </figure>
+                );
+              }
+              return <p key={i}>{renderInlineLinks(p, handleAnchorClick)}</p>;
+            })}
+            <div className="whynoai-drawer__footer">
+              <Button variant="light-gray" onClick={onClose}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }

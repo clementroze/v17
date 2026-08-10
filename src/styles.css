@@ -1027,7 +1027,7 @@ footer::selection {
 
 .btn {
   position: relative;
-  overflow: hidden; /* clips the wipe-in fill to the pill */
+  overflow: hidden; /* clips content to the pill */
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -1043,34 +1043,16 @@ footer::selection {
   border: none;
   font-family: var(--font);
   transition:
-    background 120ms ease-in,
+    background-color 320ms cubic-bezier(0.76, 0, 0.24, 1),
     transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Hover fill: a panel of `--btn-hover-fill` (set per variant) that wipes in from
-   the left on hover, giving the background a sliding color change. */
-.btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--btn-hover-fill, transparent);
-  transform: translateX(-101%);
-  transition: transform 320ms cubic-bezier(0.76, 0, 0.24, 1);
-  z-index: 0;
-}
-
-.btn:hover::before {
-  transform: translateX(0);
+.btn:hover {
+  background-color: var(--btn-hover-fill, transparent);
 }
 
 .btn:active {
   transform: scale(0.97);
-}
-
-/* Keep the label + icon above the sliding fill. */
-.btn > * {
-  position: relative;
-  z-index: 1;
 }
 
 .btn span.label {
@@ -1296,29 +1278,29 @@ footer::selection {
 .btn--dark-gray {
   background: var(--white-faint);
   color: var(--white);
-  /* wipes brighter on the dark surface */
-  --btn-hover-fill: rgba(255, 255, 255, 0.1);
+  /* brightens on hover */
+  --btn-hover-fill: color-mix(in srgb, var(--white-faint), white 10%);
 }
 
 .btn--light-gray {
   background: var(--surface);
   color: var(--black);
-  /* wipes a touch darker on the light surface */
+  /* darkens a touch on hover */
   --btn-hover-fill: #d2d2d2;
 }
 
 .btn--accent {
   background: var(--accent);
   color: var(--accent-ink, #fff);
-  /* darkens the accent as it wipes (works for any accent hue) */
-  --btn-hover-fill: rgba(0, 0, 0, 0.1);
+  /* darkens the accent on hover (works for any accent hue) */
+  --btn-hover-fill: color-mix(in srgb, var(--accent), black 10%);
 }
 
 .btn--black {
   background: var(--black);
   color: var(--white);
-  /* wipes brighter on the black surface, mirroring dark-gray's hover fill */
-  --btn-hover-fill: rgba(255, 255, 255, 0.2);
+  /* brightens on hover, mirroring dark-gray's hover fill */
+  --btn-hover-fill: color-mix(in srgb, var(--black), white 20%);
 }
 
 /* Spinning rainbow gradient border on hover — used on the rainbow toggle in
@@ -2715,65 +2697,9 @@ html.konami .projects-nav-m__pill {
    panel, same blurred/dimmed scrim, same open/close lifecycle — but no left
    image stage (just the blurred page behind), and light instead of dark to
    match the case-study pages it opens from. */
-.whynoai-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  justify-content: flex-end;
-  background: rgba(0, 0, 0, 0);
-  -webkit-backdrop-filter: blur(0px);
-  backdrop-filter: blur(0px);
-  pointer-events: none;
-  transition:
-    background-color 0.4s ease,
-    backdrop-filter 0.4s ease,
-    -webkit-backdrop-filter 0.4s ease;
-}
-
-.whynoai-modal--open {
-  background: rgba(0, 0, 0, 0.3);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  pointer-events: auto;
-}
-
-.whynoai-modal__panel {
-  position: relative;
-  width: 50%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--white);
-  border-left: 1px solid var(--black-line);
-  /* box-shadow: -30px 0 80px var(--black-scrim); */
-  transform: translateX(100%);
-  will-change: transform;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.whynoai-modal--open .whynoai-modal__panel {
-  transform: translateX(0);
-}
-
-.whynoai-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 28px 40px;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--black-line);
-}
-
-.whynoai-modal__title {
-  font-size: 24px;
-  line-height: var(--leading-heading);
-  color: var(--black);
-}
-
-.whynoai-modal__close {
+/* Desktop close button lives in the drawer header (bottom sheet uses the
+   visually-hidden Drawer.Description + handle instead — see below). */
+.whynoai-drawer__close {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
@@ -2792,34 +2718,13 @@ html.konami .projects-nav-m__pill {
     transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.whynoai-modal__close:hover,
-.whynoai-modal__close:focus-visible {
+.whynoai-drawer__close:hover,
+.whynoai-drawer__close:focus-visible {
   color: var(--black);
 }
 
-.whynoai-modal__close:active {
+.whynoai-drawer__close:active {
   transform: scale(0.97);
-}
-
-.whynoai-modal__body {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 40px;
-}
-
-.whynoai-modal__body p {
-  font-size: 18px;
-  letter-spacing: var(--tracking-heading);
-  line-height: var(--leading-body);
-  color: var(--black-muted);
-}
-
-.whynoai-modal__footer {
-  margin-top: 40px;
-  display: flex;
 }
 
 /* ── vaul base styles (vendored) ──────────────────────────────────────────────
@@ -2847,6 +2752,23 @@ html.konami .projects-nav-m__pill {
 
 [data-vaul-drawer][data-vaul-snap-points="true"][data-vaul-drawer-direction="bottom"] {
   transform: translate3d(0, var(--initial-transform, 100%), 0);
+}
+
+/* right-direction variants (desktop docked panel) — not shipped in vaul's own
+   style.css bottom-only vendor copy above, added to match. */
+[data-vaul-drawer][data-vaul-snap-points="false"][data-vaul-drawer-direction="right"][data-state="open"] {
+  animation-name: vaul-slideFromRight;
+}
+[data-vaul-drawer][data-vaul-snap-points="false"][data-vaul-drawer-direction="right"][data-state="closed"] {
+  animation-name: vaul-slideToRight;
+}
+
+[data-vaul-drawer][data-vaul-drawer-direction="right"]::after {
+  left: 100%;
+  right: initial;
+  top: 0;
+  bottom: 0;
+  width: 200%;
 }
 
 [data-vaul-overlay][data-vaul-snap-points="false"] {
@@ -2926,6 +2848,13 @@ html.konami .projects-nav-m__pill {
   [data-vaul-drawer] {
     user-select: none;
   }
+
+  /* Overridden back on: vaul's own drag handling already skips
+     [data-vaul-no-drag] regions, so the blanket user-select:none above only
+     needs to be undone to make that region's text selectable again. */
+  [data-vaul-drawer] [data-vaul-no-drag] {
+    user-select: text;
+  }
 }
 
 @keyframes vaul-fadeIn {
@@ -2958,35 +2887,60 @@ html.konami .projects-nav-m__pill {
   }
 }
 
-/* ── "Why couldn't AI do this?" bottom sheet (mobile, ≤768px) ────────────────
-   Below .whynoai-modal's own 768px breakpoint, WhyNoAIModal.tsx swaps the
-   custom right-docked panel above for this vaul-powered bottom sheet — a
-   half-width side drawer doesn't work on narrow viewports, and vaul gives a
-   native-feeling drag-to-dismiss sheet with its own focus trap + scroll lock.
-   Base slide/drag mechanics come from vaul/style.css (imported in main.tsx);
-   these rules only add the visual theme. */
+@keyframes vaul-slideFromRight {
+  from {
+    transform: translate3d(var(--initial-transform, 100%), 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes vaul-slideToRight {
+  to {
+    transform: translate3d(var(--initial-transform, 100%), 0, 0);
+  }
+}
+
+/* ── "Why couldn't AI do this?" drawer ────────────────────────────────────────
+   A single vaul Drawer whose `direction` prop switches between a right-docked
+   desktop panel and a mobile (≤768px) bottom sheet — both get vaul's own
+   focus trap + scroll lock, and the bottom sheet additionally gets
+   drag-to-dismiss. Base slide/drag mechanics come from the vendored vaul
+   styles above; these rules only add the visual theme. */
 .whynoai-drawer__overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
   background: rgba(0, 0, 0, 0.3);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
 
 .whynoai-drawer__content {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  max-height: 85vh;
   background: var(--white);
+  outline: none;
+}
+
+.whynoai-drawer__content--bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85vh;
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -20px 60px var(--black-scrim);
-  outline: none;
+}
+
+.whynoai-drawer__content--right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  border-left: 1px solid var(--black-line);
 }
 
 .whynoai-drawer__handle {
@@ -2994,14 +2948,35 @@ html.konami .projects-nav-m__pill {
 }
 
 .whynoai-drawer__header {
-  padding: 4px 24px 0;
   flex-shrink: 0;
 }
 
+.whynoai-drawer__content--bottom .whynoai-drawer__header {
+  padding: 24px;
+  padding-bottom: 0;
+}
+
+.whynoai-drawer__content--right .whynoai-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 40px;
+  border-bottom: 1px solid var(--black-line);
+}
+
 .whynoai-drawer__title {
+  color: var(--black);
+}
+
+.whynoai-drawer__content--bottom .whynoai-drawer__title {
   font-size: var(--m-heading);
   line-height: var(--leading-heading);
-  color: var(--black);
+}
+
+.whynoai-drawer__content--right .whynoai-drawer__title {
+  font-size: 24px;
+  line-height: var(--leading-heading);
 }
 
 /* Radix Dialog wants a description tied to the content for a11y; there's no
@@ -3019,23 +2994,65 @@ html.konami .projects-nav-m__pill {
 }
 
 .whynoai-drawer__body {
+  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.whynoai-drawer__content--bottom .whynoai-drawer__body {
   padding: 16px 24px calc(24px + env(safe-area-inset-bottom));
 }
 
+.whynoai-drawer__content--right .whynoai-drawer__body {
+  gap: 20px;
+  padding: 40px;
+}
+
 .whynoai-drawer__body p {
-  font-size: var(--m-text);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-body);
   color: var(--black-muted);
 }
 
-.whynoai-drawer__footer {
-  margin-top: 8px;
+.whynoai-drawer__content--bottom .whynoai-drawer__body p {
+  font-size: var(--m-text);
+}
+
+.whynoai-drawer__content--right .whynoai-drawer__body p {
+  font-size: 18px;
+}
+
+.whynoai-drawer__media {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.whynoai-drawer__media img,
+.whynoai-drawer__media video {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--black-line);
+  border-radius: var(--radius-img);
+}
+
+.whynoai-drawer__caption {
+  font-size: 14px;
+  color: var(--black-muted);
+}
+
+.whynoai-drawer__footer {
+  display: flex;
+}
+
+.whynoai-drawer__content--bottom .whynoai-drawer__footer {
+  margin-top: 8px;
+}
+
+.whynoai-drawer__content--right .whynoai-drawer__footer {
+  margin-top: 40px;
 }
 
 /* Phones: a half-width drawer would be too cramped. Go full-width and swap the

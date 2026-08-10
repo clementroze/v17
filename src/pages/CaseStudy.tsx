@@ -19,84 +19,7 @@ import type { CraftItem } from "../data/craft";
 import work from "../data/work";
 import { bySlug } from "../data/data";
 import { caseStudyJsonLd, firstYear, CASE_STUDY_SCHEMA_ATTR } from "../lib/caseStudySchema";
-
-// Turn heading text into a URL-fragment id, e.g. "Loading states" →
-// "loading-states". Used so in-page `[label](#anchor)` links can target a
-// subheading by its slug.
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
-
-// Smooth-scroll to an in-page anchor, clearing the sticky navbar with the same
-// 110px offset the pill nav uses.
-function scrollToAnchor(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY - 110;
-  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-}
-
-// Inline tokenizer for body text. Splits on three token kinds and leaves the
-// rest as plain strings:
-//   [label](href)  → an accent-underlined link (in-page #anchor or external)
-//   #rrggbb / #rgb → a syntax-highlighted hex code chip with a color swatch
-//   `token`        → a plain monospace chip (same styling, no swatch) for
-//                     literal UI symbols/abbreviations, e.g. `*` or `Chg`
-const INLINE_RE = /(\[[^\]]+\]\([^)]+\))|(#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b)|(`[^`]+`)/g;
-
-function renderInlineLinks(text: string): React.ReactNode {
-  const parts = text.split(INLINE_RE).filter((p) => p !== undefined);
-  return parts.map((part, i) => {
-    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (link) {
-      const href = link[2];
-      // In-page anchor: scroll smoothly within the page (same tab), accounting
-      // for the sticky navbar — rather than opening a new tab like external links.
-      if (href.startsWith("#")) {
-        const id = href.slice(1);
-        return (
-          <a
-            key={i}
-            href={href}
-            className="cs-link"
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToAnchor(id);
-              history.replaceState(null, "", href);
-            }}
-          >
-            {link[1]}
-          </a>
-        );
-      }
-      return (
-        <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="cs-link">
-          {link[1]}
-        </a>
-      );
-    }
-    const hex = part.match(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/);
-    if (hex)
-      return (
-        <code key={i} className="cs-hex">
-          <span className="cs-hex__swatch" style={{ backgroundColor: part }} aria-hidden="true" />
-          {part}
-        </code>
-      );
-    const token = part.match(/^`([^`]+)`$/);
-    if (token)
-      return (
-        <code key={i} className="cs-token">
-          {token[1]}
-        </code>
-      );
-    return part;
-  });
-}
+import { slugify, renderInlineLinks } from "../lib/inlineLinks";
 
 // Matches the video extensions handled by CaseStudyVideo — videos are excluded
 // from the lightbox (they keep their inline player) so this also tells the image
@@ -155,7 +78,9 @@ function renderBlock(block: Block, idx: number, prevBlock?: Block, lb?: Lightbox
         <Reveal key={idx}>
           <div className="cs-section__divider" />
           <section className="cs-section">
-            <h2 className="cs-section__title">{block.title}</h2>
+            <h2 id={slugify(block.title)} className="cs-section__title">
+              {block.title}
+            </h2>
             <div className="cs-section__body" />
           </section>
         </Reveal>
@@ -328,7 +253,7 @@ function renderBody(
             out.push(
               <Reveal key={`section-${i}-${r}`}>
                 <section className="cs-section">
-                  <h2 ref={titleRef} className="cs-section__title">
+                  <h2 id={slugify(block.title)} ref={titleRef} className="cs-section__title">
                     {block.title}
                   </h2>
                   <div className="cs-section__body">{run.items.map((b, j) => renderInlineBlock(b, j))}</div>
@@ -357,7 +282,7 @@ function renderBody(
         out.push(
           <Reveal key={`section-${i}-title`}>
             <section className="cs-section">
-              <h2 ref={titleRef} className="cs-section__title">
+              <h2 id={slugify(block.title)} ref={titleRef} className="cs-section__title">
                 {block.title}
               </h2>
               <div className="cs-section__body" />
@@ -609,15 +534,18 @@ export default function CaseStudy({ slug }: { slug: string }) {
   }, [finalDesignsIdx]);
 
   // "Why couldn't AI do this?" side panel (opt-in via `whyNoAI:` frontmatter).
-  // Mirrors the About page's bio "More" modal state pattern: the modal owns its
-  // own mount/animation lifecycle, this page just owns whether it's open.
-  // Temporarily disabled — mechanics (parseCase field, WhyNoAIModal, CSS) stay
-  // in place, just not surfaced yet. Flip this back on when it's ready.
-  const WHY_NO_AI_ENABLED = false;
+  // Built on vaul (right-docked drawer on desktop, bottom sheet on mobile) —
+  // WhyNoAIModal owns its own mount/animation lifecycle, this page just owns
+  // whether it's open.
+  const WHY_NO_AI_ENABLED = true;
   const [whyNoAIOpen, setWhyNoAIOpen] = useState(false);
   const whyNoAITriggerRef = useRef<HTMLButtonElement>(null);
   const toggleWhyNoAI = () => setWhyNoAIOpen((o) => !o);
   const closeWhyNoAI = () => setWhyNoAIOpen(false);
+  // Portal target for the drawer: keeps it a DOM descendant of .cs-page so it
+  // inherits --cs-accent/--cs-on-accent and the .cs-page ::selection rule,
+  // instead of vaul's default portal to document.body (outside that subtree).
+  const pageRef = useRef<HTMLDivElement>(null);
 
   // Show ProjectsNav once the cs-meta block has scrolled into view; hide before
   // it AND hide again once the prev/next cards (.cs-nav) enter the viewport so
@@ -677,6 +605,7 @@ export default function CaseStudy({ slug }: { slug: string }) {
 
   return (
     <div
+      ref={pageRef}
       className="page cs-page"
       style={
         metaLinkColor
@@ -898,7 +827,13 @@ export default function CaseStudy({ slug }: { slug: string }) {
       )}
 
       {WHY_NO_AI_ENABLED && meta.whyNoAI && (
-        <WhyNoAIModal open={whyNoAIOpen} onClose={closeWhyNoAI} content={meta.whyNoAI} triggerRef={whyNoAITriggerRef} />
+        <WhyNoAIModal
+          open={whyNoAIOpen}
+          onClose={closeWhyNoAI}
+          content={meta.whyNoAI}
+          triggerRef={whyNoAITriggerRef}
+          container={pageRef.current}
+        />
       )}
     </div>
   );

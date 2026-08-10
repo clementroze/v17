@@ -11,6 +11,4 @@ about:
 whyNoAI:
 ---
 
-## More
-
-Full case study coming soon.
+HMW Full case study coming soon.

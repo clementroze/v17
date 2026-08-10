@@ -10,6 +10,10 @@ about:
   - Last summer, working from the Paris studio, I had the unique opportunity to work with a grain trading company to design the first B2C, mobile trading platform.
   - I collaborated across design and business teams to deliver a mid-fidelity, highly functional prototype showcasing this mobile platform.
 whyNoAI:
+  - The main trading interaction, which I call the ["wheel of fortune"](#designing-the-next-generation-trading-model), came from noticing that existing tools for this were far too dense. The solution came from an unrelated, everyday moment instead: setting an alarm for the next day and noticing how naturally that scrolling picker wheel could map onto a completely different problem. Spotting that kind of connection in an ordinary moment isn't something AI can do.
+  - Beyond that one interaction, this project ran on dozens of client workshops where being human meant reading the room, sensing when an idea wasn't landing, and sketching a different direction on the spot.
+  - ![](/images/frog/no-ai.mov) AI couldn't have made the connection between the iOS alarm clock setting and trading tools!
+  - ![](/images/frog/diml.mp4) A "Day In My Life" video that AI certainly can't do! {500px}
 finalDesigns: Designing the next-generation trading model
 ---
 

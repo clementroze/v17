@@ -9,6 +9,9 @@ about:
   - Through Design Consulting at Cornell, I led a team of 6 consultants during a five-month collaboration with Microsoft.
   - We analyzed 50 research papers, conducted 90 interviews, and designed two integrated solutions spanning the B2B buyer journey.
 whyNoAI:
+  - This was my first time leading a team with real stakeholders on the line. That changes how you lead: I couldn't just assign research and hope for the best, I had to actually manage 6 people through a genuinely complex and ambiguous problem space.
+  - Sometimes, if a consultant would get stuck, I couldn't just point them to ChatGPT and move on. Being lost on a topic this dense is normal, and what actually helped was sitting with them, understanding specifically where their thinking broke down, and working through it together.
+  - Since we were designing for Gen Z buyers specifically, how the 90 interviews were run mattered too. Having an actual person conducting the interview (instead of a bot) made participants more willing to open up.
 finalDesigns: Final flow & high-fidelity mockups
 ---
 

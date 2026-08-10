@@ -10,7 +10,9 @@ about:
     - The result was a guided, visual experience instead of a complex, text-based workflow.
 whyNoAI:
   - An important part of this project was reasoning through 60 years of mainframe edge cases, walking over to a colleague's desk for a gut check, and reading the room in three client calls — none of which an AI can do. For a system this complex, a confidently hallucinated detail would be a disaster and lose the trust of our users.
-  - That said, AI did its place in the process: it was excellent at parsing dense IBM documentation and rewording it in plainer terms so I could actually understand how the system worked.
+  - That said, AI did have its place in the process: it was excellent at parsing dense IBM documentation and rewording it in plainer terms so I could actually understand how the system worked.
+  - ![](/images/ibm/client-meeting.png) While AI can take notes during a meeting, it can't read the room!
+
 finalDesigns: Final designs
 ---
 
