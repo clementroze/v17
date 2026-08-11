@@ -52,12 +52,15 @@ html.lenis,
 html.lenis body {
   height: auto;
 }
+
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
+
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
+
 .lenis.lenis-stopped {
   overflow: clip;
 }
@@ -73,6 +76,7 @@ html.lenis body {
   html.home-paging {
     scroll-snap-type: y mandatory;
   }
+
   html.home-paging .home__hero-snap,
   html.home-paging .effect-b__section,
   html.home-paging .footer {
@@ -151,6 +155,7 @@ footer::selection {
   background: var(--white) !important;
   color: var(--black) !important;
 }
+
 .cs-page .footer::-moz-selection,
 .cs-page .footer ::-moz-selection {
   background: var(--white) !important;
@@ -180,8 +185,10 @@ footer::selection {
   --max-width: 1400px;
 
   /* Two tracking tokens only. */
-  --tracking: -0.02em; /* body text, UI labels */
-  --tracking-heading: -0.02em; /* display headings — kept separate to tune independently */
+  --tracking: -0.02em;
+  /* body text, UI labels */
+  --tracking-heading: -0.02em;
+  /* display headings — kept separate to tune independently */
 
   /* Two line-heights only: tight for headings, relaxed for body copy. */
   --leading-heading: 1.1;
@@ -197,32 +204,45 @@ footer::selection {
      one size, headings step up, titles are biggest. Tuned to stay readable on a
      ~375px screen without overflowing the frame. Overridden slightly at ≤480 /
      ≤360. (On desktop these tokens are unused — desktop keeps its own sizes.) */
-  --m-text: 17px; /* body copy: paragraphs, list items, bios, quotes, descriptions */
-  --m-label: 15px; /* small UI labels: section labels, meta, roles, periods, captions */
-  --m-heading: 22px; /* sub-headings: case-study section titles, inline headings, modal h3 */
-  --m-subtitle: 19px; /* hero/cover subtitles */
+  --m-text: 17px;
+  /* body copy: paragraphs, list items, bios, quotes, descriptions */
+  --m-label: 15px;
+  /* small UI labels: section labels, meta, roles, periods, captions */
+  --m-heading: 22px;
+  /* sub-headings: case-study section titles, inline headings, modal h3 */
+  --m-subtitle: 19px;
+  /* hero/cover subtitles */
   /* Titles (hero, case-study hero, project, work names) stay biggest and keep
      their per-element fluid clamp() values. */
 
   /* page-transition column color: overridden to var(--white) on dark pages */
-  --radius-img: 4px; /* cards, images, craft cards, project cards */
+  --radius-img: 4px;
+  /* cards, images, craft cards, project cards */
 
   /* ── Color ──────────────────────────────────────────────────
      Black ink on light surfaces, white ink on dark surfaces. Use the
      muted/faint steps for secondary text and the line/scrim steps for
      hairlines and overlays — instead of `opacity` on the element. */
   --black: #000;
-  --black-muted: rgba(0, 0, 0, 0.6); /* secondary / body text */
-  --black-faint: rgba(0, 0, 0, 0.3); /* labels, captions, tertiary */
-  --black-line: rgba(0, 0, 0, 0.05); /* hairlines, dividers, borders */
-  --black-scrim: rgba(0, 0, 0, 0.5); /* image / modal overlays */
+  --black-muted: rgba(0, 0, 0, 0.6);
+  /* secondary / body text */
+  --black-faint: rgba(0, 0, 0, 0.3);
+  /* labels, captions, tertiary */
+  --black-line: rgba(0, 0, 0, 0.05);
+  /* hairlines, dividers, borders */
+  --black-scrim: rgba(0, 0, 0, 0.5);
+  /* image / modal overlays */
 
   --white: #fff;
-  --white-muted: rgba(255, 255, 255, 0.7); /* secondary text on dark */
-  --white-faint: rgba(255, 255, 255, 0.15); /* hairlines / subtle fills on dark */
+  --white-muted: rgba(255, 255, 255, 0.7);
+  /* secondary text on dark */
+  --white-faint: rgba(255, 255, 255, 0.15);
+  /* hairlines / subtle fills on dark */
 
-  --surface: #eaeaea; /* light gray surfaces, skeletons, hover bg */
-  --surface-dark: #1a1a2e; /* dark placeholder bg (hero) */
+  --surface: #eaeaea;
+  /* light gray surfaces, skeletons, hover bg */
+  --surface-dark: #1a1a2e;
+  /* dark placeholder bg (hero) */
 
   --focus-ring: #3b82f6;
 }
@@ -285,6 +305,7 @@ footer::selection {
   transform: translateY(calc(-100% - 32px));
   transition: transform 160ms ease;
 }
+
 .skip-to-main:focus-visible {
   transform: translateY(0);
   outline: 2px solid var(--focus-ring);
@@ -317,7 +338,8 @@ footer::selection {
   right: 0;
   height: 96px;
   pointer-events: none;
-  z-index: 99; /* just below navbar at 100 */
+  z-index: 99;
+  /* just below navbar at 100 */
 }
 
 .navbar__inner {
@@ -385,10 +407,12 @@ footer::selection {
     transform: translateX(-50%) translateY(8px) scale(0);
     opacity: 0;
   }
+
   55% {
     transform: translateX(-50%) translateY(-3px) scale(1.25);
     opacity: 1;
   }
+
   100% {
     transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
@@ -548,6 +572,7 @@ footer::selection {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .navbar__reveal-text,
   .navbar__reveal--open .navbar__reveal-text {
     transition: opacity 0.2s ease;
@@ -573,7 +598,8 @@ footer::selection {
 /* ── Hamburger button ─────────────────────────────────────── */
 
 .hamburger {
-  display: none; /* hidden on desktop */
+  display: none;
+  /* hidden on desktop */
   flex-direction: column;
   justify-content: center;
   /* Right-align the bars in the resting state so they hang off the right edge;
@@ -611,6 +637,7 @@ footer::selection {
 .hamburger__bar:nth-child(1) {
   width: 24px;
 }
+
 .hamburger__bar:nth-child(2) {
   width: 16px;
 }
@@ -624,6 +651,7 @@ footer::selection {
   transform: translateY(3.75px) rotate(45deg);
   width: 24px;
 }
+
 .hamburger--open .hamburger__bar:nth-child(2) {
   transform: translateY(-3.75px) rotate(-45deg);
   width: 24px;
@@ -640,6 +668,7 @@ footer::selection {
 .navbar--above-overlay {
   z-index: 300;
 }
+
 .hamburger--over-overlay .hamburger__bar {
   background: var(--white);
 }
@@ -670,15 +699,18 @@ footer::selection {
     padding-right: 40px;
     pointer-events: none;
   }
+
   .app-menu-bg--open {
     pointer-events: auto;
   }
+
   .app-menu-bg__nav {
     display: flex;
     flex-direction: column;
     text-align: right;
     gap: 0;
   }
+
   /* Transition-driven (not keyframes) so the exit mirrors the enter: links slide
      in + fade up when --open is added, and reverse — slide out + fade down — when
      it's removed. The per-item stagger delay is set inline in main.tsx (forward
@@ -698,10 +730,12 @@ footer::selection {
       opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
       transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .app-menu-bg--open .app-menu-bg__link {
     opacity: 0.3;
     transform: translateX(0);
   }
+
   .app-menu-bg--open .app-menu-bg__link--active {
     opacity: 1;
   }
@@ -714,6 +748,7 @@ footer::selection {
       border-radius 0.55s cubic-bezier(0.22, 1, 0.36, 1),
       opacity 0.55s ease;
   }
+
   /* While the menu is open (and through the close animation) the panel becomes a
      viewport-sized fixed box. That puts its own border-radius on the visible
      sliver's corners — at the viewport edges — and the radius slides with the
@@ -732,6 +767,7 @@ footer::selection {
     transform: translateX(0);
     will-change: transform;
   }
+
   .app-panel--open {
     /* TL TR BR BL — only the right (TR/BR) corners round; left edge is off-screen
        and stays square. */
@@ -739,6 +775,7 @@ footer::selection {
     transform: translateX(-80vw);
     pointer-events: none;
   }
+
   /* Grey scrim over the sliding panel so it reads as distinct from the nav behind
      it on any page. A MID-GREY (not black) overlay is key: it lightens dark pages
      (e.g. the black About page) toward grey and dims light pages — either way the
@@ -753,6 +790,7 @@ footer::selection {
     pointer-events: none;
     transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .app-panel--open::after {
     opacity: 0.4;
   }
@@ -763,9 +801,11 @@ footer::selection {
   .navbar__blur-bg {
     transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .app-panel--open .navbar__blur-bg {
     opacity: 0;
   }
+
   /* The in-panel hamburger (now a spacer div) is hidden; the real button is external */
   .app-panel .hamburger {
     visibility: hidden;
@@ -791,10 +831,12 @@ footer::selection {
   .app-panel {
     transition: none;
   }
+
   .app-menu-bg__link {
     transition: none;
     transform: none;
   }
+
   .app-menu-bg--open .app-menu-bg__link {
     transform: none;
   }
@@ -876,6 +918,7 @@ footer::selection {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 0.25;
     transform: translateY(0);
@@ -892,6 +935,7 @@ footer::selection {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -972,25 +1016,26 @@ footer::selection {
    letters simply show the muted base colour. */
 .hero__tag {
   color: var(--black-muted);
-  white-space: nowrap; /* keep the tag (now per-letter boxes) from breaking mid-word */
+  white-space: nowrap;
+  /* keep the tag (now per-letter boxes) from breaking mid-word */
 }
 
 .hero__tag-letter {
-  display: inline-block; /* lets each letter scale; its gradient slice is self-contained */
-  white-space: pre; /* preserve the width of the space glyphs between words */
+  display: inline-block;
+  /* lets each letter scale; its gradient slice is self-contained */
+  white-space: pre;
+  /* preserve the width of the space glyphs between words */
 }
 
 /* JS adds .hero__tag--animate only after the slices are positioned, so the text
    is never transparent-with-nothing-behind-it for a frame. */
 .hero__tag--animate .hero__tag-letter {
-  background-image: linear-gradient(
-    90deg,
-    var(--black-muted) 35%,
-    #4589ff 45%,
-    #0f62fe 50%,
-    #4589ff 55%,
-    var(--black-muted) 65%
-  );
+  background-image: linear-gradient(90deg,
+      var(--black-muted) 35%,
+      #4589ff 45%,
+      #0f62fe 50%,
+      #4589ff 55%,
+      var(--black-muted) 65%);
   background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
@@ -1008,6 +1053,7 @@ footer::selection {
   from {
     filter: hue-rotate(0deg);
   }
+
   to {
     filter: hue-rotate(360deg);
   }
@@ -1027,14 +1073,16 @@ footer::selection {
 
 .btn {
   position: relative;
-  overflow: hidden; /* clips content to the pill */
+  overflow: hidden;
+  /* clips content to the pill */
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   height: 40px;
   padding: 8px 16px;
-  border-radius: 999px; /* pill */
+  border-radius: 999px;
+  /* pill */
   font-size: 14px;
   font-weight: var(--weight-body);
   line-height: var(--leading-body);
@@ -1127,7 +1175,8 @@ footer::selection {
    92–100% flip 2 (back to start).                                              */
 
 .hourglass__rotor {
-  transform-origin: 8px 8px; /* neck = rotation centre */
+  transform-origin: 8px 8px;
+  /* neck = rotation centre */
   animation: hourglass-flip 7.2s infinite;
 }
 
@@ -1146,31 +1195,37 @@ footer::selection {
 }
 
 @keyframes hourglass-flip {
+
   /* Still, upright. */
   0%,
   42% {
     transform: rotate(0deg);
     animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
   }
+
   /* Flip 1 → 180° with a small damped overshoot so it "settles". */
   47% {
     transform: rotate(192deg);
     animation-timing-function: ease-out;
   }
+
   50% {
     transform: rotate(180deg);
     animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
   }
+
   /* Still, inverted. */
   92% {
     transform: rotate(180deg);
     animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
   }
+
   /* Flip 2 → 360° (≡ 0°), same settle, into the loop seam. */
   97% {
     transform: rotate(372deg);
     animation-timing-function: ease-out;
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -1186,28 +1241,37 @@ footer::selection {
 @keyframes hourglass-surface-top {
   0% {
     transform: translateY(2.3px);
-    animation-timing-function: linear; /* steady flow while draining */
+    animation-timing-function: linear;
+    /* steady flow while draining */
   }
+
   42% {
     transform: translateY(8px);
-    animation-timing-function: ease-in; /* quick close into flip 1 */
+    animation-timing-function: ease-in;
+    /* quick close into flip 1 */
   }
+
   44%,
   48% {
     transform: translateY(15px);
   }
+
   50% {
     transform: translateY(13.7px);
-    animation-timing-function: linear; /* steady fill in phase B */
+    animation-timing-function: linear;
+    /* steady fill in phase B */
   }
+
   92% {
     transform: translateY(8px);
     animation-timing-function: ease-in;
   }
+
   95%,
   98% {
     transform: translateY(-5px);
   }
+
   100% {
     transform: translateY(2.3px);
   }
@@ -1220,28 +1284,36 @@ footer::selection {
 @keyframes hourglass-surface-bot {
   0% {
     transform: translateY(13.7px);
-    animation-timing-function: linear; /* steady fill while phase A drains */
+    animation-timing-function: linear;
+    /* steady fill while phase A drains */
   }
+
   42% {
     transform: translateY(8px);
     animation-timing-function: ease-in;
   }
+
   44%,
   48% {
     transform: translateY(-5px);
   }
+
   50% {
     transform: translateY(2.3px);
-    animation-timing-function: linear; /* steady drain in phase B */
+    animation-timing-function: linear;
+    /* steady drain in phase B */
   }
+
   92% {
     transform: translateY(8px);
     animation-timing-function: ease-in;
   }
+
   95%,
   98% {
     transform: translateY(15px);
   }
+
   100% {
     transform: translateY(13.7px);
   }
@@ -1250,18 +1322,22 @@ footer::selection {
 /* Stream visible (opacity 1) during the two still/draining phases, faded to 0
    over each flip. */
 @keyframes hourglass-stream {
+
   0%,
   40% {
     opacity: 1;
   }
+
   44%,
   50% {
     opacity: 0;
   }
+
   52%,
   90% {
     opacity: 1;
   }
+
   94%,
   100% {
     opacity: 0;
@@ -1356,7 +1432,8 @@ footer::selection {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  transform-origin: center center; /* scale from centre → even-ish white shell */
+  transform-origin: center center;
+  /* scale from centre → even-ish white shell */
   /* Hairline edge so the window reads against the white shell as it recedes
      (static, follows the JS-driven border-radius; no per-frame repaint cost). */
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
@@ -1401,12 +1478,10 @@ footer::selection {
 
 /* Light-hero variant: invert the scrim so dark text/line read against it. */
 .project__inner:has(.project__content--light) {
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(255, 255, 255, 0.7) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(to top,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.7) 50%,
+      rgba(255, 255, 255, 0) 100%);
 }
 
 /* The whole row is the link. Number + name sit inline (cs-nav__card pattern):
@@ -1592,6 +1667,7 @@ footer::selection {
   from {
     background-position: 0% center;
   }
+
   to {
     background-position: 200% center;
   }
@@ -1775,18 +1851,23 @@ footer::selection {
 .konami-wipe--revealing .konami-wipe__col:nth-child(1) {
   animation-delay: 275ms;
 }
+
 .konami-wipe--revealing .konami-wipe__col:nth-child(2) {
   animation-delay: 220ms;
 }
+
 .konami-wipe--revealing .konami-wipe__col:nth-child(3) {
   animation-delay: 165ms;
 }
+
 .konami-wipe--revealing .konami-wipe__col:nth-child(4) {
   animation-delay: 110ms;
 }
+
 .konami-wipe--revealing .konami-wipe__col:nth-child(5) {
   animation-delay: 55ms;
 }
+
 .konami-wipe--revealing .konami-wipe__col:nth-child(6) {
   animation-delay: 0ms;
 }
@@ -1795,21 +1876,27 @@ footer::selection {
   0% {
     color: #ff0080;
   }
+
   16% {
     color: #ff6600;
   }
+
   33% {
     color: #ffee00;
   }
+
   50% {
     color: #00cc44;
   }
+
   66% {
     color: #00aaff;
   }
+
   83% {
     color: #7700ff;
   }
+
   100% {
     color: #ff0080;
   }
@@ -1817,15 +1904,11 @@ footer::selection {
 
 html.konami {
   cursor:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E🌈%3C/text%3E%3C/svg%3E")
-      16 16,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E🌈%3C/text%3E%3C/svg%3E") 16 16,
     auto;
 }
 
-html.konami
-  *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(.projects-nav__track):not(
-    .projects-nav__dot-wrap
-  ):not(.projects-nav__pill):not(.konami-toast):not(.konami-toast *) {
+html.konami *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(.projects-nav__track):not(.projects-nav__dot-wrap):not(.projects-nav__pill):not(.konami-toast):not(.konami-toast *) {
   animation: konami-rainbow 2s linear infinite !important;
   cursor: inherit;
 }
@@ -1841,12 +1924,15 @@ html.konami canvas {
     transform: translateX(-50%) translateY(20px) scale(0.96);
     opacity: 0;
   }
+
   60% {
     opacity: 1;
   }
+
   70% {
     transform: translateX(-50%) translateY(-2px) scale(1.012);
   }
+
   100% {
     transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
@@ -1858,6 +1944,7 @@ html.konami canvas {
     transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
   }
+
   100% {
     transform: translateX(-50%) translateY(24px) scale(0.92);
     opacity: 0;
@@ -1868,6 +1955,7 @@ html.konami canvas {
   from {
     --konami-angle: 0deg;
   }
+
   to {
     --konami-angle: 360deg;
   }
@@ -1908,7 +1996,8 @@ html.konami canvas {
   animation: konami-border-spin 2s linear infinite;
   font-family: var(--font) !important;
   font-size: 13px;
-  font-weight: var(--weight-body); /* button element — overrides UA bold */
+  font-weight: var(--weight-body);
+  /* button element — overrides UA bold */
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   z-index: 99999;
@@ -2074,10 +2163,12 @@ picture {
     opacity: 0;
     transform: translateX(16px) scale(0.8);
   }
+
   70% {
     opacity: 1;
     transform: translateX(-1px) scale(1.05);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -2089,6 +2180,7 @@ picture {
     opacity: 1;
     transform: translateX(0) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translateX(12px) scale(0.85);
@@ -2135,9 +2227,12 @@ picture {
    gradient fade tail. The right side overshoots by --label-overlay-right to
    add some bleed past the text on the pill side. */
 .projects-nav--dark .projects-nav__label::before {
-  --label-overlay-extend-left: 60px; /* px of fade tail past the text's left */
-  --label-overlay-extend-right: 10px; /* px of bleed past the text's right */
-  --label-overlay-pad-y: 35px; /* extra vertical padding above + below text */
+  --label-overlay-extend-left: 60px;
+  /* px of fade tail past the text's left */
+  --label-overlay-extend-right: 10px;
+  /* px of bleed past the text's right */
+  --label-overlay-pad-y: 35px;
+  /* extra vertical padding above + below text */
 
   content: "";
   position: absolute;
@@ -2235,7 +2330,8 @@ picture {
   height: 6px;
   border-radius: 3px;
   background: rgba(var(--pill-ink), var(--pill-alpha));
-  position: relative; /* paint above the dot-wrap's blur pseudo */
+  position: relative;
+  /* paint above the dot-wrap's blur pseudo */
   will-change: height;
   transition:
     height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
@@ -2262,6 +2358,7 @@ picture {
   0% {
     background-position: 0% 0%;
   }
+
   100% {
     background-position: 0% 200%;
   }
@@ -2292,6 +2389,7 @@ html.konami .projects-nav__pill {
     opacity: 0;
     transform: translateY(16px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2303,6 +2401,7 @@ html.konami .projects-nav__pill {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+
   to {
     opacity: 0;
     transform: translateY(12px) scale(0.9);
@@ -2392,7 +2491,7 @@ html.konami .projects-nav-m__pill {
 }
 
 /* When the label is wrapped in a Reveal div, the div becomes the flex child */
-.about-section-row > .reveal:first-child {
+.about-section-row>.reveal:first-child {
   flex: 1 0 0;
   min-width: 0;
 }
@@ -2598,7 +2697,7 @@ html.konami .projects-nav-m__pill {
   gap: 20px;
 }
 
-.bio-section + .bio-section {
+.bio-section+.bio-section {
   margin-top: 64px;
   border-top: 1px solid var(--white-faint);
   padding-top: 84px;
@@ -2666,10 +2765,8 @@ html.konami .projects-nav-m__pill {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
-    );
+    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -2746,6 +2843,7 @@ html.konami .projects-nav-m__pill {
 [data-vaul-drawer][data-vaul-snap-points="false"][data-vaul-drawer-direction="bottom"][data-state="open"] {
   animation-name: vaul-slideFromBottom;
 }
+
 [data-vaul-drawer][data-vaul-snap-points="false"][data-vaul-drawer-direction="bottom"][data-state="closed"] {
   animation-name: vaul-slideToBottom;
 }
@@ -2759,6 +2857,7 @@ html.konami .projects-nav-m__pill {
 [data-vaul-drawer][data-vaul-snap-points="false"][data-vaul-drawer-direction="right"][data-state="open"] {
   animation-name: vaul-slideFromRight;
 }
+
 [data-vaul-drawer][data-vaul-snap-points="false"][data-vaul-drawer-direction="right"][data-state="closed"] {
   animation-name: vaul-slideToRight;
 }
@@ -2775,9 +2874,11 @@ html.konami .projects-nav-m__pill {
   animation-duration: 0.5s;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
+
 [data-vaul-overlay][data-vaul-snap-points="false"][data-state="open"] {
   animation-name: vaul-fadeIn;
 }
+
 [data-vaul-overlay][data-state="closed"] {
   animation-name: vaul-fadeOut;
 }
@@ -2806,9 +2907,7 @@ html.konami .projects-nav-m__pill {
   height: 200%;
 }
 
-[data-vaul-overlay][data-vaul-snap-points="true"]:not([data-vaul-snap-points-overlay="true"]):not(
-    [data-state="closed"]
-  ) {
+[data-vaul-overlay][data-vaul-snap-points="true"]:not([data-vaul-snap-points-overlay="true"]):not([data-state="closed"]) {
   opacity: 0;
 }
 
@@ -2861,6 +2960,7 @@ html.konami .projects-nav-m__pill {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -2876,6 +2976,7 @@ html.konami .projects-nav-m__pill {
   from {
     transform: translate3d(0, var(--initial-transform, 100%), 0);
   }
+
   to {
     transform: translate3d(0, 0, 0);
   }
@@ -2891,6 +2992,7 @@ html.konami .projects-nav-m__pill {
   from {
     transform: translate3d(var(--initial-transform, 100%), 0, 0);
   }
+
   to {
     transform: translate3d(0, 0, 0);
   }
@@ -3062,13 +3164,16 @@ html.konami .projects-nav-m__pill {
   .bio-modal__panel {
     width: 100%;
   }
+
   .bio-modal__body p,
   .bio-modal__body li {
     font-size: var(--m-text);
   }
+
   .bio-modal__body h3 {
     font-size: var(--m-heading);
   }
+
   .bio-modal__title {
     font-size: var(--m-heading);
   }
@@ -3091,9 +3196,11 @@ html.konami .projects-nav-m__pill {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
+
   .bio-modal__carousel::-webkit-scrollbar {
     display: none;
   }
+
   .bio-modal__slide {
     flex: 0 0 100%;
     width: 100%;
@@ -3106,6 +3213,7 @@ html.konami .projects-nav-m__pill {
     /* Clear the header (title + close) that overlays the carousel top. */
     padding: 64px 24px 20px;
   }
+
   .bio-modal__slide img {
     max-width: 100%;
     max-height: 100%;
@@ -3123,7 +3231,8 @@ html.konami .projects-nav-m__pill {
     min-height: 0;
     padding: 32px 24px 48px;
   }
-  .bio-section + .bio-section {
+
+  .bio-section+.bio-section {
     margin-top: 40px;
     padding-top: 40px;
   }
@@ -3134,6 +3243,7 @@ html.konami .projects-nav-m__pill {
     padding: 20px 24px;
     background: linear-gradient(to bottom, rgba(13, 13, 13, 0.9) 0%, transparent 100%);
   }
+
   .bio-modal__header::before {
     display: none;
   }
@@ -3178,9 +3288,12 @@ html.konami .projects-nav-m__pill {
      exit, and fading the container at the same time would hide that stagger.
      So the transition only applies while opening; closing keeps opacity at 1
      (the stage unmounts with the modal node a beat later). */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* old Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* old Edge */
 }
+
 .bio-modal__stage::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -3256,24 +3369,29 @@ html.konami .projects-nav-m__pill {
     opacity: 0;
     transform: translateY(18px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: none;
   }
 }
+
 @keyframes bioItemOut {
   from {
     opacity: 1;
     transform: none;
   }
+
   to {
     opacity: 0;
     transform: translateY(18px) scale(0.96);
   }
 }
+
 .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item {
   animation: bioItemIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
 /* Exit must finish within BIO_MODAL_EXIT_MS (600ms in About.tsx) before the
    node unmounts, so the duration + largest delay stays under that. Only run
    the exit animation when the modal has already been opened once. */
@@ -3289,26 +3407,33 @@ html.konami .projects-nav-m__pill {
 .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(2) {
   animation-delay: 0.11s;
 }
+
 .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(3) {
   animation-delay: 0.22s;
 }
+
 .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(4) {
   animation-delay: 0.33s;
 }
+
 .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(5) {
   animation-delay: 0.44s;
 }
+
 /* Exit stagger is tighter so the last image still finishes before unmount
    (0.28s anim + 0.24s max delay ≈ 520ms < 600ms). */
 .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(2) {
   animation-delay: 0.06s;
 }
+
 .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(3) {
   animation-delay: 0.12s;
 }
+
 .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(4) {
   animation-delay: 0.18s;
 }
+
 .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item:nth-child(5) {
   animation-delay: 0.24s;
 }
@@ -3322,25 +3447,30 @@ html.konami .projects-nav-m__pill {
     opacity: 0;
     transform: rotate(var(--rot, 0deg)) translateY(18px) scale(0.92);
   }
+
   to {
     opacity: 1;
     transform: rotate(var(--rot, 0deg));
   }
 }
+
 @keyframes bioScatterItemOut {
   from {
     opacity: 1;
     transform: rotate(var(--rot, 0deg));
   }
+
   to {
     opacity: 0;
     transform: rotate(var(--rot, 0deg)) translateY(18px) scale(0.92);
   }
 }
+
 .bio-modal--open .bio-modal__stage .bio-visual--scatter.is-active .bio-visual__item,
 .bio-modal--open .bio-modal__stage .bio-visual--stack.is-active .bio-visual__item {
   animation-name: bioScatterItemIn;
 }
+
 /* Must carry `.bio-modal--entered` too: the generic exit rule above gained it
    (jumping to 7 classes), so without it here this name-override (6 classes)
    loses the cascade and scatter items wrongly run bioItemOut — whose
@@ -3383,16 +3513,19 @@ html.konami .projects-nav-m__pill {
   align-items: center;
   justify-content: center;
 }
+
 .bio-visual--solo .bio-visual__item {
   max-width: 100%;
   max-height: 100%;
 }
+
 .bio-visual--solo .bio-visual__item img {
   width: auto;
   height: auto;
   max-width: 100%;
   max-height: 100%;
 }
+
 figure.bio-visual__item {
   border: 1px solid var(--black-line);
 }
@@ -3404,9 +3537,11 @@ figure.bio-visual__item {
   justify-content: center;
   gap: 18px;
 }
+
 .bio-visual--stack .bio-visual__item {
   width: 62%;
 }
+
 .bio-visual--stack .bio-visual__item:nth-child(even) {
   align-self: flex-end;
 }
@@ -3418,6 +3553,7 @@ figure.bio-visual__item {
   justify-content: center;
   gap: 16px;
 }
+
 .bio-visual--pair .bio-visual__item {
   flex: 1;
 }
@@ -3464,15 +3600,17 @@ figure.bio-visual__item {
 /* The résumé reveal and the contact column are the direct flex children — let
    the contact column stretch to the résumé reveal's height and pass that height
    down to its two stacked contact reveals. */
-.about-more-row > .reveal {
+.about-more-row>.reveal {
   display: flex;
 }
-.about-more-row > .about-contact-col {
+
+.about-more-row>.about-contact-col {
   min-width: 240px;
 }
+
 /* Each contact link is wrapped in its own reveal; the wrappers split the
    column height so the cards still stretch like the bare links did. */
-.about-contact-col > .reveal {
+.about-contact-col>.reveal {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -3916,10 +4054,8 @@ figure.bio-visual__item {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
-    );
+    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -3979,7 +4115,8 @@ figure.bio-visual__item {
   border: none;
   padding: 0;
   font-size: 16px;
-  font-weight: var(--weight-body); /* button element — overrides UA bold */
+  font-weight: var(--weight-body);
+  /* button element — overrides UA bold */
   line-height: var(--leading-heading);
   color: var(--black);
   cursor: pointer;
@@ -4006,37 +4143,48 @@ figure.bio-visual__item {
 /* ── Grid icon: 4 squares scatter diagonally then spring back ── */
 
 @keyframes grid-tl {
+
   0%,
   100% {
     translate: 0 0;
   }
+
   40% {
     translate: -1.5px -1.5px;
   }
 }
+
 @keyframes grid-tr {
+
   0%,
   100% {
     translate: 0 0;
   }
+
   40% {
     translate: 1.5px -1.5px;
   }
 }
+
 @keyframes grid-bl {
+
   0%,
   100% {
     translate: 0 0;
   }
+
   40% {
     translate: -1.5px 1.5px;
   }
 }
+
 @keyframes grid-br {
+
   0%,
   100% {
     translate: 0 0;
   }
+
   40% {
     translate: 1.5px 1.5px;
   }
@@ -4045,12 +4193,15 @@ figure.bio-visual__item {
 .work-main__toggle-btn--grid:hover svg rect:nth-child(1) {
   animation: grid-tl 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .work-main__toggle-btn--grid:hover svg rect:nth-child(2) {
   animation: grid-tr 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .work-main__toggle-btn--grid:hover svg rect:nth-child(3) {
   animation: grid-bl 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .work-main__toggle-btn--grid:hover svg rect:nth-child(4) {
   animation: grid-br 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -4058,19 +4209,24 @@ figure.bio-visual__item {
 /* ── List icon: top bar up, bottom bar down, spring back ── */
 
 @keyframes list-top {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   40% {
     transform: translateY(-1px);
   }
 }
+
 @keyframes list-bot {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   40% {
     transform: translateY(1px);
   }
@@ -4080,9 +4236,11 @@ figure.bio-visual__item {
   transform-box: fill-box;
   transform-origin: center;
 }
+
 .work-main__toggle-btn--list:hover svg rect:nth-child(1) {
   animation: list-top 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .work-main__toggle-btn--list:hover svg rect:nth-child(3) {
   animation: list-bot 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -4459,10 +4617,8 @@ figure.bio-visual__item {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
-    );
+    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -4733,6 +4889,7 @@ figure.bio-visual__item {
 .cs-meta__cta--down .btn__icon {
   transform: rotate(90deg);
 }
+
 .cs-meta__cta--down .btn:hover .btn__icon {
   transform: rotate(90deg) translateX(3px);
 }
@@ -4818,10 +4975,11 @@ figure.bio-visual__item {
    text it introduces. The heading itself keeps the full 24px above it.
    .cs-section__body wraps each block in a <Reveal> wrapper, so the rules target
    that wrapper (> *) rather than the heading/paragraph elements directly. */
-.cs-section__body > * + * {
+.cs-section__body>*+* {
   margin-top: 24px;
 }
-.cs-section__body > *:has(.cs-heading) + * {
+
+.cs-section__body>*:has(.cs-heading)+* {
   margin-top: 16px;
 }
 
@@ -4921,10 +5079,8 @@ h3.cs-heading {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
-    );
+    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -5078,7 +5234,8 @@ button.cs-images__pic:focus-visible {
 .cs-video {
   position: relative;
   display: block;
-  line-height: 0; /* kill descender gap below the inline video */
+  line-height: 0;
+  /* kill descender gap below the inline video */
 }
 
 .cs-video video {
@@ -5229,13 +5386,11 @@ button.cs-images__pic:focus-visible {
   margin: 0;
   appearance: none;
   -webkit-appearance: none;
-  background: linear-gradient(
-    to right,
-    #fff 0%,
-    #fff var(--cs-video-progress, 0%),
-    rgba(255, 255, 255, 0.3) var(--cs-video-progress, 0%),
-    rgba(255, 255, 255, 0.3) 100%
-  );
+  background: linear-gradient(to right,
+      #fff 0%,
+      #fff var(--cs-video-progress, 0%),
+      rgba(255, 255, 255, 0.3) var(--cs-video-progress, 0%),
+      rgba(255, 255, 255, 0.3) 100%);
   background-clip: content-box;
   border-radius: 12px;
   cursor: crosshair;
@@ -5318,7 +5473,7 @@ button.cs-images__pic:focus-visible {
 /* While actively scrubbing (mouse down on the track), shrink the thumb a touch.
    Driven off the scrubber's :active since the ghost itself can't be active
    (pointer-events: none). */
-.cs-video__scrubber:active + .cs-video__ghost {
+.cs-video__scrubber:active+.cs-video__ghost {
   width: 4px;
   height: 32px;
 }
@@ -5520,7 +5675,7 @@ button.cs-images__pic:focus-visible {
 /* On non-hover devices, drop the hover lift so it doesn't get stuck */
 
 /* The Reveal wrapper inside a column should fill column width */
-.craft-col > .reveal {
+.craft-col>.reveal {
   width: 100%;
 }
 
@@ -5658,6 +5813,7 @@ button.cs-images__pic:focus-visible {
     transform: translateX(8px);
     filter: blur(6px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -5671,6 +5827,7 @@ button.cs-images__pic:focus-visible {
     transform: translateX(-8px);
     filter: blur(6px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -5684,6 +5841,7 @@ button.cs-images__pic:focus-visible {
     transform: translateY(-4px);
     filter: blur(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -5884,6 +6042,7 @@ button.cs-images__pic:focus-visible {
     transform: translateX(24px);
     filter: blur(10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -5897,6 +6056,7 @@ button.cs-images__pic:focus-visible {
     transform: translateX(-24px);
     filter: blur(10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -5929,6 +6089,7 @@ button.cs-images__pic:focus-visible {
   from {
     transform: translateY(110%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -5938,6 +6099,7 @@ button.cs-images__pic:focus-visible {
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(-110%);
   }
@@ -6024,13 +6186,16 @@ button.cs-images__pic:focus-visible {
     margin-bottom: -160px;
     padding-bottom: 320px;
   }
+
   .cs-cover {
     height: 56vw;
     min-height: 360px;
   }
+
   .cs-hero__title {
     font-size: clamp(40px, 6vw, 56px);
   }
+
   .cs-hero__subtitle {
     font-size: clamp(20px, 3vw, 26px);
   }
@@ -6040,6 +6205,7 @@ button.cs-images__pic:focus-visible {
     gap: 96px;
     padding: 96px 0;
   }
+
   /* Half the 96px gap, matching the desktop image-row tightening. */
   .cs-images {
     margin-top: -48px;
@@ -6077,6 +6243,7 @@ button.cs-images__pic:focus-visible {
       border-color 160ms ease-out,
       color 160ms ease-out;
   }
+
   .reveal--visible {
     filter: none;
   }
@@ -6085,12 +6252,15 @@ button.cs-images__pic:focus-visible {
   .hamburger {
     display: flex;
   }
+
   .navbar__col--desktop {
     display: none;
   }
+
   .navbar__inner {
     gap: 0;
   }
+
   .navbar__link {
     font-size: var(--m-label);
   }
@@ -6100,25 +6270,30 @@ button.cs-images__pic:focus-visible {
     gap: 12px;
     padding: 112px 0 56px;
   }
+
   .hero__row {
     display: contents;
   }
+
   .hero__left,
   .hero__right {
     flex: none;
     width: 100%;
     min-width: 0;
   }
+
   .hero__left:empty,
   .hero__right:empty {
     display: none;
   }
+
   .hero__title {
     font-size: clamp(36px, 9vw, 56px);
     white-space: normal;
     line-height: var(--leading-heading);
     word-break: break-word;
   }
+
   .hero__subtitle {
     font-size: var(--m-subtitle);
     width: 100%;
@@ -6140,24 +6315,29 @@ button.cs-images__pic:focus-visible {
   .project {
     height: 100vh;
   }
+
   .project__inner {
     padding-top: 64px;
     padding-bottom: 24px;
   }
+
   .project__content {
     gap: 12px;
     padding-left: 4px;
     padding-right: 4px;
     align-items: flex-end;
   }
+
   .project__name,
   .project__description {
     font-size: clamp(28px, 6vw, 44px);
   }
+
   .project__cta {
     font-size: 15px;
     gap: 6px;
   }
+
   .project__cta-arrow {
     width: 15px;
     height: 15px;
@@ -6167,6 +6347,7 @@ button.cs-images__pic:focus-visible {
   .work-grid {
     gap: 80px;
   }
+
   /* On desktop the text block interleaves between the images (its source-order
      splice position). Below 768px we keep the DOM identical but switch the row
      to a 2-row CSS grid: the text spans a full-width line on top, and ALL the
@@ -6205,9 +6386,11 @@ button.cs-images__pic:focus-visible {
     padding-right: var(--pad);
     scroll-padding-left: var(--pad);
   }
+
   .work-grid__row::-webkit-scrollbar {
     display: none;
   }
+
   /* Text: pinned full-width line on top of the carousel. order:-1 keeps it
      visually first even when spliced later in source order; sticky+left:0 keeps
      it from scrolling away with the images. It lives in the first column track
@@ -6228,6 +6411,7 @@ button.cs-images__pic:focus-visible {
     padding: 16px 0 8px;
     touch-action: pan-y;
   }
+
   /* Images: all on the second grid row, each a near-full-width slide (grid-auto-
      columns), flowing into implicit columns the row scrolls through. */
   .work-grid__pic {
@@ -6236,77 +6420,96 @@ button.cs-images__pic:focus-visible {
     width: 100%;
     scroll-snap-align: start;
   }
+
   /* ── Work list ── */
   .work-list__preview {
     display: none;
   }
+
   .work-list__name {
     font-size: clamp(28px, 7vw, 42px);
   }
+
   .work-list__role {
     display: none;
   }
+
   .work-list__item {
     padding: 24px 0;
   }
+
   /* ── About ── */
   .about-sections {
     gap: 56px;
     padding-bottom: 64px;
   }
+
   .about-photo-wrap {
     border-radius: var(--radius-img);
     height: auto;
     aspect-ratio: 4/5;
   }
+
   .about-section-row {
     flex-direction: column;
     gap: 16px;
     padding-top: 16px;
   }
+
   /* Resume + contact cards stack vertically on mobile. */
   .about-more-row {
     flex-direction: column;
     gap: 16px;
   }
+
   /* Clip the bottom of the resume thumbnail so ~half of it is hidden.
      Card is shortened on mobile; negative margin-bottom closes the layout gap
      that clip-path leaves (it clips visually but doesn't affect layout). */
   .about-resume-card {
     height: 260px;
   }
+
   .about-resume-clip {
     clip-path: inset(-9999px -9999px 40% -9999px round 2px);
-    margin-bottom: -104px; /* 40% of 260px card height */
+    margin-bottom: -104px;
+    /* 40% of 260px card height */
   }
+
   .about-contact-col {
     height: auto;
     width: 100%;
     flex-direction: row;
     min-width: 0;
   }
+
   .about-contact-card {
     min-height: 120px;
   }
-  .about-section-row > .reveal:first-child {
+
+  .about-section-row>.reveal:first-child {
     flex: none;
   }
+
   .about-section-row__label {
     font-size: var(--m-label);
     line-height: var(--leading-body);
     opacity: 0.5;
   }
+
   .about-info-text {
     gap: 20px;
   }
+
   .about-info-text p {
     font-size: var(--m-text);
     line-height: var(--leading-body);
   }
+
   .about-info-more-wrap {
     display: flex;
     justify-content: center;
   }
+
   .about-info-more-wrap .btn,
   .bio-modal__footer .btn {
     width: 100%;
@@ -6324,16 +6527,19 @@ button.cs-images__pic:focus-visible {
     /* Symmetric like desktop so the full inter-row strip stays clickable. */
     padding: 20px 0;
   }
+
   .accordion-row__name {
     flex: 1 1 auto;
     min-width: 0;
     align-items: center;
   }
+
   .accordion-row__company {
     white-space: normal;
     word-break: break-word;
     font-size: var(--m-heading);
   }
+
   .accordion-row__role {
     flex: 0 0 100%;
     order: 3;
@@ -6341,6 +6547,7 @@ button.cs-images__pic:focus-visible {
     line-height: var(--leading-body);
     font-family: var(--font);
   }
+
   .accordion-row__period {
     flex: 0 0 auto;
     order: 2;
@@ -6351,19 +6558,24 @@ button.cs-images__pic:focus-visible {
     font-size: var(--m-label);
     align-items: center;
   }
-  .accordion-row__period > span:first-child {
-    display: none; /* hide period text on mobile to keep row tidy; show in role row instead */
+
+  .accordion-row__period>span:first-child {
+    display: none;
+    /* hide period text on mobile to keep row tidy; show in role row instead */
   }
+
   .accordion-row__arrow,
   .accordion-row__chevron {
     width: 20px;
     height: 20px;
   }
+
   .accordion-row__arrow img,
   .accordion-row__chevron img {
     width: 20px;
     height: 20px;
   }
+
   .accordion-row__description {
     font-size: var(--m-text);
     line-height: var(--leading-body);
@@ -6381,38 +6593,48 @@ button.cs-images__pic:focus-visible {
     margin-bottom: -120px;
     padding-bottom: 240px;
   }
+
   .cs-hero__title {
     font-size: clamp(32px, 7.5vw, 48px);
   }
+
   .cs-hero__subtitle {
     font-size: var(--m-subtitle);
   }
+
   .cs-hero__back {
     font-size: var(--m-label);
   }
+
   .cs-hero__back-arrow {
     width: 16px;
     height: 16px;
   }
+
   .cs-hero__bottom {
     top: 72px;
   }
+
   .cs-hero__text {
     padding-bottom: 40px;
     padding-top: 128px;
   }
+
   .cs-cover {
     height: 56vw;
     min-height: 280px;
   }
+
   .cs-body {
     gap: 64px;
     padding: 64px 0;
   }
+
   /* Half the 64px gap; inherited by the ≤480 breakpoint (same .cs-body gap). */
   .cs-images {
     margin-top: -32px;
   }
+
   .cs-meta {
     flex-direction: column;
     /* stretch (not the desktop flex-start) so stacked children fill the width */
@@ -6420,19 +6642,23 @@ button.cs-images__pic:focus-visible {
     gap: 24px;
     font-size: var(--m-text);
   }
+
   .cs-meta__left {
     width: 100%;
     flex-direction: column;
     gap: 24px;
   }
+
   .cs-meta__col {
     padding-top: 16px;
     gap: 16px;
   }
+
   .cs-meta__about {
     padding-top: 16px;
     gap: 16px;
   }
+
   /* Stack each meta row: label above value. The desktop space-between layout
      (label left, value hard right) squeezes long values like "Type" on a narrow
      screen and clips them — stacking lets the value use the full width and wrap. */
@@ -6440,16 +6666,20 @@ button.cs-images__pic:focus-visible {
     flex-direction: column;
     gap: 4px;
   }
+
   .cs-meta__label {
     flex: none;
   }
+
   .cs-meta__value {
     width: 100%;
   }
+
   .cs-role {
     max-width: none;
     text-align: left;
   }
+
   .cs-section {
     flex-direction: column;
     /* Stack full-width: the desktop row keeps align-items: flex-start, which in
@@ -6460,81 +6690,102 @@ button.cs-images__pic:focus-visible {
     gap: 16px;
     padding-top: 80px;
   }
+
   .cs-hmw-wrap {
     padding-top: 80px;
   }
+
   .cs-hmw {
     font-size: clamp(22px, 4.5vw, 28px);
     line-height: var(--leading-heading);
   }
+
   .cs-cols {
     flex-direction: column;
     gap: 24px;
   }
+
   .cs-cols--after-image {
     margin-top: calc(24px - 64px);
   }
+
   .cs-section__title {
     flex: none;
     width: 100%;
     font-size: var(--m-heading);
   }
+
   /* Body column also goes full-width (it kept flex: 0 0 50% otherwise). */
   .cs-section__body {
     flex: none;
     width: 100%;
   }
+
   .cs-paragraph {
     font-size: var(--m-text);
     line-height: var(--leading-body);
   }
+
   .cs-list li {
     font-size: var(--m-text);
     line-height: var(--leading-body);
   }
+
   .cs-quote {
     font-size: var(--m-text);
     line-height: var(--leading-body);
   }
+
   .cs-code {
     padding-left: 44px;
   }
+
   .cs-code code {
     font-size: 12px;
   }
+
   .cs-code__line::before {
     left: -32px;
     width: 24px;
   }
+
   .cs-heading {
     font-size: var(--m-heading);
     line-height: var(--leading-heading);
   }
+
   .cs-cols__heading {
     font-size: var(--m-text);
   }
+
   .cs-cols__body {
     font-size: var(--m-text);
     line-height: var(--leading-body);
   }
+
   .cs-figcaption {
     font-size: var(--m-label);
   }
+
   .cs-video__label {
     font-size: var(--m-label);
   }
+
   .cs-images--3 {
     flex-wrap: wrap;
   }
+
   .cs-images--3 .cs-images__pic {
     flex: 0 0 100%;
   }
+
   .cs-nav {
     /* flex-direction: column; */
     gap: 24px;
     margin-top: 32px;
     padding-bottom: 56px;
   }
+
   .cs-nav__card {
     padding: 20px 0;
   }
@@ -6554,15 +6805,18 @@ button.cs-images__pic:focus-visible {
     padding-left: 20px;
     padding-right: 20px;
   }
+
   .footer__inner {
     flex-wrap: wrap;
     gap: 32px;
     padding-top: 64px;
     padding-bottom: 48px;
   }
+
   .footer__col {
     flex: 0 0 calc(50% - 16px);
   }
+
   /* When the footer columns wrap, the archive drops onto its own row — keep it a
      full-width ROW (thumb beside text), not a stacked column. */
   .footer__archive {
@@ -6571,10 +6825,12 @@ button.cs-images__pic:focus-visible {
     flex-direction: column;
     width: fit-content;
   }
+
   .footer__archive-thumb {
     width: 210px;
     height: 120px;
   }
+
   .footer__archive-screenshot {
     height: 80px;
   }
@@ -6604,6 +6860,7 @@ button.cs-images__pic:focus-visible {
     padding-left: 16px;
     padding-right: 16px;
   }
+
   .navbar__link {
     font-size: var(--m-label);
     padding: 14px 0;
@@ -6614,34 +6871,41 @@ button.cs-images__pic:focus-visible {
     padding: 96px 0 40px;
     gap: 10px;
   }
+
   .hero__title {
     font-size: clamp(34px, 11vw, 44px);
     line-height: var(--leading-heading);
   }
+
   /* subtitle inherits --m-subtitle from ≤768 (consistent across phones) */
 
   /* ── Project cards: aspect ratio for portrait phones ── */
   .project {
     height: 100vh;
   }
+
   .project__inner {
     padding-top: 48px;
     padding-bottom: 24px;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.55) 60%, rgba(0, 0, 0, 0) 100%);
   }
+
   .project__content {
     gap: 10px;
     padding-left: 4px;
     padding-right: 4px;
   }
+
   .project__name,
   .project__description {
     font-size: clamp(26px, 7vw, 34px);
   }
+
   .project__cta {
     font-size: 13px;
     gap: 4px;
   }
+
   .project__cta-arrow {
     width: 13px;
     height: 13px;
@@ -6652,19 +6916,23 @@ button.cs-images__pic:focus-visible {
     gap: 40px;
     padding-bottom: 56px;
   }
+
   .about-section-row {
     padding-top: 12px;
     gap: 12px;
   }
+
   /* Font sizes inherit from the ≤768 mobile type tokens (already sized to fit a
      375px frame) — only spacing changes here, so type stays consistent down to
      the smallest phones instead of shrinking further. */
   .about-info-text {
     gap: 16px;
   }
+
   .accordion-row__description {
     padding-left: 16px;
   }
+
   .accordion-row__header {
     padding: 18px 0;
   }
@@ -6673,16 +6941,21 @@ button.cs-images__pic:focus-visible {
   .work-grid {
     gap: 56px;
   }
+
   /* Keep the carousel's left pad in sync with the container's page padding. */
   .work-grid__row {
     --pad: 16px;
+    touch-action: pan-y;
   }
+
   .work-grid__name {
     font-size: clamp(22px, 6vw, 26px);
   }
+
   .work-grid__role {
     font-size: clamp(15px, 4.2vw, 18px);
   }
+
   .work-grid__text {
     height: auto;
     gap: 12px;
@@ -6692,6 +6965,7 @@ button.cs-images__pic:focus-visible {
   .work-list__name {
     font-size: clamp(24px, 7vw, 32px);
   }
+
   .work-list__item {
     padding: 20px 0;
   }
@@ -6702,9 +6976,11 @@ button.cs-images__pic:focus-visible {
     padding-bottom: 80px;
     gap: 12px;
   }
+
   .craft-col {
     display: flex !important;
   }
+
   /* On mobile, drop the inline pixel height so aspect-ratio (set inline per
      item) controls the box. Each card keeps its real image aspect. */
   .craft-card {
@@ -6717,36 +6993,45 @@ button.cs-images__pic:focus-visible {
     margin-bottom: -80px;
     padding-bottom: 180px;
   }
+
   .cs-hero__title {
     font-size: clamp(28px, 8.5vw, 36px);
   }
+
   /* cs-hero subtitle inherits --m-subtitle from ≤768 */
   .cs-hero__bottom {
     top: 60px;
   }
+
   .cs-cover {
     height: 60vw;
     min-height: 240px;
   }
+
   .cs-body {
     gap: 56px;
     padding: 56px 0;
   }
+
   .cs-section {
     padding-top: 56px;
   }
+
   .cs-hmw-wrap {
     padding-top: 56px;
   }
+
   .cs-cols--after-image {
     margin-top: calc(16px - 56px);
   }
+
   /* Body / heading / meta sizes inherit the ≤768 tokens — consistent, not
      shrunk further. Only the hero title/subtitle (titles) keep fluid clamps. */
   .cs-images {
     flex-direction: column;
     gap: 16px;
   }
+
   /* Multi-image rows stack into a column on phones. The flex CHILD of .cs-images
      is .cs-figure (which wraps each .cs-images__pic), and it carries flex: 1 0 0
      for equal-width COLUMNS in a row. Once the container is a column, that 0
@@ -6759,9 +7044,11 @@ button.cs-images__pic:focus-visible {
     flex: none;
     width: 100%;
   }
+
   .cs-meta__left {
     flex-direction: column;
   }
+
   /* cs-nav__name keeps its ≤768 fluid clamp (a title) */
   .cs-nav {
     margin-top: 24px;
@@ -6773,40 +7060,50 @@ button.cs-images__pic:focus-visible {
     padding-left: 16px;
     padding-right: 16px;
   }
+
   .footer__inner {
     padding-top: 48px;
     padding-bottom: 32px;
     gap: 24px 16px;
   }
+
   .footer__col {
     flex: 0 0 calc(50% - 8px);
     gap: 6px;
   }
+
   .footer__col-title,
   .footer__col-item,
   .footer__rainbow-btn {
     font-size: var(--m-label);
   }
+
   .footer__archive {
     flex: 0 0 100%;
     flex-direction: row;
   }
+
   .footer__archive-thumb {
     width: 120px;
     height: 72px;
   }
+
   .footer__archive-screenshot {
     height: 72px;
   }
+
   .footer__archive-text {
     padding: 10px;
   }
+
   .footer__archive-title {
     font-size: 14px;
   }
+
   .footer__archive-link p {
     font-size: 13px;
   }
+
   .footer__bottom {
     gap: 8px;
     text-align: center;
@@ -6820,58 +7117,72 @@ button.cs-images__pic:focus-visible {
     padding-left: 14px;
     padding-right: 14px;
   }
+
   /* Keep the carousel's left pad in sync with the container's page padding. */
   .work-grid__row {
     --pad: 14px;
   }
+
   .hero {
     padding: 88px 0 32px;
     gap: 8px;
   }
+
   .hero__title {
     font-size: clamp(28px, 11vw, 36px);
   }
+
   .hero__subtitle {
     font-size: 17px;
   }
+
   .menu-overlay__link {
     font-size: clamp(40px, 11vw, 52px);
     padding: 8px 0;
   }
+
   .menu-overlay__inner {
     padding: 0 16px 24px;
   }
+
   .footer__col {
     flex: 0 0 100%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .hourglass__rotor,
   .hourglass__surface-top,
   .hourglass__surface-bot,
   .hourglass__stream {
     animation: none;
   }
+
   /* Hold a static, mid-drain pose (top half-full draining to the neck, bottom
      half-filled from the floor) so the icon still reads as an hourglass. */
   .hourglass__surface-top {
     transform: translateY(5px);
   }
+
   .hourglass__surface-bot {
     transform: translateY(11px);
   }
+
   .hourglass__stream {
     opacity: 1;
   }
+
   .bio-modal--open .bio-modal__stage .bio-visual.is-active .bio-visual__item,
   .bio-modal:not(.bio-modal--open) .bio-modal__stage .bio-visual.is-active .bio-visual__item {
     animation: none;
   }
+
   /* Menu panel + links appear instantly (no slide / stagger). */
   .menu-overlay {
     transition: none;
   }
+
   .menu-overlay__link,
   .menu-overlay__link--active {
     animation: none;
@@ -6884,6 +7195,7 @@ button.cs-images__pic:focus-visible {
     padding: 8px 14px;
     font-size: 12px;
   }
+
   .konami-toast__sep,
   .konami-toast__hint {
     display: none;
@@ -6901,6 +7213,7 @@ button.cs-images__pic:focus-visible {
 }
 
 @media (max-width: 768px) {
+
   /* Homepage uses full-screen TikTok-style snap — dots nav is redundant there. */
   .projects-nav-m--home {
     display: none !important;
@@ -7009,6 +7322,7 @@ button.cs-images__pic:focus-visible {
     transform: none;
     box-shadow: none;
   }
+
   .craft-card:hover .craft-card__img {
     transform: none;
   }
@@ -7018,6 +7332,7 @@ button.cs-images__pic:focus-visible {
   .craft-lightbox {
     padding: 24px;
   }
+
   /* Leave vertical room for the bottom nav controls, and clamp the actual
      height (not just max-height) so portrait images can't grow tall and drag a
      huge shadow with them. */
@@ -7027,10 +7342,12 @@ button.cs-images__pic:focus-visible {
     height: auto;
     max-height: calc(100vh - 150px);
   }
+
   /* Tighter shadow on mobile — the big 30px/80px offset reads as "too tall". */
   .craft-lightbox__card {
     box-shadow: 0 12px 32px var(--black-scrim);
   }
+
   /* Move prev/next off the image: dock them as a centered pair at the bottom so
      they never overlap the photo's edges. */
   .craft-lightbox__nav--prev,
@@ -7039,17 +7356,21 @@ button.cs-images__pic:focus-visible {
     bottom: 20px;
     transform: none;
   }
+
   .craft-lightbox__nav--prev {
     left: 50%;
     margin-left: -48px;
   }
+
   .craft-lightbox__nav--next {
     right: 50%;
     margin-right: -48px;
   }
+
   .craft-lightbox__nav--prev.is-pressed svg {
     transform: translateX(-3px);
   }
+
   .craft-lightbox__nav--next.is-pressed svg {
     transform: translateX(3px);
   }
@@ -7100,6 +7421,7 @@ button.cs-images__pic:focus-visible {
   padding: 0;
   transition: color 0.15s;
 }
+
 .an-back:hover {
   color: var(--black);
 }
@@ -7144,10 +7466,12 @@ button.cs-images__pic:focus-visible {
     border-color 0.15s;
   line-height: 1.3;
 }
+
 .an-tab--active {
   color: var(--black);
   border-bottom-color: var(--black);
 }
+
 .an-tab:hover {
   color: var(--black);
 }
@@ -7157,6 +7481,7 @@ button.cs-images__pic:focus-visible {
   color: var(--black-faint);
   font-weight: var(--weight-body);
 }
+
 .an-tab--active .an-tab__sub {
   color: var(--black-muted);
 }
@@ -7184,10 +7509,12 @@ button.cs-images__pic:focus-visible {
     color 0.15s,
     border-color 0.15s;
 }
+
 .an-filter:hover {
   background: var(--surface);
   color: var(--black);
 }
+
 .an-filter--active {
   background: var(--black);
   color: var(--white);
@@ -7361,6 +7688,7 @@ button.cs-images__pic:focus-visible {
   font-size: 13px;
   align-items: center;
 }
+
 .an-pv-row:last-child {
   border-bottom: none;
 }
@@ -7397,6 +7725,7 @@ button.cs-images__pic:focus-visible {
   flex-direction: column;
   gap: 4px;
 }
+
 .an-session:last-child {
   border-bottom: none;
 }
@@ -7467,9 +7796,11 @@ button.cs-images__pic:focus-visible {
 .an-setup__steps strong {
   color: var(--black);
 }
+
 .an-setup__steps em {
   font-style: italic;
 }
+
 .an-setup__steps code {
   font-family: "SFMono-Regular", "Consolas", monospace;
   font-size: 12px;
@@ -7528,22 +7859,27 @@ button.cs-images__pic:focus-visible {
     color 0.15s,
     border-color 0.15s;
 }
+
 .an-btn:hover {
   background: var(--surface);
   color: var(--black);
 }
+
 .an-btn--danger {
   color: #c0392b;
   border-color: rgba(192, 57, 43, 0.2);
 }
+
 .an-btn--danger:hover {
   background: rgba(192, 57, 43, 0.06);
 }
+
 .an-btn--confirm {
   background: #c0392b;
   color: var(--white);
   border-color: #c0392b;
 }
+
 .an-btn--confirm:hover {
   background: #a93226;
 }
@@ -7575,6 +7911,7 @@ button.cs-images__pic:focus-visible {
   border-bottom: 1px solid var(--black-line);
   font-size: 12px;
 }
+
 .an-flow-row:last-child {
   border-bottom: none;
 }
@@ -7613,28 +7950,35 @@ button.cs-images__pic:focus-visible {
   .an-header__inner {
     padding: 16px 20px 0;
   }
+
   .an-content {
     padding: 28px 20px 60px;
     gap: 40px;
   }
+
   .an-controls {
     gap: 12px;
   }
+
   .an-two-col {
     grid-template-columns: 1fr;
     gap: 40px;
   }
+
   .an-bar-row {
     grid-template-columns: 130px 1fr 44px;
   }
+
   .an-stat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .an-pv-row {
     grid-template-columns: 1fr 48px;
   }
-  .an-pv-row > span:nth-child(3),
-  .an-pv-row > span:nth-child(4) {
+
+  .an-pv-row>span:nth-child(3),
+  .an-pv-row>span:nth-child(4) {
     display: none;
   }
 }
