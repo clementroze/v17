@@ -65,7 +65,6 @@ function useCurrentTime() {
       timeZone: tz,
     });
 
-  // San Jose, California → Pacific time.
   return {
     local: fmt("America/Los_Angeles"),
     localDaytime: isDaytime(now, "America/Los_Angeles"),
@@ -193,7 +192,7 @@ export default function Footer() {
         <span className="footer__location-time">
           <span className="footer__local-row">
             <span className="footer__city-name">
-              San Jose, CA
+              Ithaca, NY
               <span className="footer__city-icon" aria-hidden="true">
                 {localDaytime ? <SunIcon /> : <MoonIcon />}
               </span>

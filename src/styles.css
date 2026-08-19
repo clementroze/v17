@@ -572,7 +572,6 @@ footer::selection {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .navbar__reveal-text,
   .navbar__reveal--open .navbar__reveal-text {
     transition: opacity 0.2s ease;
@@ -1030,12 +1029,14 @@ footer::selection {
 /* JS adds .hero__tag--animate only after the slices are positioned, so the text
    is never transparent-with-nothing-behind-it for a frame. */
 .hero__tag--animate .hero__tag-letter {
-  background-image: linear-gradient(90deg,
-      var(--black-muted) 35%,
-      #4589ff 45%,
-      #0f62fe 50%,
-      #4589ff 55%,
-      var(--black-muted) 65%);
+  background-image: linear-gradient(
+    90deg,
+    var(--black-muted) 35%,
+    #4589ff 45%,
+    #0f62fe 50%,
+    #4589ff 55%,
+    var(--black-muted) 65%
+  );
   background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
@@ -1195,7 +1196,6 @@ footer::selection {
 }
 
 @keyframes hourglass-flip {
-
   /* Still, upright. */
   0%,
   42% {
@@ -1322,7 +1322,6 @@ footer::selection {
 /* Stream visible (opacity 1) during the two still/draining phases, faded to 0
    over each flip. */
 @keyframes hourglass-stream {
-
   0%,
   40% {
     opacity: 1;
@@ -1478,10 +1477,12 @@ footer::selection {
 
 /* Light-hero variant: invert the scrim so dark text/line read against it. */
 .project__inner:has(.project__content--light) {
-  background: linear-gradient(to top,
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(255, 255, 255, 0.7) 50%,
-      rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
 /* The whole row is the link. Number + name sit inline (cs-nav__card pattern):
@@ -1904,11 +1905,15 @@ footer::selection {
 
 html.konami {
   cursor:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E🌈%3C/text%3E%3C/svg%3E") 16 16,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='26' font-size='26'%3E🌈%3C/text%3E%3C/svg%3E")
+      16 16,
     auto;
 }
 
-html.konami *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(.projects-nav__track):not(.projects-nav__dot-wrap):not(.projects-nav__pill):not(.konami-toast):not(.konami-toast *) {
+html.konami
+  *:not(.page-transition__col):not(.konami-wipe__col):not(.projects-nav):not(.projects-nav__track):not(
+    .projects-nav__dot-wrap
+  ):not(.projects-nav__pill):not(.konami-toast):not(.konami-toast *) {
   animation: konami-rainbow 2s linear infinite !important;
   cursor: inherit;
 }
@@ -2491,7 +2496,7 @@ html.konami .projects-nav-m__pill {
 }
 
 /* When the label is wrapped in a Reveal div, the div becomes the flex child */
-.about-section-row>.reveal:first-child {
+.about-section-row > .reveal:first-child {
   flex: 1 0 0;
   min-width: 0;
 }
@@ -2697,7 +2702,7 @@ html.konami .projects-nav-m__pill {
   gap: 20px;
 }
 
-.bio-section+.bio-section {
+.bio-section + .bio-section {
   margin-top: 64px;
   border-top: 1px solid var(--white-faint);
   padding-top: 84px;
@@ -2765,8 +2770,10 @@ html.konami .projects-nav-m__pill {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -2907,7 +2914,9 @@ html.konami .projects-nav-m__pill {
   height: 200%;
 }
 
-[data-vaul-overlay][data-vaul-snap-points="true"]:not([data-vaul-snap-points-overlay="true"]):not([data-state="closed"]) {
+[data-vaul-overlay][data-vaul-snap-points="true"]:not([data-vaul-snap-points-overlay="true"]):not(
+    [data-state="closed"]
+  ) {
   opacity: 0;
 }
 
@@ -3232,7 +3241,7 @@ html.konami .projects-nav-m__pill {
     padding: 32px 24px 48px;
   }
 
-  .bio-section+.bio-section {
+  .bio-section + .bio-section {
     margin-top: 40px;
     padding-top: 40px;
   }
@@ -3600,17 +3609,17 @@ figure.bio-visual__item {
 /* The résumé reveal and the contact column are the direct flex children — let
    the contact column stretch to the résumé reveal's height and pass that height
    down to its two stacked contact reveals. */
-.about-more-row>.reveal {
+.about-more-row > .reveal {
   display: flex;
 }
 
-.about-more-row>.about-contact-col {
+.about-more-row > .about-contact-col {
   min-width: 240px;
 }
 
 /* Each contact link is wrapped in its own reveal; the wrappers split the
    column height so the cards still stretch like the bare links did. */
-.about-contact-col>.reveal {
+.about-contact-col > .reveal {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -4054,8 +4063,10 @@ figure.bio-visual__item {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -4143,7 +4154,6 @@ figure.bio-visual__item {
 /* ── Grid icon: 4 squares scatter diagonally then spring back ── */
 
 @keyframes grid-tl {
-
   0%,
   100% {
     translate: 0 0;
@@ -4155,7 +4165,6 @@ figure.bio-visual__item {
 }
 
 @keyframes grid-tr {
-
   0%,
   100% {
     translate: 0 0;
@@ -4167,7 +4176,6 @@ figure.bio-visual__item {
 }
 
 @keyframes grid-bl {
-
   0%,
   100% {
     translate: 0 0;
@@ -4179,7 +4187,6 @@ figure.bio-visual__item {
 }
 
 @keyframes grid-br {
-
   0%,
   100% {
     translate: 0 0;
@@ -4209,7 +4216,6 @@ figure.bio-visual__item {
 /* ── List icon: top bar up, bottom bar down, spring back ── */
 
 @keyframes list-top {
-
   0%,
   100% {
     transform: translateY(0);
@@ -4221,7 +4227,6 @@ figure.bio-visual__item {
 }
 
 @keyframes list-bot {
-
   0%,
   100% {
     transform: translateY(0);
@@ -4617,8 +4622,10 @@ figure.bio-visual__item {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -4975,11 +4982,11 @@ figure.bio-visual__item {
    text it introduces. The heading itself keeps the full 24px above it.
    .cs-section__body wraps each block in a <Reveal> wrapper, so the rules target
    that wrapper (> *) rather than the heading/paragraph elements directly. */
-.cs-section__body>*+* {
+.cs-section__body > * + * {
   margin-top: 24px;
 }
 
-.cs-section__body>*:has(.cs-heading)+* {
+.cs-section__body > *:has(.cs-heading) + * {
   margin-top: 16px;
 }
 
@@ -5079,8 +5086,10 @@ h3.cs-heading {
   text-decoration: none;
   background-image:
     linear-gradient(var(--link-accent-color), var(--link-accent-color)),
-    linear-gradient(color-mix(in srgb, var(--link-accent-color) 32%, transparent),
-      color-mix(in srgb, var(--link-accent-color) 32%, transparent));
+    linear-gradient(
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent),
+      color-mix(in srgb, var(--link-accent-color) 32%, transparent)
+    );
   background-repeat: no-repeat;
   background-position:
     0 100%,
@@ -5386,11 +5395,13 @@ button.cs-images__pic:focus-visible {
   margin: 0;
   appearance: none;
   -webkit-appearance: none;
-  background: linear-gradient(to right,
-      #fff 0%,
-      #fff var(--cs-video-progress, 0%),
-      rgba(255, 255, 255, 0.3) var(--cs-video-progress, 0%),
-      rgba(255, 255, 255, 0.3) 100%);
+  background: linear-gradient(
+    to right,
+    #fff 0%,
+    #fff var(--cs-video-progress, 0%),
+    rgba(255, 255, 255, 0.3) var(--cs-video-progress, 0%),
+    rgba(255, 255, 255, 0.3) 100%
+  );
   background-clip: content-box;
   border-radius: 12px;
   cursor: crosshair;
@@ -5473,7 +5484,7 @@ button.cs-images__pic:focus-visible {
 /* While actively scrubbing (mouse down on the track), shrink the thumb a touch.
    Driven off the scrubber's :active since the ghost itself can't be active
    (pointer-events: none). */
-.cs-video__scrubber:active+.cs-video__ghost {
+.cs-video__scrubber:active + .cs-video__ghost {
   width: 4px;
   height: 32px;
 }
@@ -5675,7 +5686,7 @@ button.cs-images__pic:focus-visible {
 /* On non-hover devices, drop the hover lift so it doesn't get stuck */
 
 /* The Reveal wrapper inside a column should fill column width */
-.craft-col>.reveal {
+.craft-col > .reveal {
   width: 100%;
 }
 
@@ -6445,6 +6456,7 @@ button.cs-images__pic:focus-visible {
   }
 
   .about-photo-wrap {
+    width: 50%;
     border-radius: var(--radius-img);
     height: auto;
     aspect-ratio: 4/5;
@@ -6486,7 +6498,7 @@ button.cs-images__pic:focus-visible {
     min-height: 120px;
   }
 
-  .about-section-row>.reveal:first-child {
+  .about-section-row > .reveal:first-child {
     flex: none;
   }
 
@@ -6559,7 +6571,7 @@ button.cs-images__pic:focus-visible {
     align-items: center;
   }
 
-  .accordion-row__period>span:first-child {
+  .accordion-row__period > span:first-child {
     display: none;
     /* hide period text on mobile to keep row tidy; show in role row instead */
   }
@@ -7151,7 +7163,6 @@ button.cs-images__pic:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .hourglass__rotor,
   .hourglass__surface-top,
   .hourglass__surface-bot,
@@ -7213,7 +7224,6 @@ button.cs-images__pic:focus-visible {
 }
 
 @media (max-width: 768px) {
-
   /* Homepage uses full-screen TikTok-style snap — dots nav is redundant there. */
   .projects-nav-m--home {
     display: none !important;
@@ -7977,8 +7987,8 @@ button.cs-images__pic:focus-visible {
     grid-template-columns: 1fr 48px;
   }
 
-  .an-pv-row>span:nth-child(3),
-  .an-pv-row>span:nth-child(4) {
+  .an-pv-row > span:nth-child(3),
+  .an-pv-row > span:nth-child(4) {
     display: none;
   }
 }
