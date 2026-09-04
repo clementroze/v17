@@ -5449,13 +5449,17 @@ button.cs-images__pic:focus-visible {
 /* WebKit also styles the track separately; pin the crosshair there too so it
    wins regardless of which part of the control the pointer is over. */
 .cs-video__scrubber::-webkit-slider-runnable-track {
+  height: 100%;
+  background: transparent;
   cursor: crosshair;
-  border-radius: 12px;
+  border-radius: 999px;
 }
 
 .cs-video__scrubber::-moz-range-track {
+  height: 100%;
+  background: transparent;
   cursor: crosshair;
-  border-radius: 12px;
+  border-radius: 999px;
 }
 
 .cs-video__scrubber:focus-visible {

@@ -32,6 +32,22 @@ const c = (filename: string) => `/craft/${filename}`;
 // or keep it unique yourself.
 const ITEMS: Omit<CraftItem, "id">[] = [
   {
+    src: c("dcc-site.mov"),
+    label: "DCC website home page",
+    alt: "DCC website home page",
+    date: "2026",
+    link: "https://designconsultingcornell.com/",
+    linkLabel: "Visit website",
+  },
+  {
+    src: c("dcc-site-footer.mov"),
+    label: "DCC website footer",
+    alt: "DCC website footer",
+    date: "2026",
+    link: "https://designconsultingcornell.com/",
+    linkLabel: "Visit website",
+  },
+  {
     src: c("ebb-insights.png"),
     label: "Ebb & Flow (design-a-thon project) Insights page",
     date: "2026",
