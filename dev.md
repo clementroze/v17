@@ -2,7 +2,7 @@
 
 Reference doc for adding content and understanding how this portfolio is wired.
 Written so future-me (and Claude) can make changes without re-deriving the
-architecture each time. Last meaningful update: 2026-06.
+architecture each time. Last meaningful update: 2026-09.
 
 ---
 
@@ -89,9 +89,9 @@ Files: `src/data/about.tsx` (+ `src/data/data.ts` if it's a brand-new entity)
 
 ## How to: add a full case study (the big one)
 
-Worked example: turning the IBM "coming soon" stub into a real case study.
-(IBM already exists in the registry with `hasCaseStudy: false` and an image
-folder; it just lacks the markdown that creates the route.)
+IBM is now a full case study: `src/work/ibm.md` exists and its registry entry
+has `hasCaseStudy: true`. The steps below use IBM's paths as a concrete example
+of the setup needed for a new study; substitute the new project's slug and copy.
 
 **A. Create `src/work/<slug>.md`** — this single file unlocks the route. Copy the
 frontmatter shape from `src/work/replit.md`:
