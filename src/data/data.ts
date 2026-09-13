@@ -154,7 +154,7 @@ export const collaborations: Entity[] = [
   {
     slug: "microsoft",
     name: "Microsoft",
-    date: "Spring 2024",
+    date: "Spring 2025",
     role: "Student project",
     accent: "#00a651",
     href: "/work/microsoft",

@@ -66,8 +66,8 @@ function useCurrentTime() {
     });
 
   return {
-    local: fmt("America/Los_Angeles"),
-    localDaytime: isDaytime(now, "America/Los_Angeles"),
+    local: fmt("America/New_York"),
+    localDaytime: isDaytime(now, "America/New_York"),
   };
 }
 

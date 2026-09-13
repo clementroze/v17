@@ -8,7 +8,8 @@ import { bySlug } from "./data";
 // Case-study markdown, loaded raw at build time (same glob CaseStudy.tsx uses).
 // We only read the frontmatter `subtitle:` line from each — see `mdSubtitle`.
 const mdFiles = import.meta.glob("../work/*.md", {
-  as: "raw",
+  query: "?raw",
+  import: "default",
   eager: true,
 }) as Record<string, string>;
 

@@ -430,7 +430,7 @@ export function getBioSections(onOpenDesignClubs: () => void): BioSection[] {
         <>
           <p>
             I've made it a goal to try out at least 1 new sport every semester at Cornell! So far: ping pong, fencing,
-            bowling, rock-climbing, wilderness first aid training, tennis.{" "}
+            bowling, rock-climbing, wilderness first aid training, tennis, and sailing.{" "}
             <a href="https://scl.cornell.edu/pe/pe/courses/fall-2026" target="_blank">
               Let me know
             </a>{" "}

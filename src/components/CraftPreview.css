@@ -1,0 +1,180 @@
+.craft-preview {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  color: var(--black);
+  background: var(--white);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.craft-preview__stage {
+  --drag-x: 0px;
+  --drag-y: 0px;
+  --drag-rotation: 0deg;
+  --stack-step: min(17.6px, 1.44vw);
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: clamp(256px, 41.6vw, 480px);
+  height: auto;
+  translate: -50% -50%;
+  cursor: grab;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.craft-preview__stage.is-dragging {
+  cursor: grabbing;
+}
+
+/* Cover the exposed back cards and gaps, even as the front card moves away. */
+.craft-preview__stage::before {
+  content: "";
+  position: absolute;
+  inset: calc(-8 * var(--stack-step)) -16px -16px;
+}
+
+.craft-preview__item {
+  padding: 0;
+  cursor: grab;
+  --item-drag-x: 0px;
+  --item-drag-y: 0px;
+  --item-drag-rotation: 0deg;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(256px, 41.6vw, 480px);
+  height: auto;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: var(--radius-img);
+  background: var(--black-line);
+  box-shadow: 0 16px 38px rgba(24, 24, 24, 0.11);
+  transform: translate(
+      calc(-50% + var(--item-drag-x)),
+      calc(-50% - var(--stack-step) * var(--stack-distance) + var(--item-drag-y))
+    )
+    rotate(calc(var(--card-rotation) + var(--item-drag-rotation)))
+    scale(calc(1 - min(0.14, 0.012 * var(--stack-distance))));
+  transform-origin: center center;
+  opacity: 1;
+  z-index: calc(30 - var(--stack-distance));
+  transition:
+    box-shadow 240ms ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.craft-preview__item.is-active {
+  --item-drag-x: var(--drag-x);
+  --item-drag-y: var(--drag-y);
+  --item-drag-rotation: var(--drag-rotation);
+  pointer-events: auto;
+}
+
+.craft-preview__item picture {
+  display: block;
+}
+
+.craft-preview__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.craft-preview__item:hover {
+  box-shadow: 0 24px 48px rgba(24, 24, 24, 0.17);
+}
+
+.craft-preview__footer {
+  position: absolute;
+  bottom: 20px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 22px;
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.craft-preview__footer h2 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 400;
+}
+
+.craft-preview__footer a {
+  color: inherit;
+  pointer-events: auto;
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+
+.craft-preview__footer a:hover,
+.craft-preview__footer a:focus-visible {
+  text-decoration: underline;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .craft-preview {
+    height: max(min(82svh, 760px), 580px);
+    min-height: 0;
+  }
+  .craft-preview__stage {
+    --stack-step: 12.8px;
+    width: clamp(224px, 62.4vw, 336px);
+    top: 49%;
+  }
+
+  .craft-preview__item {
+    width: clamp(224px, 62.4vw, 336px);
+    transform: translate(
+        calc(-50% + var(--item-drag-x)),
+        calc(-50% - var(--stack-step) * var(--stack-distance) + var(--item-drag-y))
+      )
+      rotate(calc(var(--card-rotation) + var(--item-drag-rotation)))
+      scale(calc(1 - min(0.14, 0.012 * var(--stack-distance))));
+  }
+
+  .craft-preview__footer {
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .craft-preview__item {
+    transition: none;
+  }
+}
+
+.craft-preview__stage.is-dragging .craft-preview__item {
+  cursor: grabbing;
+}
+.craft-preview__item:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+
+@media (max-width: 600px) {
+  .home-page .craft-preview .projects-nav--horizontal {
+    bottom: 52px;
+  }
+}

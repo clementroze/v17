@@ -7,26 +7,28 @@ import React, { useEffect, useRef } from 'react';
 let scrollSpeed = 0;
 let lastY = 0;
 let lastT = 0;
-let tracking = false;
+let trackingUsers = 0;
+
+function trackScrollSpeed() {
+  const now = performance.now();
+  const dt = now - lastT;
+  if (dt <= 0) return;
+  const instant = Math.abs(window.scrollY - lastY) / dt;
+  scrollSpeed = instant > scrollSpeed ? instant : scrollSpeed * 0.85 + instant * 0.15;
+  lastY = window.scrollY;
+  lastT = now;
+}
 
 function startScrollTracking() {
-  if (tracking || typeof window === 'undefined') return;
-  tracking = true;
-  lastY = window.scrollY;
-  lastT = performance.now();
-  window.addEventListener(
-    'scroll',
-    () => {
-      const now = performance.now();
-      const dt = now - lastT;
-      if (dt <= 0) return;
-      const inst = Math.abs(window.scrollY - lastY) / dt; // px/ms
-      scrollSpeed = inst > scrollSpeed ? inst : scrollSpeed * 0.85 + inst * 0.15;
-      lastY = window.scrollY;
-      lastT = now;
-    },
-    { passive: true },
-  );
+  if (trackingUsers++ === 0) {
+    scrollSpeed = 0;
+    lastY = window.scrollY;
+    lastT = performance.now();
+    window.addEventListener('scroll', trackScrollSpeed, { passive: true });
+  }
+  return () => {
+    if (--trackingUsers === 0) window.removeEventListener('scroll', trackScrollSpeed);
+  };
 }
 
 // `threshold` is the IntersectionObserver ratio at which the element reveals.
@@ -39,16 +41,30 @@ function startScrollTracking() {
 // scrolling fast — e.g. flinging to the middle of the page and skipping many
 // images — shortens both the stagger delay and the transition so the cards you
 // land on snap in quicker (but still animate). Normal scrolling reveals normally.
-export function useReveal<T extends HTMLElement = HTMLDivElement>(delay = 0, threshold = 0.1, scrollAware = false) {
+export function useReveal<T extends HTMLElement = HTMLDivElement>(delay = 0, threshold = 0.1, scrollAware = false, enabled = true, repeat = false) {
   const ref = useRef<T>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (scrollAware) startScrollTracking();
+    if (!enabled) {
+      if (repeat) el.classList.remove('reveal--visible');
+      return;
+    }
+    if (!("IntersectionObserver" in window)) {
+      el.classList.add('reveal--visible');
+      return;
+    }
+    const stopTracking = scrollAware ? startScrollTracking() : undefined;
     let timeoutId = 0;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
+        if (!entry.isIntersecting) {
+          if (repeat) {
+            clearTimeout(timeoutId);
+            el.classList.remove('reveal--visible');
+          }
+          return;
+        }
         let effDelay = delay;
         if (scrollAware) {
           // Match the general <Reveal> timing (0.65s) at normal speed, only
@@ -61,16 +77,17 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(delay = 0, thr
           el.style.setProperty('--reveal-dur', `${(BASE * factor).toFixed(3)}s`);
         }
         timeoutId = window.setTimeout(() => el.classList.add('reveal--visible'), effDelay);
-        observer.disconnect();
+        if (!repeat) observer.disconnect();
       },
       { threshold },
     );
     observer.observe(el);
     return () => {
       observer.disconnect();
+      stopTracking?.();
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [delay, threshold, scrollAware]);
+  }, [delay, threshold, scrollAware, enabled, repeat]);
   return ref;
 }
 
@@ -81,10 +98,14 @@ type RevealProps = {
   as?: keyof React.JSX.IntrinsicElements;
   /** Scale the entrance to scroll velocity (Craft grid). See useReveal. */
   scrollAware?: boolean;
+  /** Defer observing until an overlapping entrance has cleared the content. */
+  enabled?: boolean;
+  /** Replay when re-entering the viewport or re-enabled. */
+  repeat?: boolean;
 };
 
-export function Reveal({ children, delay = 0, className = '', as: Tag = 'div', scrollAware = false }: RevealProps) {
-  const ref = useReveal(delay, 0.1, scrollAware);
+export function Reveal({ children, delay = 0, className = '', as: Tag = 'div', scrollAware = false, enabled = true, repeat = false }: RevealProps) {
+  const ref = useReveal(delay, 0.1, scrollAware, enabled, repeat);
   return (
     // @ts-expect-error — polymorphic ref; Tag is always a div-compatible element in practice
     <Tag ref={ref} className={`reveal${className ? ` ${className}` : ''}`}>

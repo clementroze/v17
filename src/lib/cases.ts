@@ -6,7 +6,8 @@ import { parseCase, type CaseStudy as CaseStudyData } from "./parseCase";
 // not-found instead of being silently indexable). The build reads the same
 // directory directly (vite.config.ts) to keep the prerender and sitemap in sync.
 const mdFiles = import.meta.glob("../work/*.md", {
-  as: "raw",
+  query: "?raw",
+  import: "default",
   eager: true,
 }) as Record<string, string>;
 

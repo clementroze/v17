@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
+  orientation?: "vertical" | "horizontal";
+  progress?: number;
+  onSelect?: (index: number) => void;
+  onScrub?: (progress: number) => void;
+  onScrubStart?: () => void;
+  onScrubEnd?: () => void;
   count: number;
   sectionRefs: React.RefObject<HTMLDivElement>[];
   variant?: "light" | "dark";
@@ -19,6 +25,7 @@ type Props = {
   /** When set, overrides the built-in scroll thresholds: true → entering, false → exiting.
    *  Use together with alwaysVisible (it bypasses the hero/footer logic). */
   visible?: boolean;
+  enterDelay?: number;
 };
 
 const DOT_SIZE = 6;
@@ -27,6 +34,12 @@ const ACTIVE_SIZE = 20;
 type Phase = "hidden" | "entering" | "exiting";
 
 export default function ProjectsNav({
+  orientation = "vertical",
+  progress = 0,
+  onSelect,
+  onScrub,
+  onScrubStart,
+  onScrubEnd,
   count,
   sectionRefs,
   variant = "light",
@@ -36,9 +49,9 @@ export default function ProjectsNav({
   labels,
   scrollOffset = 0,
   visible,
+  enterDelay = 0,
 }: Props) {
-  const initialPhase: Phase =
-    visible === false ? "hidden" : alwaysVisible || visible === true ? "entering" : "hidden";
+  const initialPhase: Phase = visible === false ? "hidden" : alwaysVisible || visible === true ? "entering" : "hidden";
   const [phase, setPhase] = useState<Phase>(initialPhase);
   const [runId, setRunId] = useState(0);
   const prevVisibleRef = useRef<boolean | undefined>(visible);
@@ -80,8 +93,19 @@ export default function ProjectsNav({
 
   const updatePillsRef = useRef<() => void>(() => {});
   const scrollToIndexRef = useRef<(i: number) => void>(() => {});
+  const onSelectRef = useRef(onSelect);
+  const onScrubRef = useRef(onScrub);
+  const scrubLifecycle = useRef({ start: onScrubStart, end: onScrubEnd });
+  const suppressHorizontalClick = useRef(false);
 
   useEffect(() => {
+    onSelectRef.current = onSelect;
+    onScrubRef.current = onScrub;
+    scrubLifecycle.current = { start: onScrubStart, end: onScrubEnd };
+  }, [onSelect, onScrub, onScrubStart, onScrubEnd]);
+
+  useEffect(() => {
+    if (orientation === "horizontal") return;
     const getSectionTops = () =>
       sectionRefs.map((r) => {
         if (!r.current) return 0;
@@ -142,23 +166,15 @@ export default function ProjectsNav({
       const heroExit = scrollY + vh * 0.55;
       const firstTop = tops[0];
       const pastHero =
-        firstTop === undefined
-          ? false
-          : reachedRef.current
-            ? firstTop <= heroExit
-            : firstTop <= heroEnter;
+        firstTop === undefined ? false : reachedRef.current ? firstTop <= heroExit : firstTop <= heroEnter;
 
       // Footer side — exit as soon as the last project's bottom rises past 55% vh
       // (so fade plays while the dark project is still on-screen), re-enter when
       // it falls back past 50% vh.
-      const lastBottom =
-        sectionRefs[count - 1]?.current?.getBoundingClientRect().bottom ??
-        Infinity;
+      const lastBottom = sectionRefs[count - 1]?.current?.getBoundingClientRect().bottom ?? Infinity;
       const footerEnter = vh * 0.5; // last-section bottom is below this → in range
       const footerExit = vh * 0.45; // last-section bottom rises above this → exit
-      const beforeFooter = reachedRef.current
-        ? lastBottom >= footerExit
-        : lastBottom >= footerEnter;
+      const beforeFooter = reachedRef.current ? lastBottom >= footerExit : lastBottom >= footerEnter;
 
       const reachedNow = pastHero && beforeFooter;
 
@@ -183,10 +199,22 @@ export default function ProjectsNav({
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, [sectionRefs, count, alwaysVisible]);
+  }, [sectionRefs, count, alwaysVisible, orientation]);
+
+  useEffect(() => {
+    if (orientation !== "horizontal") return;
+    setActiveIndex(Math.round(progress));
+    dotRefs.current.forEach((el, index) => {
+      if (!el) return;
+      const weight = Math.max(0, 1 - Math.abs(progress - index));
+      el.style.width = `${DOT_SIZE + (ACTIVE_SIZE - DOT_SIZE) * weight}px`;
+      el.style.setProperty("--pill-alpha", `${0.35 + 0.65 * weight}`);
+    });
+  }, [orientation, progress, runId]);
 
   // ── Drag-to-scrub ─────────────────────────────────────────────────────────
   useEffect(() => {
+    if (orientation === "horizontal") return;
     const track = trackRef.current;
     if (!track) return;
 
@@ -212,19 +240,12 @@ export default function ProjectsNav({
 
     const sectionPitchAvg = () => {
       if (sectionTops.length < 2) return 1;
-      return (
-        (sectionTops[sectionTops.length - 1] - sectionTops[0]) /
-        (sectionTops.length - 1)
-      );
+      return (sectionTops[sectionTops.length - 1] - sectionTops[0]) / (sectionTops.length - 1);
     };
 
     const computeMetrics = () => {
       sectionTops = sectionRefs
-        .map((r) =>
-          r.current
-            ? r.current.getBoundingClientRect().top + window.scrollY
-            : null,
-        )
+        .map((r) => (r.current ? r.current.getBoundingClientRect().top + window.scrollY : null))
         .filter((t): t is number => t !== null);
       scrollMin = sectionTops[0] ?? 0;
       scrollMax = sectionTops[sectionTops.length - 1] ?? scrollMin;
@@ -257,9 +278,7 @@ export default function ProjectsNav({
         // hold a beat after motion stops so it doesn't re-fight us.
         if (clickHoldTimeout !== null) clearTimeout(clickHoldTimeout);
         clickHoldTimeout = setTimeout(() => {
-          (
-            window as unknown as { __pillNavDragging?: boolean }
-          ).__pillNavDragging = false;
+          (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = false;
           clickHoldTimeout = null;
         }, 120);
       }
@@ -272,8 +291,7 @@ export default function ProjectsNav({
       const top = Math.max(0, rawTop - scrollOffset);
       // Tell Home.tsx's snap controller to stand down while we animate, so its
       // idle-snap doesn't fight the click-driven scroll.
-      (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging =
-        true;
+      (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = true;
       if (clickHoldTimeout !== null) {
         clearTimeout(clickHoldTimeout);
         clickHoldTimeout = null;
@@ -290,9 +308,7 @@ export default function ProjectsNav({
       const delta = endY - startY;
       if (Math.abs(delta) < 0.5) {
         clickHoldTimeout = setTimeout(() => {
-          (
-            window as unknown as { __pillNavDragging?: boolean }
-          ).__pillNavDragging = false;
+          (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = false;
           clickHoldTimeout = null;
         }, 120);
         return;
@@ -301,12 +317,8 @@ export default function ProjectsNav({
       // Duration scales gently with distance so neighbor jumps feel snappy and
       // long jumps still glide. easeInOutCubic gives a soft start AND end.
       const dist = Math.abs(delta);
-      const duration = Math.min(
-        1400,
-        Math.max(520, 420 + Math.sqrt(dist) * 22),
-      );
-      const ease = (t: number) =>
-        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const duration = Math.min(1400, Math.max(520, 420 + Math.sqrt(dist) * 22));
+      const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
       const startT = performance.now();
       const step = (now: number) => {
@@ -320,9 +332,7 @@ export default function ProjectsNav({
           clickRaf = null;
           if (clickHoldTimeout !== null) clearTimeout(clickHoldTimeout);
           clickHoldTimeout = setTimeout(() => {
-            (
-              window as unknown as { __pillNavDragging?: boolean }
-            ).__pillNavDragging = false;
+            (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = false;
             clickHoldTimeout = null;
           }, 120);
         }
@@ -363,9 +373,7 @@ export default function ProjectsNav({
         } catch {
           /* noop */
         }
-        (
-          window as unknown as { __pillNavDragging?: boolean }
-        ).__pillNavDragging = true;
+        (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = true;
       }
       if (!dragMovedRef.current) return;
       const scale = sectionPitchAvg() / Math.max(1, pillPitch);
@@ -406,9 +414,7 @@ export default function ProjectsNav({
       }
       // Release the drag flag a moment later so Home.tsx's snap controller doesn't fight us mid-settle.
       setTimeout(() => {
-        (
-          window as unknown as { __pillNavDragging?: boolean }
-        ).__pillNavDragging = false;
+        (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = false;
       }, 400);
       // Suppress the click that follows a real drag.
       if (dragMovedRef.current) {
@@ -436,37 +442,113 @@ export default function ProjectsNav({
       if (raf !== null) cancelAnimationFrame(raf);
       cancelClickAnim();
       if (clickHoldTimeout !== null) clearTimeout(clickHoldTimeout);
-      (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging =
-        false;
+      (window as unknown as { __pillNavDragging?: boolean }).__pillNavDragging = false;
     };
     // Re-attach listeners when the container subtree re-mounts (runId change
     // remounts the .projects-nav div via key={runId}, replacing the track DOM).
-  }, [sectionRefs, count, runId, snapOnRelease, scrollOffset]);
+  }, [sectionRefs, count, runId, snapOnRelease, scrollOffset, orientation]);
+
+  useEffect(() => {
+    if (orientation !== "horizontal") return;
+    const track = trackRef.current;
+    if (!track || !onSelect || count < 2) return;
+
+    let dragging = false;
+    let moved = false;
+    let pointerId: number | null = null;
+    let startX = 0;
+
+    const getProgress = (clientX: number) => {
+      const wraps = wrapRefs.current.filter((wrap): wrap is HTMLButtonElement => !!wrap);
+      if (wraps.length < 2) return 0;
+      const first = wraps[0].getBoundingClientRect();
+      const last = wraps[wraps.length - 1].getBoundingClientRect();
+      const position = Math.max(
+        0,
+        Math.min(
+          1,
+          (clientX - (first.left + first.width / 2)) / (last.left + last.width / 2 - (first.left + first.width / 2)),
+        ),
+      );
+      return position * (count - 1);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!event.isPrimary || dragging) return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      suppressHorizontalClick.current = false;
+      scrubLifecycle.current.start?.();
+      dragging = true;
+      moved = false;
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      setPressed(true);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      if (!moved && Math.abs(event.clientX - startX) < 3) return;
+      if (!moved) {
+        moved = true;
+        try {
+          track.setPointerCapture(event.pointerId);
+        } catch {
+          /* noop */
+        }
+      }
+      onScrubRef.current?.(getProgress(event.clientX));
+      event.preventDefault();
+    };
+
+    const release = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== pointerId) return;
+      dragging = false;
+      pointerId = null;
+      setPressed(false);
+      try {
+        track.releasePointerCapture(event.pointerId);
+      } catch {
+        /* noop */
+      }
+      if (moved && event.type === "pointerup") onSelectRef.current?.(Math.round(getProgress(event.clientX)));
+      suppressHorizontalClick.current = moved;
+      scrubLifecycle.current.end?.();
+    };
+
+    const leave = (event: PointerEvent) => {
+      if (!moved) release(event);
+    };
+
+    track.addEventListener("pointerdown", onPointerDown);
+    track.addEventListener("pointermove", onPointerMove);
+    track.addEventListener("pointerup", release);
+    track.addEventListener("pointercancel", release);
+    track.addEventListener("lostpointercapture", release);
+    track.addEventListener("pointerleave", leave);
+    return () => {
+      if (dragging) scrubLifecycle.current.end?.();
+      track.removeEventListener("pointerdown", onPointerDown);
+      track.removeEventListener("pointermove", onPointerMove);
+      track.removeEventListener("pointerup", release);
+      track.removeEventListener("pointercancel", release);
+      track.removeEventListener("lostpointercapture", release);
+      track.removeEventListener("pointerleave", leave);
+    };
+  }, [orientation, count, runId]);
 
   const phaseClass =
-    phase === "entering"
-      ? " projects-nav--entering"
-      : phase === "exiting"
-        ? " projects-nav--exiting"
-        : "";
+    phase === "entering" ? " projects-nav--entering" : phase === "exiting" ? " projects-nav--exiting" : "";
 
   // Per-section tone wins when provided: a light section background needs dark
   // pills (the "dark" variant) to contrast, and vice versa. Falls back to the
   // static `variant` prop when no tones are given (e.g. case-study page).
-  const activeVariant = tones
-    ? tones[activeIndex]
-      ? "dark"
-      : "light"
-    : variant;
-  const variantClass =
-    activeVariant === "dark"
-      ? " projects-nav--dark"
-      : " projects-nav--light";
+  const activeVariant = tones ? (tones[activeIndex] ? "dark" : "light") : variant;
+  const variantClass = activeVariant === "dark" ? " projects-nav--dark" : " projects-nav--light";
 
   return (
     <aside
       key={runId}
-      className={`projects-nav${variantClass}${phaseClass}`}
+      className={`projects-nav${variantClass}${phaseClass}${orientation === "horizontal" ? " projects-nav--horizontal" : ""}`}
       aria-label="Section navigation"
       aria-hidden={phase !== "entering"}
     >
@@ -474,13 +556,18 @@ export default function ProjectsNav({
         ref={trackRef}
         className={`projects-nav__track${hoveredIndex !== null ? " projects-nav__track--hover" : ""}${pressed ? " projects-nav__track--pressed" : ""}`}
         onMouseLeave={() => setHoveredIndex(null)}
+        onClickCapture={(event) => {
+          if (orientation !== "horizontal" || !suppressHorizontalClick.current || event.detail === 0) return;
+          event.preventDefault();
+          event.stopPropagation();
+          suppressHorizontalClick.current = false;
+        }}
         style={{ touchAction: "none" }}
         data-lenis-prevent
       >
         {Array.from({ length: count }).map((_, i) => {
           const exitDelay = (count - 1 - i) * 35;
-          const enterDelay = i * 50;
-          const delay = phase === "exiting" ? exitDelay : enterDelay;
+          const delay = phase === "exiting" ? exitDelay : enterDelay + i * 50;
           return (
             <button
               key={i}
@@ -491,21 +578,20 @@ export default function ProjectsNav({
               }}
               className="projects-nav__dot-wrap"
               tabIndex={phase !== "entering" ? -1 : undefined}
-              style={
-                phase !== "hidden"
-                  ? { animationDelay: `${delay}ms` }
-                  : undefined
-              }
+              style={phase !== "hidden" ? { animationDelay: `${delay}ms` } : undefined}
               onClick={() => {
+                if (orientation === "horizontal") {
+                  onSelect?.(i);
+                  return;
+                }
                 if (dragMovedRef.current) return;
                 scrollToIndexRef.current(i);
               }}
               onMouseEnter={() => setHoveredIndex(i)}
+              aria-current={activeIndex === i ? "step" : undefined}
               aria-label={labels?.[i] ?? `Go to project ${i + 1}`}
             >
-              {labels?.[i] && (
-                <span className="projects-nav__label">{labels[i]}</span>
-              )}
+              {labels?.[i] && <span className="projects-nav__label">{labels[i]}</span>}
               <div
                 ref={(el) => {
                   if (el) dotRefs.current[i] = el;

@@ -65,26 +65,6 @@ html.lenis body {
   overflow: clip;
 }
 
-/* ── Mobile Reels-style touch paging (homepage only) ──────────────────────────
-   Desktop paging is JS-driven (wheel capture in Home.tsx). On touch we let the
-   browser do it natively: `mandatory` snap + `scroll-snap-stop: always` means a
-   swipe can advance at most one full-viewport section before it locks — exactly
-   the Instagram Reels feel. Scoped to `html.home-paging`, which Home toggles on
-   mount, so other routes scroll normally. The footer is a snap point too, so
-   `mandatory` doesn't trap it off-screen below the last project. */
-@media (max-width: 768px) {
-  html.home-paging {
-    scroll-snap-type: y mandatory;
-  }
-
-  html.home-paging .home__hero-snap,
-  html.home-paging .effect-b__section,
-  html.home-paging .footer {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-  }
-}
-
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
@@ -1420,25 +1400,6 @@ footer::selection {
   /* no padding — the inner wrapper handles margin */
 }
 
-/* The inset/recede wrapper — transform, radius and shadow are driven by JS
-   (window/recede in EffectB.tsx): scales down + rounds + lifts while scrolling
-   away from its settled position, flush to the section edges when landed. */
-.effect-b__inner {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-  border-radius: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  transform-origin: center center;
-  /* scale from centre → even-ish white shell */
-  /* Hairline edge so the window reads against the white shell as it recedes
-     (static, follows the JS-driven border-radius; no per-frame repaint cost). */
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
-  will-change: transform, border-radius;
-}
-
 .project__bg {
   position: absolute;
   inset: 0;
@@ -1679,7 +1640,7 @@ footer::selection {
   min-width: 0;
   display: flex;
   align-items: center;
-  border-radius: var(--radius-img);
+  border-radius: 4px;
   background: var(--white-faint);
   overflow: hidden;
   cursor: pointer;
@@ -2075,70 +2036,9 @@ html.konami canvas {
   display: contents;
 }
 
-/* =============================================
-   EFFECT B — Parallax + fade-in text
-   ============================================= */
-
-.effect-b__section {
-  display: flex;
-  /* The white "film-reel" shell revealed behind the inner as it recedes while
-     scrolling. Fully covered (flush) when the section is landed. */
-  background: #fff;
-}
-
-/* Reveal entrance for the first (expand) section only. Uses opacity + filter
-   only — no transform — so the JS parallax/expand math that reads
-   getBoundingClientRect() stays accurate during and after the animation. */
-.effect-b__section--reveal {
-  opacity: 0;
-  filter: blur(8px);
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.effect-b__section--revealed {
-  opacity: 1;
-  filter: blur(0);
-}
-
-/* <picture> wrappers are layout-transparent so the inner <img> keeps its own
-   positioning (e.g. the absolutely-positioned hero .effect-b__bg below). */
+/* Keep image wrappers layout-transparent unless a component opts in. */
 picture {
   display: contents;
-}
-
-.effect-b__bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 130%;
-  top: -15%;
-  object-fit: cover;
-  pointer-events: none;
-  will-change: transform;
-}
-
-.effect-b__item {
-  opacity: 0;
-  transform: translateY(24px);
-  filter: blur(6px);
-  transition:
-    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.effect-b__item--visible {
-  opacity: 1;
-  transform: translateY(0);
-  filter: blur(0px);
-}
-
-.effect-b__item--number,
-.effect-b__item--name,
-.effect-b__item--btn {
-  transition-delay: 0s;
 }
 
 /* =============================================
@@ -3671,12 +3571,7 @@ figure.bio-visual__item {
 .about-contact-icon {
   width: 48px;
   height: 48px;
-  border-radius: 24px;
-  box-shadow: 0 8px 16px #007ebb61;
-  corner-shape: squircle;
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease;
+  transition: transform 200ms ease;
 }
 
 .about-contact-link:hover .about-contact-card {
@@ -3684,7 +3579,6 @@ figure.bio-visual__item {
 }
 
 .about-contact-link:hover .about-contact-icon {
-  box-shadow: 0 8px 18px #007dbb9d;
   transform: scale(1.03);
 }
 
@@ -5366,8 +5260,8 @@ button.cs-images__pic:focus-visible {
    gradient driven by the --cs-video-progress custom property set in JS.
    The visible track is the 4px content box; ~14px of transparent vertical
    padding (≈ half the hovered 32px thumb) enlarges the pointer/touch hit area
-   above and below without growing the visible bar. `background-clip:
-   content-box` keeps the gradient inside that thin strip. */
+   above and below without growing the visible bar. The native track paints
+   the gradient with fully rounded ends. */
 /* Wrapper holds the range input and the absolutely-positioned ghost marker. It
    carries the flex sizing the scrubber used to have, so the bar still grows to
    fill the controls row between the time readout and the fullscreen button. */
@@ -5387,23 +5281,22 @@ button.cs-images__pic:focus-visible {
   /* content-box so `height` is the real 4px visible track and the 14px
      top/bottom padding (the hit-target padding) stacks on top of it. Under the
      global border-box, padding would eat into the 4px and collapse the
-     content box — and `background-clip: content-box` would then paint nothing,
-     hiding the track entirely. */
+     content box, hiding the track entirely. */
   box-sizing: content-box;
   height: 4px;
   padding: 14px 0;
   margin: 0;
   appearance: none;
   -webkit-appearance: none;
-  background: linear-gradient(
+  --cs-video-track-background: linear-gradient(
     to right,
     #fff 0%,
     #fff var(--cs-video-progress, 0%),
     rgba(255, 255, 255, 0.3) var(--cs-video-progress, 0%),
     rgba(255, 255, 255, 0.3) 100%
   );
-  background-clip: content-box;
-  border-radius: 12px;
+  background: transparent;
+  border-radius: 999px;
   cursor: crosshair;
   /* Track follows the controls bar's visibility (see below) rather than its
      own local hover, so it fades in/out together with the rest of the chrome.
@@ -5450,14 +5343,14 @@ button.cs-images__pic:focus-visible {
    wins regardless of which part of the control the pointer is over. */
 .cs-video__scrubber::-webkit-slider-runnable-track {
   height: 100%;
-  background: transparent;
+  background: var(--cs-video-track-background);
   cursor: crosshair;
   border-radius: 999px;
 }
 
 .cs-video__scrubber::-moz-range-track {
   height: 100%;
-  background: transparent;
+  background: var(--cs-video-track-background);
   cursor: crosshair;
   border-radius: 999px;
 }
@@ -5600,6 +5493,7 @@ button.cs-images__pic:focus-visible {
   transition:
     opacity 160ms ease-out,
     transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  margin-top: -2px;
 }
 
 .cs-nav__arrow--left {
@@ -5649,6 +5543,7 @@ button.cs-images__pic:focus-visible {
 /* ── Card ── */
 
 .craft-card {
+  position: relative;
   width: 100%;
   border-radius: var(--radius-img);
   background: var(--black-line);
@@ -7995,4 +7890,526 @@ button.cs-images__pic:focus-visible {
   .an-pv-row > span:nth-child(4) {
     display: none;
   }
+}
+
+/* Keep a visible loading surface until a poster or decoded frame is available. */
+.craft-card--loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.5) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: craft-skeleton 1.4s ease-in-out infinite;
+}
+@keyframes craft-skeleton {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .craft-card--loading::after {
+    animation: none;
+  }
+}
+
+/* Homepage: an inset image gallery with a quiet editorial rail. */
+.home-page {
+  --home-gutter: 24px;
+  --radius-img: 16px;
+  background: #fff;
+  color: #181818;
+}
+.home-page .container-wrapper,
+.home-page .navbar,
+.home-page .footer {
+  padding-inline: var(--home-gutter);
+}
+.home-page .navbar__link {
+  padding-inline: 0;
+}
+/* Keep every section footer on the same centered content edges as the nav. */
+.home-page .home-carousel__footer,
+.home-page .hybrid-experience__footer,
+.home-page .craft-preview__footer {
+  inset-inline: 0;
+  width: calc(100% - 2 * var(--home-gutter));
+  max-width: var(--max-width);
+  margin-inline: auto;
+}
+.home-page .home__hero-snap {
+  width: 100%;
+}
+.home-page .hero {
+  height: auto;
+  padding: 180px 0 128px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 64px;
+}
+.home-page .hero__row {
+  width: 100%;
+}
+.home-page .hero__row--right {
+  width: min(688px, 100%);
+  margin-left: auto;
+}
+.home-page .hero__left:empty,
+.home-page .hero__right:empty {
+  display: none;
+}
+.home-page .hero__left,
+.home-page .hero__right {
+  flex: 1;
+}
+.home-page .hero__title {
+  font-size: clamp(44px, 5vw, 72px);
+  letter-spacing: -0.055em;
+}
+.home-page .hero__subtitle {
+  margin-left: auto;
+  text-align: left;
+  font-size: 32px;
+  letter-spacing: var(--tracking-heading);
+  line-height: 130%;
+  width: min(688px, 100%);
+  color: inherit;
+  text-wrap: balance;
+}
+.home-project {
+  position: relative;
+  width: calc(100% - 2 * var(--home-gutter));
+  max-width: var(--max-width);
+  margin-inline: auto;
+  height: 100svh;
+  min-height: 620px;
+  display: block;
+}
+.home-project__copy {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: calc(100% - min(81%, calc(76svh * 3840 / 2486)) - 24px);
+  translate: 0 -50%;
+}
+.home-project__copy h2 {
+  font-size: clamp(24px, 2.3vw, 36px);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  margin: 0 0 8px;
+}
+.home-project__copy p {
+  font-size: 18px;
+  line-height: 1.65;
+  color: #737373;
+  margin: 0;
+  text-wrap: pretty;
+}
+.home-project__button,
+.home-project__soon {
+  margin-top: 28px;
+}
+.home-project__soon {
+  display: inline-block;
+  font-size: 12px;
+}
+.home-project__soon {
+  color: #737373;
+}
+.home-project__media {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  width: min(81%, calc(76svh * 3840 / 2486));
+  height: auto;
+  aspect-ratio: 3840 / 2237.4;
+  overflow: hidden;
+  border: 1px solid var(--black-line);
+  border-radius: var(--radius-img);
+  background: #f2f2f2;
+}
+.home-project--first .home-project__media {
+  border-top-left-radius: var(--hero-top-radius, 24px);
+  border-top-right-radius: var(--hero-top-radius, 24px);
+}
+.home-project__image-reveal {
+  position: absolute;
+  inset: 0;
+}
+.home-project__media img {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-project__media img {
+    top: 0;
+    height: 100%;
+    will-change: auto;
+  }
+}
+.home-page .projects-nav {
+  right: max(8px, 1.2vw);
+}
+@media (max-width: 768px) {
+  .home-page .hero {
+    height: auto;
+    min-height: 0;
+    padding: 110px 0 36px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+  }
+  .home-page .hero__row,
+  .home-page .hero__row--right {
+    width: 100%;
+  }
+  .home-page .hero__title {
+    font-size: 48px;
+  }
+  .home-page .hero__subtitle {
+    font-size: 20px;
+    max-width: 440px;
+  }
+  .home-project {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .home-project__media {
+    position: relative;
+    flex-shrink: 0;
+    order: 0;
+    top: auto;
+    right: auto;
+    translate: none;
+    width: 100%;
+    height: auto;
+  }
+  .home-project__copy {
+    position: static;
+    order: 1;
+    width: 100%;
+    margin-top: 28px;
+    translate: none;
+  }
+  .home-project__copy h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  .home-project__copy p {
+    max-width: 340px;
+    font-size: 14px;
+  }
+  .home-project__button,
+  .home-project__soon {
+    margin-top: 16px;
+  }
+  .home-page .projects-nav-m--home {
+    display: block !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page {
+    --home-gutter: 16px;
+  }
+}
+
+/* Homepage project carousel: native touch/trackpad scrolling, mouse dragging. */
+.home-carousel {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 620px;
+  min-width: 0;
+  padding-bottom: 0;
+}
+.home-carousel__track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.home-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+.home-carousel__track--dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+.home-carousel__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  overflow: clip;
+  scroll-snap-align: start;
+}
+.home-carousel__slide .home-project {
+  height: 100%;
+}
+.home-carousel__slide .home-project__media img {
+  transform: scale(1.15);
+}
+.home-page .projects-nav--horizontal {
+  position: absolute;
+  top: auto;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.projects-nav--horizontal .projects-nav__track {
+  flex-direction: row;
+  padding: 8px 10px;
+  cursor: grab;
+}
+.projects-nav--horizontal .projects-nav__track--pressed {
+  cursor: grabbing;
+}
+.projects-nav--horizontal .projects-nav__dot-wrap {
+  flex: 0 0 20px;
+  width: 20px;
+  padding: 14px 0;
+  margin: -14px 0;
+}
+.projects-nav--horizontal .projects-nav__pill {
+  will-change: width;
+  transition: background 80ms ease;
+}
+.projects-nav--horizontal .projects-nav__track--pressed .projects-nav__pill,
+.home-carousel--dragging .projects-nav--horizontal .projects-nav__pill {
+  transition: background 70ms linear;
+}
+.projects-nav--horizontal .projects-nav__pill--hover {
+  height: 6px !important;
+}
+.home-carousel__track:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+@media (max-width: 768px) {
+  .home-carousel {
+    height: auto;
+    min-height: 0;
+  }
+  .home-carousel__track {
+    height: auto;
+    align-items: stretch;
+  }
+  .home-carousel__slide {
+    display: grid;
+  }
+  .home-carousel__slide .home-project {
+    height: auto;
+    min-height: min(88svh, 780px);
+    padding-block: 96px 112px;
+  }
+}
+
+html.home-carousel-page {
+  scroll-snap-type: y mandatory;
+  scroll-padding-block: 0;
+}
+html.home-carousel-page--settling {
+  scroll-snap-type: none;
+}
+html.home-carousel-page .home__hero-snap,
+html.home-carousel-page .home-carousel,
+html.home-carousel-page .home-page__footer {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Adjacent previews are the actual slides, continuously growing into place. */
+.home-carousel__track {
+  position: relative;
+  --carousel-gutter: max(var(--home-gutter), calc((100% - var(--max-width)) / 2));
+  box-sizing: border-box;
+  padding-inline: var(--carousel-gutter);
+  scroll-padding-inline: var(--carousel-gutter);
+  gap: 40px;
+}
+.home-carousel__slide .home-project {
+  width: 100%;
+  max-width: none;
+  transform: scale(var(--slide-scale, 1));
+  opacity: var(--slide-opacity, 1);
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+@media (max-width: 768px) {
+  .home-carousel__track {
+    gap: 20px;
+  }
+}
+@media (min-width: 769px) {
+  .home-carousel__slide .home-project__media {
+    right: calc(var(--next-preview, 0) * (100% - min(81%, calc(76svh * 3840 / 2486))));
+  }
+  .home-carousel__slide .home-project__copy {
+    opacity: calc(1 - var(--next-preview, 0));
+  }
+}
+.home-carousel__slide .home-project__image-reveal {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.home-carousel__track--animating,
+.home-carousel__track--interacting {
+  scroll-snap-type: none;
+}
+/* Slides keep their own position and progress-driven appearance while the
+   section moves vertically; no shared entrance/exit fade across all items. */
+.home-carousel--entered .home-carousel__slide--preview {
+  cursor: pointer;
+}
+
+/* Artwork drifts within its frame as each slide crosses the carousel. */
+.home-carousel__slide .home-project__media img {
+  translate: var(--carousel-parallax-x, 0%) var(--carousel-parallax-y, 0%);
+}
+/* The opening image already has its vertical hero parallax. */
+.home-carousel__slide:first-child .home-project__media img {
+  translate: var(--carousel-parallax-x, 0%) 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel__slide .home-project__media img {
+    translate: none;
+  }
+}
+
+.home-carousel__more {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+.home-carousel__more-copy {
+  position: static;
+  width: min(688px, 100%);
+  translate: none;
+}
+
+/* Personal stories share the project carousel's frame and interaction model. */
+.home-carousel .projects-nav--horizontal {
+  position: absolute;
+  top: auto;
+  bottom: 20px;
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.projects-nav--horizontal .projects-nav__label {
+  display: none;
+}
+.home-carousel__footer {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 22px;
+  z-index: 100;
+  pointer-events: none;
+  font-size: 14px;
+}
+.home-carousel__footer > * {
+  opacity: 0;
+}
+.home-carousel__footer--entering > * {
+  animation: pill-bounce-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.home-carousel__footer--entering > a {
+  animation-delay: var(--footer-link-delay);
+}
+.home-carousel__footer--exiting > * {
+  animation: pill-fade-out 0.45s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.home-carousel__footer:not(.home-carousel__footer--entering) > a {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel__footer > *,
+  .home-page .projects-nav--horizontal .projects-nav__dot-wrap {
+    animation: none !important;
+  }
+  .home-carousel__footer--entering > *,
+  .home-page .projects-nav--horizontal.projects-nav--entering .projects-nav__dot-wrap {
+    opacity: 1;
+  }
+}
+.home-carousel__footer h2 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 400;
+}
+.home-carousel__footer a {
+  color: inherit;
+  pointer-events: auto;
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+.home-carousel__footer a:hover {
+  text-decoration: underline;
+}
+.home-carousel__footer a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+@media (max-width: 768px) {
+  html.home-carousel-page:not(.home-carousel-page--settling) {
+    scroll-snap-type: y proximity;
+  }
+  .home-page .home-carousel__footer,
+  .home-page .hybrid-experience__footer,
+  .home-page .craft-preview__footer {
+    font-size: 15px;
+  }
+  .home-page .projects-nav--horizontal {
+    bottom: 58px;
+  }
+}
+
+/* Keep the gallery's motion control outside the card/lightbox trigger buttons. */
+.craft-preview-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+.craft-preview-controls button {
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 20px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.craft-preview-controls button[aria-pressed="true"] {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.craft-preview-controls button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
 }

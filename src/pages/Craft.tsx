@@ -3,9 +3,8 @@ import { trackEvent, incrementCraftView } from "../lib/analytics";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Hero from "../components/Hero";
-import { Reveal } from "../lib/reveal";
 import CraftLightbox from "../components/CraftLightbox";
-import Picture from "../components/Picture";
+import CraftCard from "../components/CraftCard";
 import { CRAFT_ITEMS, distributeIntoColumns, type CraftItem } from "../data/craft";
 
 // Responsive column count. The single ordered CRAFT_ITEMS list is dealt out
@@ -29,70 +28,6 @@ function useColumnCount(): number {
   return count;
 }
 
-// ── card ──────────────────────────────────────────────────────────────────────
-
-function CraftCard({
-  item,
-  delay,
-  onOpen,
-  onAspectResolved,
-  aspect,
-  registerEl,
-}: {
-  item: CraftItem;
-  delay: number;
-  onOpen: (id: string) => void;
-  onAspectResolved: (id: string, aspect: number) => void;
-  aspect: number;
-  registerEl: (id: string, el: HTMLElement | null) => void;
-}) {
-  const isVideo = item.src ? /\.(mp4|mov|webm|ogg)$/i.test(item.src) : false;
-  return (
-    <Reveal delay={delay} scrollAware>
-      <button
-        ref={(el) => registerEl(item.id, el)}
-        type="button"
-        className="craft-card"
-        style={{ aspectRatio: String(aspect) }}
-        onClick={() => onOpen(item.id)}
-        aria-label={`Open ${item.label}`}
-      >
-        {item.src &&
-          (isVideo ? (
-            <video
-              src={item.src}
-              className="craft-card__img"
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              aria-label={item.alt ?? item.label}
-              onLoadedMetadata={(e) => {
-                const v = e.currentTarget;
-                if (v.videoWidth && v.videoHeight) {
-                  onAspectResolved(item.id, v.videoWidth / v.videoHeight);
-                }
-              }}
-            />
-          ) : (
-            <Picture
-              src={item.src}
-              alt={item.alt ?? item.label}
-              className="craft-card__img"
-              onLoad={(e) => {
-                const img = e.currentTarget;
-                if (img.naturalWidth && img.naturalHeight) {
-                  onAspectResolved(item.id, img.naturalWidth / img.naturalHeight);
-                }
-              }}
-            />
-          ))}
-      </button>
-    </Reveal>
-  );
-}
-
 // ── column ────────────────────────────────────────────────────────────────────
 
 function CraftCol({
@@ -102,7 +37,9 @@ function CraftCol({
   onAspectResolved,
   aspectMap,
   registerEl,
+  previewsPaused,
 }: {
+  previewsPaused: boolean;
   items: CraftItem[];
   baseDelay: number;
   onOpen: (id: string) => void;
@@ -116,6 +53,7 @@ function CraftCol({
         <CraftCard
           key={item.id}
           item={item}
+          previewsPaused={previewsPaused}
           delay={baseDelay + i * 60}
           onOpen={onOpen}
           onAspectResolved={onAspectResolved}
@@ -130,6 +68,7 @@ function CraftCol({
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function Craft() {
+  const [previewsPaused, setPreviewsPaused] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   // Source card elements keyed by item id, registered as cards mount. The
   // lightbox morphs to/from the card for whatever index is CURRENTLY shown, so
@@ -171,11 +110,17 @@ export default function Craft() {
       {/* Masonry grid — columns derived from the single ordered CRAFT_ITEMS list */}
       <div className="container-wrapper">
         <div className="container">
+          <div className="craft-preview-controls">
+            <button type="button" aria-pressed={previewsPaused} onClick={() => setPreviewsPaused(paused => !paused)}>
+              Pause video previews
+            </button>
+          </div>
           <div className="craft-grid">
             {columns.map((items, col) => (
               <CraftCol
                 key={col}
                 items={items}
+                previewsPaused={previewsPaused || activeIndex !== null}
                 baseDelay={col * 80}
                 onOpen={openById}
                 onAspectResolved={handleAspectResolved}

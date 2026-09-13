@@ -11,9 +11,12 @@
  * Pass a `.png`/`.jpg` `src` and it derives the siblings. Any other extension
  * (.gif/.svg/video frame) renders a plain <img> passthrough so nothing breaks.
  */
-import { forwardRef } from "react";
+import { forwardRef, type ImgHTMLAttributes } from "react";
 
-type Props = React.ImgHTMLAttributes<HTMLImageElement> & { src: string };
+type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "fetchPriority"> & {
+  src: string;
+  fetchPriority?: "high" | "low" | "auto";
+};
 
 const OPTIMIZABLE = /\.(png|jpe?g)$/i;
 
@@ -21,19 +24,22 @@ const sibling = (src: string, ext: "avif" | "webp") =>
   src.replace(OPTIMIZABLE, `.${ext}`);
 
 const Picture = forwardRef<HTMLImageElement, Props>(function Picture(
-  { src, ...img },
+  { src, fetchPriority, ...img },
   ref,
 ) {
+  // React 18 warns on its camel-cased prop even though browsers support the
+  // lowercase HTML attribute. Keep the public API typed and normalize it here.
+  const priority = fetchPriority ? { fetchpriority: fetchPriority } : {};
   // Non-optimizable (gif/svg/video frame/etc.) → plain img, untouched.
   if (!OPTIMIZABLE.test(src)) {
-    return <img ref={ref} src={src} {...img} />;
+    return <img ref={ref} src={src} {...priority} {...img} />;
   }
 
   return (
     <picture>
       <source srcSet={sibling(src, "avif")} type="image/avif" />
       <source srcSet={sibling(src, "webp")} type="image/webp" />
-      <img ref={ref} src={src} {...img} />
+      <img ref={ref} src={src} {...priority} {...img} />
     </picture>
   );
 });

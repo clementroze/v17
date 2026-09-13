@@ -13,7 +13,7 @@ import profilePhotoWebp from "../assets/pfp.webp";
 import resumeThumbnail from "../assets/resume-thumbnail.png";
 import resumeThumbnailAvif from "../assets/resume-thumbnail.avif";
 import resumeThumbnailWebp from "../assets/resume-thumbnail.webp";
-import linkedinIcon from "../assets/linkedin-icon.png";
+import linkedinIcon from "../assets/linkedin-icon.webp";
 import { workExperience, freelancing, collaborations, activities, infoParagraphs } from "../data/about";
 
 // ─── section label reveal ─────────────────────────────────────────────────────
@@ -73,28 +73,41 @@ export default function About() {
     }, BIO_MODAL_EXIT_MS + 60);
   };
 
+  const pendingRestore = useRef<{ slug: string | null; scrollY: string | null } | null>(null);
   useEffect(() => {
-    const slug = sessionStorage.getItem("about_open");
-    const scrollY = sessionStorage.getItem("about_scroll");
+    // Retain the consumed request across StrictMode's setup/cleanup replay.
+    pendingRestore.current ??= {
+      slug: sessionStorage.getItem("about_open"),
+      scrollY: sessionStorage.getItem("about_scroll"),
+    };
+    const { slug, scrollY } = pendingRestore.current;
     if (slug) {
       sessionStorage.removeItem("about_open");
       sessionStorage.removeItem("about_scroll");
       setOpenSlugs([slug]);
-      if (scrollY) {
-        const target = parseInt(scrollY, 10);
-        const onTransitionEnd = (e: TransitionEvent) => {
-          if ((e.target as HTMLElement).closest(".accordion-row__body")) {
-            document.removeEventListener("transitionend", onTransitionEnd);
-            window.scrollTo({ top: target, behavior: "instant" });
-          }
-        };
-        document.addEventListener("transitionend", onTransitionEnd);
-        // fallback in case transition never fires
-        setTimeout(() => {
-          document.removeEventListener("transitionend", onTransitionEnd);
-          window.scrollTo({ top: target, behavior: "instant" });
-        }, 600);
-      }
+      // Restore a case-study return OR target the timeline row, never both.
+      const savedTop = scrollY === null ? null : Number(scrollY);
+      const row = document.querySelector<HTMLElement>(`[data-accordion-slug="${CSS.escape(slug)}"]`);
+      let timer = 0;
+      const restore = () => {
+        window.clearTimeout(timer);
+        row?.removeEventListener("transitionend", onTransitionEnd);
+        if (savedTop !== null && Number.isFinite(savedTop)) {
+          window.scrollTo({ top: savedTop, behavior: "instant" });
+        } else if (row) {
+          const top = row.getBoundingClientRect().top + window.scrollY - 112;
+          window.scrollTo({ top, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+        }
+      };
+      const onTransitionEnd = (event: TransitionEvent) => {
+        if ((event.target as HTMLElement).classList.contains("accordion-row__body")) restore();
+      };
+      row?.addEventListener("transitionend", onTransitionEnd);
+      timer = window.setTimeout(restore, 600);
+      return () => {
+        window.clearTimeout(timer);
+        row?.removeEventListener("transitionend", onTransitionEnd);
+      };
     }
   }, []);
 

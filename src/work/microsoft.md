@@ -17,7 +17,7 @@ finalDesigns: Final flow & high-fidelity mockups
 
 ## Intro
 
-In Spring 2024, we partnered with a team at Microsoft to explore how Copilot can better serve the next generation of B2B buyers.
+In Spring 2025, we partnered with a team at Microsoft to explore how Copilot can better serve the next generation of B2B buyers.
 
 Some are now stepping into roles as B2B buyers, yet the tools they're expected to use often reflect outdated workflows.
 

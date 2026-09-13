@@ -64,6 +64,7 @@ export default function AccordionRow({
   return (
     <div
       className={`accordion-row${hasBorderTop ? " accordion-row--border" : " accordion-row--border-first"}`}
+      data-accordion-slug={slug}
       style={
         { "--accent": dotColor, "--link-accent": linkColor } as React.CSSProperties
       }

@@ -8,7 +8,7 @@ import ProjectsNavMobile from "../components/ProjectsNavMobile";
 import { Link, useRouter } from "../lib/router";
 import arrowWhite from "../assets/arrow.svg";
 import arrowBlack from "../assets/arrow-black.svg";
-import { type CaseStudy as CaseStudyData, Block, Col } from "../lib/parseCase";
+import { type Block, type Col } from "../lib/parseCase";
 import { loadCase } from "../lib/cases";
 import { Reveal } from "../lib/reveal";
 import { contrastText } from "../lib/contrast";

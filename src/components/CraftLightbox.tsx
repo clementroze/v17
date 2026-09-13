@@ -121,6 +121,8 @@ function measure(el: HTMLElement): Rect {
 }
 
 export default function CraftLightbox({ items, index, aspectMap, getOriginEl, onClose, onIndexChange }: Props) {
+  const closeFrame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(closeFrame.current), []);
   // Compute initial framing synchronously from the current item's already-
   // measured aspect (if the grid resolved one). Falls back to zoom=1, and the
   // image's onLoad below will catch it up once the bitmap decodes. Doing this
@@ -384,7 +386,7 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
     const ease = (t: number) => 1 - Math.pow(1 - t, 3);
 
     const startTime = performance.now();
-    let raf = 0;
+    cancelAnimationFrame(closeFrame.current);
     const tick = (now: number) => {
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / MORPH_OUT_MS);
@@ -408,12 +410,12 @@ export default function CraftLightbox({ items, index, aspectMap, getOriginEl, on
       card.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
 
       if (t < 1) {
-        raf = requestAnimationFrame(tick);
+        closeFrame.current = requestAnimationFrame(tick);
       } else {
         onClose();
       }
     };
-    raf = requestAnimationFrame(tick);
+    closeFrame.current = requestAnimationFrame(tick);
   }, [onClose, getOriginEl]);
 
   const go = useCallback(
