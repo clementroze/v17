@@ -19,6 +19,12 @@ const slidePitch = (track: HTMLDivElement) => {
     : track.clientWidth;
 };
 
+// Ignore zero events and minor sideways drift in a vertical trackpad gesture.
+const isHorizontalIntent = (event: { shiftKey: boolean; deltaX: number; deltaY: number }) =>
+  event.shiftKey
+    ? Math.max(Math.abs(event.deltaX), Math.abs(event.deltaY)) > 2
+    : Math.abs(event.deltaX) > 2 && Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.2;
+
 /** Reusable native-scroll carousel with spring navigation and independent pill progress. */
 export default function Carousel({ label, slides, title, moreHref }: CarouselProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -35,6 +41,39 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
   const slideMotion = useRef({ frame: 0, target: 0, position: 0, velocity: 0, time: 0, spring: 11 });
   const interacting = useRef(false);
   const returningToHero = useRef(false);
+  const swipeHint = useRef({ played: false, frame: 0 });
+
+  const cancelSwipeHint = (consume = true) => {
+    const hint = swipeHint.current;
+    if (consume) hint.played = true;
+    if (hint.frame) {
+      cancelAnimationFrame(hint.frame);
+      hint.frame = 0;
+      trackRef.current?.classList.remove("home-carousel__track--animating");
+    }
+  };
+
+  const startSwipeHint = () => {
+    const track = trackRef.current;
+    const hint = swipeHint.current;
+    if (!track || hint.played || slides.length < 2 || interacting.current || slideMotion.current.frame || track.scrollLeft > 1) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    hint.played = true;
+    const start = performance.now();
+    const distance = Math.min(80, slidePitch(track) * 0.1);
+    track.classList.add("home-carousel__track--animating");
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 1000);
+      const offset = distance * Math.pow(Math.sin(Math.PI * t), 2);
+      track.scrollTo({ left: t === 1 ? 0 : offset, behavior: "instant" });
+      if (t < 1) hint.frame = requestAnimationFrame(tick);
+      else {
+        hint.frame = 0;
+        track.classList.remove("home-carousel__track--animating");
+      }
+    };
+    hint.frame = requestAnimationFrame(tick);
+  };
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -49,10 +88,11 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
   }, []);
 
   const stopSlideMotion = () => {
+    const wasAnimating = slideMotion.current.frame !== 0;
     cancelAnimationFrame(slideMotion.current.frame);
     slideMotion.current.frame = 0;
     slideMotion.current.velocity = 0;
-    trackRef.current?.classList.remove("home-carousel__track--animating");
+    if (wasAnimating && !swipeHint.current.frame) trackRef.current?.classList.remove("home-carousel__track--animating");
     if (returningToHero.current) {
       returningToHero.current = false;
       setEntered((sectionRef.current?.getBoundingClientRect().top ?? 0) <= 32);
@@ -60,6 +100,7 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
   };
 
   const goTo = (index: number, spring = 11) => {
+    cancelSwipeHint();
     const track = trackRef.current;
     if (!track) return;
     const motion = slideMotion.current;
@@ -93,6 +134,7 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
   };
 
   const beginInteraction = () => {
+    cancelSwipeHint();
     const track = trackRef.current;
     if (!track) return;
     const left = track.scrollLeft;
@@ -135,6 +177,15 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
     let previousTop = track.parentElement?.getBoundingClientRect().top ?? 0;
     const updateEntrance = () => {
       const top = track.parentElement?.getBoundingClientRect().top ?? 0;
+      const entranceDistance = Math.max(1, top + window.scrollY);
+      const entranceProgress = Math.max(0, Math.min(1, window.scrollY / entranceDistance));
+      track.style.setProperty("--carousel-preview-reveal", `${entranceProgress * entranceProgress * (3 - 2 * entranceProgress)}`);
+      // Trigger from actual landing geometry, not a delayed React effect.
+      // The incoming vertical gesture may still have an inertial wheel tail.
+      const landingBottom = -Math.max(96, window.innerHeight * 0.15);
+      const inLanding = top <= 24 && top >= landingBottom;
+      if (inLanding) startSwipeHint();
+      else if (swipeHint.current.frame) cancelSwipeHint();
       const isEntered = top <= 32;
       const movingTowardHero = top > previousTop;
       previousTop = top;
@@ -155,14 +206,14 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
     const stopForHorizontalWheel = (event: WheelEvent) => {
       // Vertical wheel input is moving the page back to the hero and must not
       // repeatedly cancel/restart the horizontal return animation.
-      if (event.shiftKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) stopSlideMotion();
+      if (isHorizontalIntent(event)) stopSlideMotion();
     };
     let entranceFrame = 0;
     const scheduleEntrance = () => {
       if (!entranceFrame) entranceFrame = requestAnimationFrame(() => { entranceFrame = 0; updateEntrance(); });
     };
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onMotionChange = () => { if (reducedMotion.matches) stopSlideMotion(); };
+    const onMotionChange = () => { if (reducedMotion.matches) { cancelSwipeHint(); stopSlideMotion(); } };
     updateEntrance();
     reducedMotion.addEventListener("change", onMotionChange);
     window.addEventListener("resize", scheduleEntrance);
@@ -170,6 +221,8 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
     track.addEventListener("wheel", stopForHorizontalWheel, { passive: true });
     let width = slidePitch(track);
     const observer = new ResizeObserver(() => {
+      if (Math.abs(slidePitch(track) - width) < 1) return;
+      if (swipeHint.current.frame) cancelSwipeHint();
       const index = Math.round(track.scrollLeft / Math.max(1, width));
       stopSlideMotion();
       width = slidePitch(track);
@@ -178,6 +231,7 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
     observer.observe(track);
     track.addEventListener("scroll", update, { passive: true });
     return () => {
+      cancelSwipeHint(false);
       stopSlideMotion();
       cancelAnimationFrame(entranceFrame);
       reducedMotion.removeEventListener("change", onMotionChange);
@@ -218,6 +272,15 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
       className={`home-carousel${entered ? " home-carousel--entered" : ""}${dragging ? " home-carousel--dragging" : ""}`}
       aria-label={label}
       aria-roledescription="carousel"
+      onPointerDownCapture={() => {
+        if ((sectionRef.current?.getBoundingClientRect().top ?? Infinity) <= 32) cancelSwipeHint();
+      }}
+      onKeyDownCapture={(event) => {
+        if (["ArrowLeft", "ArrowRight", "Home", "End", "Enter", " "].includes(event.key)) cancelSwipeHint();
+      }}
+      onWheelCapture={(event) => {
+        if (isHorizontalIntent(event)) cancelSwipeHint();
+      }}
     >
       <div
         ref={trackRef}
@@ -280,6 +343,7 @@ export default function Carousel({ label, slides, title, moreHref }: CarouselPro
             style={
               {
                 "--slide-scale": 1 - Math.min(1, Math.abs(progress - index)) * 0.06,
+                "--carousel-horizontal-reveal": Math.min(1, Math.max(0, progress)),
                 "--slide-opacity": 1 - Math.min(1, Math.abs(progress - index)) * 0.45,
                 "--next-preview": Math.max(0, Math.min(1, index - progress)),
                 "--carousel-parallax-x": `${Math.max(-1, Math.min(1, index - progress)) * -12}%`,

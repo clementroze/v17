@@ -90,17 +90,21 @@ export default function Home() {
     let velocity = 0;
     let target = position;
     let lastWheel = -Infinity;
-    let lastWheelDelta = 0;
-    let lastTransitionAt = -Infinity;
+    let manual = false;
+    let softGesture = false;
+    let settleTimer = 0;
     let direction = 0;
     let ownsGesture = false;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stop = () => {
+      window.clearTimeout(settleTimer);
+      settleTimer = 0;
       cancelAnimationFrame(frame);
       frame = 0;
       velocity = 0;
       ownsGesture = false;
-      root.classList.remove("home-carousel-page--settling");
+      manual = false;
+      root.classList.remove("home-carousel-page--settling", "home-carousel-page--manual");
     };
     const tick = (now: number) => {
       const dt = Math.min((now - previousTime) / 1000, 0.04);
@@ -109,7 +113,7 @@ export default function Home() {
       // with no bounce. Preserve velocity when the gesture reverses.
       // Keep the hero transition slow enough for its two text exits to read as
       // separate moments rather than collapsing into one quick movement.
-      const omega = 6;
+      const omega = manual ? 14 : 6;
       const offset = position - target;
       const impulse = velocity + omega * offset;
       const decay = Math.exp(-omega * dt);
@@ -120,7 +124,32 @@ export default function Home() {
         window.scrollTo({ top: target, behavior: "instant" });
         frame = 0;
         root.classList.remove("home-carousel-page--settling");
+        if (!manual) root.classList.remove("home-carousel-page--manual");
       } else frame = requestAnimationFrame(tick);
+    };
+    const scheduleNearestSnap = () => {
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => {
+        settleTimer = 0;
+        if (!manual) return;
+        const y = window.scrollY;
+        const max = Math.max(0, root.scrollHeight - window.innerHeight);
+        const points = [0, ...Array.from(document.querySelectorAll<HTMLElement>(
+          ".home-carousel, .hybrid-experience, .craft-preview, .home-page__footer",
+        )).map(section => Math.min(max, section.getBoundingClientRect().top + y))];
+        target = points.reduce((closest, point) => Math.abs(point - y) < Math.abs(closest - y) ? point : closest, 0);
+        position = y;
+        manual = false;
+        // Reuse the spring's current velocity for a continuous, gentle settle.
+        root.classList.add("home-carousel-page--settling");
+        if (reducedMotion.matches) {
+          window.scrollTo({ top: target, behavior: "instant" });
+          stop();
+        } else if (!frame) {
+          previousTime = performance.now();
+          frame = requestAnimationFrame(tick);
+        }
+      }, 160);
     };
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
@@ -134,45 +163,65 @@ export default function Home() {
       const now = performance.now();
       const nextDirection = Math.sign(event.deltaY);
       const elapsed = now - lastWheel;
-      const absoluteDelta = Math.abs(event.deltaY);
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
       const directionChanged = nextDirection !== direction;
-      // Never let the ramp-up of the first (even very heavy) gesture count as
-      // a second command. Once the spring has been underway for a moment, a
-      // distinct follow-up after wheel silence can retarget it by one section.
-      const deliberateFollowUp =
-        Boolean(frame) &&
-        now - lastTransitionAt > 220 &&
-        elapsed > 85 &&
-        (directionChanged || absoluteDelta >= lastWheelDelta * 0.8);
-      const fresh = elapsed > 180 || directionChanged;
+      // A reversal is deliberate immediately; a new same-direction gesture
+      // can also take over without waiting for the section spring to finish.
+      const fresh = elapsed > 160 || directionChanged;
       lastWheel = now;
-      lastWheelDelta = absoluteDelta;
       direction = nextDirection;
-      if (frame) {
-        if (elapsed > 180 || deliberateFollowUp) {
-          const snapPoints = [
-            0,
-            ...Array.from(
-              document.querySelectorAll<HTMLElement>(
-                ".home-carousel, .hybrid-experience, .craft-preview",
-              ),
-            ).map((section) => section.getBoundingClientRect().top + window.scrollY),
-          ].filter((point, index, points) => index === 0 || Math.abs(point - points[index - 1]) > 2);
-          const currentIndex = snapPoints.reduce(
-            (best, point, index) =>
-              Math.abs(point - target) < best.distance ? { index, distance: Math.abs(point - target) } : best,
-            { index: 0, distance: Infinity },
-          ).index;
-          const nextIndex = Math.max(0, Math.min(snapPoints.length - 1, currentIndex + nextDirection));
-          if (nextIndex !== currentIndex) {
-            ownsGesture = true;
-            target = snapPoints[nextIndex];
-            lastTransitionAt = now;
-          }
+      const timeline = document.querySelector<HTMLElement>(".hybrid-experience");
+      const timelineTop = timeline ? timeline.getBoundingClientRect().top + window.scrollY : carouselTop;
+      if (manual && softGesture && !directionChanged && Math.abs(delta) >= 24) {
+        event.preventDefault();
+        window.clearTimeout(settleTimer);
+        manual = false;
+        softGesture = false;
+        target = direction > 0 ? (window.scrollY < carouselTop - 32 ? carouselTop : timelineTop) : 0;
+        ownsGesture = true;
+        return;
+      }
+      // Rising deltas are still one gesture. Only a distinct new swipe can
+      // advance past the Featured Work destination while its spring is active.
+      if (frame && !manual && fresh && !directionChanged && Math.abs(delta) >= 24) {
+        event.preventDefault();
+        target = nextDirection > 0 ? (target < carouselTop - 2 ? carouselTop : timelineTop) : 0;
+        ownsGesture = true;
+        return;
+      }
+      if (manual || (frame && fresh)) {
+        event.preventDefault();
+        if (manual && (!frame || directionChanged)) {
+          position = window.scrollY;
+          target = position;
+          if (velocity * nextDirection < 0) velocity *= 0.15;
         }
-        // The spring continues to own rendering while active. Wheel input is
-        // either consumed as momentum or translated into the single retarget
-        // above, so it can never free-scroll through several sections at once.
+        if (!manual) {
+          manual = true;
+          softGesture = false;
+          position = window.scrollY;
+          target = position;
+          // Brake opposing momentum promptly while keeping position continuous.
+          if (velocity * nextDirection < 0) velocity *= 0.15;
+          root.classList.add("home-carousel-page--manual");
+        }
+        const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        target = Math.max(0, Math.min(max, target + delta));
+        ownsGesture = false;
+        root.classList.add("home-carousel-page--settling");
+        if (reducedMotion.matches) {
+          window.scrollTo({ top: target, behavior: "instant" });
+          stop();
+        } else if (!frame) {
+          position = window.scrollY;
+          previousTime = performance.now();
+          frame = requestAnimationFrame(tick);
+        }
+        scheduleNearestSnap();
+        return;
+      }
+      if (frame) {
+        // Only the inertial tail of the original gesture stays with the snap.
         event.preventDefault();
         return;
       }
@@ -183,14 +232,22 @@ export default function Home() {
         return;
       }
       const y = window.scrollY;
-      if (y > carouselTop + 2 || (y >= carouselTop - 2 && direction > 0) || (y <= 0 && direction < 0)) {
+      const leavingFeatured = fresh && direction > 0 && Math.abs(y - carouselTop) <= 32;
+      if ((!leavingFeatured && y > carouselTop + 2) || (y <= 0 && direction < 0)) {
         ownsGesture = false;
         return;
       }
       event.preventDefault();
       ownsGesture = true;
-      target = direction > 0 ? carouselTop : 0;
-      lastTransitionAt = now;
+      target = leavingFeatured ? timelineTop : direction > 0 ? carouselTop : 0;
+      if (Math.abs(delta) < 24) {
+        manual = true;
+        softGesture = true;
+        ownsGesture = false;
+        target = Math.max(0, y + delta);
+        root.classList.add("home-carousel-page--manual");
+        scheduleNearestSnap();
+      }
       root.classList.add("home-carousel-page--settling");
       if (reducedMotion.matches) {
         window.scrollTo({ top: target, behavior: "instant" });
@@ -216,7 +273,7 @@ export default function Home() {
       window.removeEventListener("carousel-interaction-start", stop);
       window.removeEventListener("resize", stop);
       window.removeEventListener("keydown", stop);
-      root.classList.remove("home-carousel-page");
+      root.classList.remove("home-carousel-page", "home-carousel-page--manual");
     };
   }, []);
 

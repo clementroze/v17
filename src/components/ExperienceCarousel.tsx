@@ -26,7 +26,20 @@ export default function ExperienceCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLElement>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
-  const drag = useRef<({ id: number; x: number; y: number; left: number; moved: boolean; pointerType: string } & DragVelocity) | null>(null);
+  const hoverPointer = useRef<{ x: number; y: number } | null>(null);
+  const hoveredCard = useRef<HTMLElement | null>(null);
+  const updateCardHover = () => {
+    const pointer = hoverPointer.current;
+    const candidate = pointer
+      ? document.elementFromPoint(pointer.x, pointer.y)?.closest<HTMLElement>(".hybrid-experience__card") ?? null
+      : null;
+    const card = candidate && trackRef.current?.contains(candidate) ? candidate : null;
+    if (card === hoveredCard.current) return;
+    hoveredCard.current?.removeAttribute("data-pointer-hovered");
+    card?.setAttribute("data-pointer-hovered", "");
+    hoveredCard.current = card;
+  };
+  const drag = useRef<({ id: number; x: number; y: number; lastX: number; left: number; moved: boolean; pointerType: string } & DragVelocity) | null>(null);
   const suppressClick = useRef(false);
   const frame = useRef(0);
   const introFrame = useRef(0);
@@ -34,6 +47,7 @@ export default function ExperienceCarousel() {
   const introActive = useRef(false);
   const keyboardMotion = useRef({ frame: 0, key: "", started: 0, time: 0, position: 0, velocity: 0, launchSpeed: 0, cruising: false });
   const rulerDrag = useRef<({ id: number; x: number; moved: boolean } & DragVelocity) | null>(null);
+  const rulerMotion = useRef({ frame: 0, target: 0, time: 0 });
   const snapMotion = useRef({ frame: 0, velocity: 0 });
   const suppressRulerClick = useRef(false);
   const [active, setActive] = useState(0);
@@ -107,6 +121,38 @@ export default function ExperienceCarousel() {
     }, 0);
   };
 
+  const cardSway = useRef<{ time: number; cards: { angle: number; velocity: number }[] }>({ time: 0, cards: [] });
+  const setCardTilt = (velocity: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const now = performance.now();
+    const sway = cardSway.current;
+    const elapsed = (now - sway.time) / 1000;
+    const dt = Math.min(0.04, Math.max(0.001, elapsed));
+    sway.time = now;
+    const center = track.scrollLeft + track.clientWidth / 2;
+    const pitch = Math.max(1, (cardTarget(1) ?? 1) - (cardTarget(0) ?? 0));
+    const lean = Math.max(-0.9, Math.min(0.9, -velocity / 2667));
+    cardRefs.current.forEach((card, index) => {
+      if (!card) return;
+      const position = (card.offsetLeft + card.offsetWidth / 2 - center) / pitch;
+      const distance = Math.min(1, Math.abs(position));
+      // Centered cards feel more planted. Trailing cards react a little later
+      // than approaching cards, with continuous weights as they cross center.
+      const trailing = Math.max(-1, Math.min(1, -position * Math.sign(velocity)));
+      const omega = 16 - distance * 3 - trailing * 3;
+      const target = lean * (0.6 + distance * 0.4);
+      const state = sway.cards[index] ?? (sway.cards[index] = { angle: 0, velocity: 0 });
+      if (elapsed > 0.2) { state.angle = 0; state.velocity = 0; }
+      const offset = state.angle - target;
+      const impulse = state.velocity + omega * offset;
+      const decay = Math.exp(-omega * dt);
+      state.angle = target + (offset + impulse * dt) * decay;
+      state.velocity = (state.velocity - omega * impulse * dt) * decay;
+      card.style.setProperty("--drag-tilt", `${state.angle}deg`);
+    });
+  };
+
   const stopKeyboardMotion = () => {
     const motion = keyboardMotion.current;
     cancelAnimationFrame(motion.frame);
@@ -122,10 +168,10 @@ export default function ExperienceCarousel() {
     cancelAnimationFrame(snapMotion.current.frame);
     snapMotion.current.frame = 0;
     snapMotion.current.velocity = 0;
-    trackRef.current?.classList.remove("hybrid-experience__track--settling");
+    trackRef.current?.classList.remove("hybrid-experience__track--settling", "hybrid-experience__track--snap-tilt");
   };
 
-  const goTo = (index: number, releaseVelocity?: number) => {
+  const goTo = (index: number, releaseVelocity?: number, keyboardTilt = true) => {
     const track = trackRef.current;
     const target = cardTarget(index);
     if (!track || target === null) return;
@@ -140,20 +186,30 @@ export default function ExperienceCarousel() {
       stopSnapMotion();
       return;
     }
+    if (keyboardTilt) {
+      setCardTilt(velocity);
+      track.classList.add("hybrid-experience__track--snap-tilt");
+    }
     let position = track.scrollLeft;
     let time = performance.now();
+    // A release keeps its incoming speed and coasts with gentle friction;
+    // explicit selections use a firmer spring for a responsive start.
+    const omega = releaseVelocity !== undefined && Math.abs(releaseVelocity) > 80 ? 4.2 : 8.5;
     snapMotion.current.velocity = velocity;
     const tick = (now: number) => {
       const dt = Math.min(0.04, (now - time) / 1000);
       time = now;
-      const omega = 13;
       const offset = position - target;
       const impulse = snapMotion.current.velocity + omega * offset;
       const decay = Math.exp(-omega * dt);
       position = target + (offset + impulse * dt) * decay;
       snapMotion.current.velocity = (snapMotion.current.velocity - omega * impulse * dt) * decay;
+      if (keyboardTilt) setCardTilt(snapMotion.current.velocity);
       const max = track.scrollWidth - track.clientWidth;
       position = Math.max(0, Math.min(max, position));
+      if ((position === 0 && snapMotion.current.velocity < 0) || (position === max && snapMotion.current.velocity > 0)) {
+        snapMotion.current.velocity = 0;
+      }
       track.scrollTo({ left: position, behavior: "instant" });
       if (Math.abs(position - target) < 0.4 && Math.abs(snapMotion.current.velocity) < 4) {
         track.scrollTo({ left: target, behavior: "instant" });
@@ -167,21 +223,61 @@ export default function ExperienceCarousel() {
     const track = trackRef.current;
     if (!track) return;
     const now = performance.now();
-    const dt = Math.max(0.008, (now - gesture.time) / 1000);
+    const dt = Math.max(0.001, (now - gesture.time) / 1000);
     const velocity = (track.scrollLeft - gesture.lastLeft) / dt;
     gesture.velocity += (velocity - gesture.velocity) * (1 - Math.exp(-dt * 22));
     gesture.lastLeft = track.scrollLeft;
     gesture.time = now;
-    track.style.setProperty("--drag-tilt", `${Math.max(-1.5, Math.min(1.5, -gesture.velocity / 1600))}deg`);
+    setCardTilt(gesture.velocity);
+  };
+
+  const stopRulerMotion = () => {
+    cancelAnimationFrame(rulerMotion.current.frame);
+    rulerMotion.current.frame = 0;
+  };
+
+  const moveRulerTo = (target: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      track.scrollLeft = target;
+      return;
+    }
+    const motion = rulerMotion.current;
+    motion.target = target;
+    if (motion.frame) return;
+    motion.time = performance.now();
+    const tick = (now: number) => {
+      const gesture = rulerDrag.current;
+      if (!gesture) { stopRulerMotion(); return; }
+      const dt = Math.min(0.04, (now - motion.time) / 1000);
+      motion.time = now;
+      // A short exponential follow softens scrubbing without adding bounce.
+      const remaining = motion.target - track.scrollLeft;
+      track.scrollLeft = Math.abs(remaining) < 1 ? motion.target : track.scrollLeft + remaining * (1 - Math.exp(-dt / 0.055));
+      sampleDrag(gesture);
+      if (Math.abs(remaining) >= 1) motion.frame = requestAnimationFrame(tick);
+      else stopRulerMotion();
+    };
+    motion.frame = requestAnimationFrame(tick);
   };
 
   const settleDrag = (gesture: DragVelocity, momentum = true) => {
     const track = trackRef.current;
     if (!track) return;
     const pitch = Math.max(1, (cardTarget(1) ?? 1) - (cardTarget(0) ?? 0));
-    const velocity = momentum && performance.now() - gesture.time < 100 ? Math.max(-pitch * 6, Math.min(pitch * 6, gesture.velocity)) : 0;
-    const projection = Math.max(-pitch * 1.5, Math.min(pitch * 1.5, velocity * 0.16));
-    const target = Math.round((track.scrollLeft + projection - (cardTarget(0) ?? 0)) / pitch);
+    // Decay stale samples continuously so pausing before release feels like
+    // braking, without a sudden cutoff between a flick and a stationary drop.
+    const idle = Math.max(0, performance.now() - gesture.time - 40) / 1000;
+    const velocity = momentum ? Math.max(-pitch * 8, Math.min(pitch * 8, gesture.velocity)) * Math.exp(-idle * 18) : 0;
+    // Match the coast spring's friction: faster flicks can travel several cards.
+    const projection = velocity / 4.2;
+    const position = (track.scrollLeft - (cardTarget(0) ?? 0)) / pitch;
+    const projected = Math.round(position + projection / pitch);
+    // A deliberate flick should never reverse back to the card behind it.
+    const target = Math.abs(velocity) > 180
+      ? velocity > 0 ? Math.max(Math.ceil(position), projected) : Math.min(Math.floor(position), projected)
+      : projected;
     goTo(target, velocity);
   };
 
@@ -199,11 +295,11 @@ export default function ExperienceCarousel() {
     track.scrollTo({ left, behavior: "instant" });
   };
 
-  useCarouselKeyboard(sectionRef, (key, event) => {
+  const startNavigation = (key: string, repeat = false) => {
     if (drag.current || rulerDrag.current) return;
     // Native repeat must not keep restarting a smooth scroll while held.
-    if (event.repeat) return;
-    goTo(key === "Home" ? 0 : key === "End" ? timeline.length - 1 : nearestCardIndex() + (key === "ArrowRight" ? 1 : -1));
+    if (repeat) return;
+    goTo(key === "Home" ? 0 : key === "End" ? timeline.length - 1 : nearestCardIndex() + (key === "ArrowRight" ? 1 : -1), undefined, key.startsWith("Arrow"));
     if (!key.startsWith("Arrow") || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const track = trackRef.current;
     if (!track) return;
@@ -238,18 +334,19 @@ export default function ExperienceCarousel() {
         // The intro peaks at five times its average speed. Build toward that
         // peak with hold duration, then brake according to remaining distance.
         const peakSpeed = Math.max(motion.launchSpeed, 5 * (last - first) / (introDuration / 1000));
-        const held = Math.min(1, (now - motion.started - keyboardHoldDelay) / 1800);
+        const held = Math.min(1, (now - motion.started - keyboardHoldDelay) / 650);
         const ramp = held * held * (3 - 2 * held);
         // Start from the observed single-card speed, never from a lower fixed
         // cruising speed. Preserve current momentum throughout acceleration.
         const currentSpeed = Math.max(0, direction * motion.velocity);
         const desiredSpeed = Math.max(currentSpeed, motion.launchSpeed + (peakSpeed - motion.launchSpeed) * ramp);
         const remaining = direction > 0 ? last - motion.position : motion.position - first;
-        const easedSpeed = currentSpeed + (desiredSpeed - currentSpeed) * (1 - Math.exp(-dt * 8));
+        const easedSpeed = currentSpeed + (desiredSpeed - currentSpeed) * (1 - Math.exp(-dt * 14));
         // A shrinking speed limit produces a soft approach instead of hitting
         // the boundary at full speed. It applies even while the key stays down.
         motion.velocity = direction * Math.min(easedSpeed, remaining / 0.24);
         motion.position = Math.max(first, Math.min(last, motion.position + motion.velocity * dt));
+        setCardTilt(motion.velocity);
         track.scrollTo({ left: motion.position, behavior: "instant" });
         if (remaining < 0.5) {
           track.scrollTo({ left: direction > 0 ? last : first, behavior: "instant" });
@@ -260,7 +357,9 @@ export default function ExperienceCarousel() {
       motion.frame = requestAnimationFrame(tick);
     };
     motion.frame = requestAnimationFrame(tick);
-  }, (key) => {
+  };
+
+  const releaseNavigation = (key: string | null) => {
     const motion = keyboardMotion.current;
     if (key === null) {
       stopKeyboardMotion();
@@ -292,12 +391,24 @@ export default function ExperienceCarousel() {
       const t = Math.min(1, (now - started) / (duration * 1000));
       // Hermite easing preserves release velocity and arrives with zero speed.
       const position = start + distance * (3 * t * t - 2 * t * t * t) + tangent * (t * t * t - 2 * t * t + t);
+      setCardTilt((distance * (6 * t - 6 * t * t) + tangent * (3 * t * t - 4 * t + 1)) / duration);
       track.scrollTo({ left: position, behavior: "instant" });
       if (t < 1) motion.frame = requestAnimationFrame(settle);
       else stopKeyboardMotion();
     };
     motion.frame = requestAnimationFrame(settle);
-  });
+  };
+
+  useCarouselKeyboard(sectionRef, (key, event) => startNavigation(key, event.repeat), releaseNavigation);
+
+  const chevronHold = useRef<{ id: number; key: string } | null>(null);
+  const releaseChevron = (event: PointerEvent<HTMLButtonElement>) => {
+    const hold = chevronHold.current;
+    if (!hold || hold.id !== event.pointerId) return;
+    chevronHold.current = null;
+    releaseNavigation(hold.key);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
 
   useEffect(() => {
     const track = trackRef.current;
@@ -313,6 +424,7 @@ export default function ExperienceCarousel() {
     return () => {
       stopKeyboardMotion();
       stopSnapMotion();
+      stopRulerMotion();
       track?.removeEventListener("wheel", stopKeyboardMotion);
       reducedMotion.removeEventListener("change", onMotionChange);
     };
@@ -321,8 +433,52 @@ export default function ExperienceCarousel() {
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let tiltFrame = 0;
+    let lastLeft = track.scrollLeft;
+    let time = performance.now();
+    let velocity = 0;
+    const isControlled = () => introActive.current || drag.current || rulerDrag.current
+      || snapMotion.current.frame || keyboardMotion.current.frame;
+    const stop = () => {
+      cancelAnimationFrame(tiltFrame);
+      tiltFrame = 0;
+      velocity = 0;
+      track.classList.remove("hybrid-experience__track--scroll-tilt");
+    };
+    const tick = (now: number) => {
+      if (isControlled() || reducedMotion.matches) { stop(); return; }
+      const dt = Math.max(0.001, Math.min(0.04, (now - time) / 1000));
+      const delta = track.scrollLeft - lastLeft;
+      velocity += (delta / dt - velocity) * (1 - Math.exp(-dt * 22));
+      lastLeft = track.scrollLeft;
+      time = now;
+      setCardTilt(velocity);
+      if (Math.abs(delta) < 0.01 && Math.abs(velocity) < 4) { stop(); return; }
+      tiltFrame = requestAnimationFrame(tick);
+    };
+    const onScroll = () => {
+      if (isControlled() || reducedMotion.matches) { stop(); lastLeft = track.scrollLeft; return; }
+      if (tiltFrame) return;
+      time = performance.now() - 16;
+      track.classList.add("hybrid-experience__track--scroll-tilt");
+      tiltFrame = requestAnimationFrame(tick);
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    reducedMotion.addEventListener("change", stop);
+    return () => {
+      stop();
+      track.removeEventListener("scroll", onScroll);
+      reducedMotion.removeEventListener("change", stop);
+    };
+  }, []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
     const update = () => {
       frame.current = 0;
+      updateCardHover();
       const center = track.scrollLeft + track.clientWidth / 2;
       let nearest = 0;
       let nearestDistance = Infinity;
@@ -352,10 +508,12 @@ export default function ExperienceCarousel() {
     const observer = new ResizeObserver(schedule);
     observer.observe(track);
     track.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scroll", schedule, { passive: true });
     update();
     return () => {
       observer.disconnect();
       track.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", schedule);
       cancelAnimationFrame(frame.current);
     };
   }, []);
@@ -383,6 +541,7 @@ export default function ExperienceCarousel() {
       const firstTarget = getTarget(firstCard);
       const latestTarget = getTarget(latestCard);
       track.classList.add("hybrid-experience__track--intro");
+      setCardTilt(0);
       track.scrollTo({ left: firstTarget, behavior: "instant" });
 
       const started = performance.now();
@@ -390,6 +549,11 @@ export default function ExperienceCarousel() {
       const tick = (now: number) => {
         const progress = Math.min(1, (now - started) / duration);
         const eased = progress < 0.5 ? 16 * Math.pow(progress, 5) : 1 - Math.pow(-2 * progress + 2, 5) / 2;
+        // Derivative of the intro easing, in pixels per second, shared with
+        // the sway used by dragging, trackpad scrolling, and navigation.
+        const speed = 80 * Math.pow(Math.min(progress, 1 - progress), 4)
+          * (latestTarget - firstTarget) / (duration / 1000);
+        setCardTilt(speed);
         track.scrollLeft = firstTarget + (latestTarget - firstTarget) * eased;
         if (progress < 1) introFrame.current = requestAnimationFrame(tick);
         else {
@@ -429,7 +593,10 @@ export default function ExperienceCarousel() {
     const current = drag.current;
     if (!current || current.id !== event.pointerId) return;
     drag.current = null;
-    if (current.moved && current.pointerType === "mouse") settleDrag(current, event.type === "pointerup");
+    if (current.pointerType === "mouse") {
+      if (current.moved) settleDrag(current, event.type === "pointerup");
+      else goTo(nearestCardIndex());
+    }
     event.currentTarget.classList.remove("hybrid-experience__track--dragging", "hybrid-experience__track--interacting");
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -448,7 +615,7 @@ export default function ExperienceCarousel() {
           if (!event.isPrimary || event.button !== 0) return;
           beginInteraction(event.pointerType === "mouse");
           suppressClick.current = false;
-          drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, left: event.currentTarget.scrollLeft, moved: false, pointerType: event.pointerType, time: performance.now(), lastLeft: event.currentTarget.scrollLeft, velocity: 0 };
+          drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX, left: event.currentTarget.scrollLeft, moved: false, pointerType: event.pointerType, time: performance.now(), lastLeft: event.currentTarget.scrollLeft, velocity: 0 };
         }}
         onWheel={(event) => {
           if (event.shiftKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) {
@@ -457,11 +624,21 @@ export default function ExperienceCarousel() {
             if (event.currentTarget.classList.contains("hybrid-experience__track--settling")) beginInteraction(false);
           }
         }}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse") {
+            hoverPointer.current = { x: event.clientX, y: event.clientY };
+            updateCardHover();
+          }
+        }}
         onPointerMove={(event) => {
+          if (event.pointerType === "mouse") {
+            hoverPointer.current = { x: event.clientX, y: event.clientY };
+            updateCardHover();
+          }
           const current = drag.current;
           if (!current || current.id !== event.pointerId) return;
           const delta = event.clientX - current.x;
-          if (!current.moved && Math.hypot(delta, event.clientY - current.y) < 6) return;
+          if (!current.moved && (current.pointerType === "mouse" ? Math.abs(delta) : Math.hypot(delta, event.clientY - current.y)) < 6) return;
           suppressClick.current = true;
           // Touch and pen keep native scrolling and momentum.
           if (current.pointerType !== "mouse") {
@@ -473,7 +650,10 @@ export default function ExperienceCarousel() {
             event.currentTarget.classList.add("hybrid-experience__track--dragging");
           }
           current.moved = true;
-          event.currentTarget.scrollLeft = current.left - delta;
+          // Relative movement makes reversing at either edge immediate, even
+          // after the pointer has travelled beyond the scrollable range.
+          event.currentTarget.scrollLeft += current.lastX - event.clientX;
+          current.lastX = event.clientX;
           sampleDrag(current);
         }}
         onPointerUp={release}
@@ -483,6 +663,8 @@ export default function ExperienceCarousel() {
         }}
         onLostPointerCapture={release}
         onPointerLeave={(event) => {
+          hoverPointer.current = null;
+          updateCardHover();
           if (!drag.current?.moved) release(event);
         }}
         onClickCapture={(event) => {
@@ -575,9 +757,7 @@ export default function ExperienceCarousel() {
           event.preventDefault();
           const target = positionTarget(position);
           if (target !== null && trackRef.current) {
-            trackRef.current.scrollLeft = target;
-            sampleDrag(drag);
-            setActive(nearestCardIndex());
+            moveRulerTo(target);
           }
         }}
         onPointerDown={(event) => {
@@ -591,6 +771,7 @@ export default function ExperienceCarousel() {
           const drag = rulerDrag.current;
           if (!drag || drag.id !== event.pointerId) return;
           rulerDrag.current = null;
+          stopRulerMotion();
           setIsRulerDragging(false);
           if (event.currentTarget.hasPointerCapture(event.pointerId))
             event.currentTarget.releasePointerCapture(event.pointerId);
@@ -603,6 +784,7 @@ export default function ExperienceCarousel() {
         onPointerCancel={() => {
           suppressRulerClick.current = !!rulerDrag.current?.moved;
           rulerDrag.current = null;
+          stopRulerMotion();
           setIsRulerDragging(false);
           trackRef.current?.classList.remove("hybrid-experience__track--dragging", "hybrid-experience__track--interacting");
         }}
@@ -610,6 +792,7 @@ export default function ExperienceCarousel() {
           if (!rulerDrag.current) return;
           suppressRulerClick.current = rulerDrag.current.moved;
           rulerDrag.current = null;
+          stopRulerMotion();
           setIsRulerDragging(false);
           trackRef.current?.classList.remove("hybrid-experience__track--dragging", "hybrid-experience__track--interacting");
         }}
@@ -647,7 +830,7 @@ export default function ExperienceCarousel() {
               }}
               style={
                 {
-                  animationDelay: `${footerPhase === "exiting" ? (timeline.length - 1 - index) * 35 : (index + 1) * 50}ms`,
+                  animationDelay: `${footerPhase === "exiting" ? (timeline.length - index) * 35 : (index + 1) * 50}ms`,
                   "--ruler-height": `${rulerHeight(index, rulerCenter.current)}px`,
                   "--ruler-hover-height": `${hoverIndex.current === null ? 0 : rulerHeight(index, hoverIndex.current, hoverRulerHeights)}px`,
                 } as CSSProperties
@@ -658,6 +841,37 @@ export default function ExperienceCarousel() {
           );
         })}
       </nav>
+
+      {([-1, 1] as const).map((direction) => (
+        <button
+          key={direction}
+          type="button"
+          className={`hybrid-experience__chevron hybrid-experience__chevron--${direction < 0 ? "previous" : "next"}`}
+          aria-label={direction < 0 ? "Previous experience" : "Next experience"}
+          disabled={direction < 0 ? active === 0 : active === timeline.length - 1}
+          tabIndex={footerPhase === "entering" ? undefined : -1}
+          style={{ animationDelay: `${footerPhase === "exiting" ? (direction < 0 ? timeline.length + 1 : 0) * 35 : (direction < 0 ? 0 : timeline.length + 1) * 50}ms` }}
+          onPointerDown={(event) => {
+            if (!event.isPrimary || event.button !== 0) return;
+            const key = direction < 0 ? "ArrowLeft" : "ArrowRight";
+            chevronHold.current = { id: event.pointerId, key };
+            event.currentTarget.setPointerCapture(event.pointerId);
+            startNavigation(key);
+          }}
+          onPointerUp={releaseChevron}
+          onPointerCancel={releaseChevron}
+          onLostPointerCapture={releaseChevron}
+          onClick={(event) => {
+            // Pointer presses already navigate on down; retain keyboard and
+            // assistive activation without advancing twice on a normal tap.
+            if (event.detail === 0) goTo(nearestCardIndex() + direction);
+          }}
+        >
+          <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
+            <path d={direction < 0 ? "M8 3 3 8l5 5" : "m4 3 5 5-5 5"} stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      ))}
 
       <div ref={footerRef} className="hybrid-experience__footer">
         <h2 id="hybrid-experience-heading">My experiences so far</h2>

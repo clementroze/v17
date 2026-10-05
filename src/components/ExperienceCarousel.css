@@ -63,7 +63,9 @@
   border-radius: var(--radius-img);
   background: #202020;
   color: #fff;
-  box-shadow: 0 24px 44px -10px rgb(0 0 0 / 28%), 0 0 0 1px rgb(0 0 0 / 5%);
+  box-shadow:
+    0 24px 44px -10px rgb(0 0 0 / 28%),
+    0 0 0 1px rgb(0 0 0 / 5%);
   scroll-snap-align: center;
   user-select: none;
   transform: scale(1);
@@ -76,9 +78,12 @@
   transform: scale(0.99);
 }
 
-.hybrid-experience__card:hover {
+.hybrid-experience__card[data-pointer-hovered] {
+  --motion-card-scale: 1.025;
   transform: scale(1.025);
-  box-shadow: 0 30px 52px -12px rgb(0 0 0 / 34%), 0 0 0 1px rgb(0 0 0 / 6%);
+  box-shadow:
+    0 30px 52px -12px rgb(0 0 0 / 34%),
+    0 0 0 1px rgb(0 0 0 / 6%);
 }
 
 /* Pressing a card gives immediate tactile feedback, including when the full
@@ -86,15 +91,21 @@
 .hybrid-experience__card:active,
 .hybrid-experience__card:has(.hybrid-experience__card-link:active) {
   transform: scale(0.985);
-  box-shadow: 0 20px 36px -10px rgb(0 0 0 / 26%), 0 0 0 1px rgb(0 0 0 / 5%);
+  box-shadow:
+    0 20px 36px -10px rgb(0 0 0 / 26%),
+    0 0 0 1px rgb(0 0 0 / 5%);
   transition:
     transform 240ms cubic-bezier(0.22, 1.15, 0.36, 1),
     box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Pointer capture crosses cards while scrubbing; keep their scale stable. */
+/* Compose cursor scale with the velocity-driven lean during scrolling. */
+.hybrid-experience__track--intro .hybrid-experience__card,
+.hybrid-experience__track--keyboard .hybrid-experience__card,
+.hybrid-experience__track--snap-tilt .hybrid-experience__card,
+.hybrid-experience__track--scroll-tilt .hybrid-experience__card,
 .hybrid-experience__track--dragging .hybrid-experience__card {
-  transform: scale(0.99) rotate(var(--drag-tilt, 0deg));
+  transform: scale(var(--motion-card-scale, 0.99)) rotate(var(--drag-tilt, 0deg));
 }
 
 .hybrid-experience__card > picture {
@@ -157,7 +168,7 @@
   height: 20px;
   transition: transform 420ms cubic-bezier(0.22, 1.35, 0.36, 1);
 }
-.hybrid-experience__card:hover .hybrid-experience__arrow,
+.hybrid-experience__card[data-pointer-hovered] .hybrid-experience__arrow,
 .hybrid-experience__card-link:focus-visible .hybrid-experience__arrow {
   transform: translate(5px, -5px);
 }
@@ -194,7 +205,7 @@
 }
 
 .hybrid-experience__ruler span {
-  width: 1px;
+  width: 1.5px;
   height: calc(var(--ruler-height) + var(--ruler-hover-height, 0px));
   background: #b9b9b4;
   /* Height follows pointer position directly, without trailing transitions. */
@@ -218,6 +229,51 @@
   outline-offset: 2px;
 }
 
+.hybrid-experience__chevron {
+  touch-action: none;
+  user-select: none;
+  position: absolute;
+  bottom: 39px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b9b9b4;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    color 160ms ease,
+    opacity 240ms ease;
+}
+.hybrid-experience__chevron--previous {
+  right: calc(50% + min(130px, 26vw) + 8px);
+}
+.hybrid-experience__chevron--next {
+  left: calc(50% + min(130px, 26vw) + 8px);
+}
+.hybrid-experience[data-footer-phase="entering"] .hybrid-experience__chevron {
+  pointer-events: auto;
+}
+.hybrid-experience__chevron:hover {
+  color: #181818;
+}
+.hybrid-experience[data-footer-phase="entering"] .hybrid-experience__chevron:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+.hybrid-experience__chevron:disabled svg {
+  opacity: 0.3;
+}
+.hybrid-experience__chevron:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .hybrid-experience__footer {
   position: absolute;
   bottom: 20px;
@@ -229,14 +285,17 @@
 }
 
 .hybrid-experience__footer > *,
+.hybrid-experience__chevron,
 .hybrid-experience__ruler button {
   opacity: 0;
 }
 .hybrid-experience[data-footer-phase="entering"] .hybrid-experience__footer > *,
+.hybrid-experience[data-footer-phase="entering"] .hybrid-experience__chevron,
 .hybrid-experience[data-footer-phase="entering"] .hybrid-experience__ruler button {
   animation: pill-bounce-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .hybrid-experience[data-footer-phase="exiting"] .hybrid-experience__footer > *,
+.hybrid-experience[data-footer-phase="exiting"] .hybrid-experience__chevron,
 .hybrid-experience[data-footer-phase="exiting"] .hybrid-experience__ruler button {
   animation: pill-fade-out 0.45s cubic-bezier(0.4, 0, 0.6, 1) both;
 }
@@ -266,7 +325,7 @@
 @media (max-width: 768px) {
   .hybrid-experience {
     --card-size: min(420px, 78vw);
-    height: max(min(78svh, 720px), calc(var(--card-size) + 200px));
+    height: max(min(86svh, 800px), calc(var(--card-size) + 264px));
     min-height: 0;
   }
   .hybrid-experience__track {
@@ -288,14 +347,20 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hybrid-experience__track--intro .hybrid-experience__card,
+  .hybrid-experience__track--keyboard .hybrid-experience__card,
+  .hybrid-experience__track--snap-tilt .hybrid-experience__card,
+  .hybrid-experience__track--scroll-tilt .hybrid-experience__card,
   .hybrid-experience__track--dragging .hybrid-experience__card {
-    transform: scale(0.99);
+    transform: scale(var(--motion-card-scale, 0.99));
   }
   .hybrid-experience .hybrid-experience__footer > *,
+  .hybrid-experience .hybrid-experience__chevron,
   .hybrid-experience .hybrid-experience__ruler button {
     animation: none;
   }
   .hybrid-experience[data-footer-phase="entering"] .hybrid-experience__footer > *,
+  .hybrid-experience[data-footer-phase="entering"] .hybrid-experience__chevron,
   .hybrid-experience[data-footer-phase="entering"] .hybrid-experience__ruler button {
     animation: none;
     opacity: 1;
